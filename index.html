@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scoreboard Electron</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    body { background: #1b1d23; color: #fff; font-family: 'Montserrat', Arial, sans-serif; margin: 0; }
+    #tabs { display: flex; gap: 8px; background: #111; padding: 0.7em 0 0 1em; }
+    .tab-btn { background: #23252b; color: #fff; border: none; border-radius: 6px 6px 0 0; padding: 0.6em 2.5em; font-size: 1.2em; cursor: pointer; opacity: 0.7; }
+    .tab-btn.active { background: #484b5b; color: #ffe8b2; opacity: 1; font-weight: bold; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    /* Scoreboard visual styles igual que antes... */
+    .scoreboard-main { display: flex; justify-content: space-between; align-items: stretch; background: #191b22; height: 350px; box-shadow: 0 0 40px #0009; position: relative; overflow: hidden; margin-top:2em; }
+    .sb-side { width: 30%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 2em 2em 1em 2em; position: relative; }
+    .sb-side.right { align-items: flex-end; text-align: right; background: none; }
+    .sb-player-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; z-index: 0; }
+    .sb-side-content { position: relative; z-index: 2; }
+    .sb-player-name { font-size: 2.3em; font-weight: 900; margin-top: 1.5em; letter-spacing: 2px; text-shadow: 2px 2px 8px #000c; }
+    .scoreboard-center { width: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; text-align: center; }
+    .sb-event { margin-top: 0.6em; letter-spacing: 3px; font-size: 1.1em; color: #ccc; font-weight: 700; opacity: 0.85; }
+    .sb-score-row { font-size: 5em; font-weight: bold; letter-spacing: 0.12em; margin: 0.5em 0 0.3em 0; color: #fff; text-shadow: 0 4px 22px #000d; }
+    .sb-score-labels { display: flex; justify-content: center; gap: 4em; font-size: 1.1em; opacity: 0.7; font-weight: 500; margin-bottom: 0.5em; }
+    .sb-comm-row { display: flex; justify-content: center; gap: 3em; font-size: 1em; margin-top: 1.2em; color: #bbb; }
+    .sb-bottom-controls { background: #23252b; box-shadow: 0 0 20px #0007; padding: 1.4em 2em 0.6em 2em; border-radius: 0 0 10px 10px; display: flex; flex-wrap: wrap; gap: 1em; justify-content: space-between; align-items: flex-start; }
+    .sb-bottom-col { flex: 1 1 30%; min-width: 200px; margin-bottom: 0.5em; }
+    .sb-btn { background: #c98e2c; color: #fff; border: none; font-size: 1em; font-weight: bold; padding: 0.6em 1.2em; margin-top: 0.5em; margin-right: 0.5em; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 7px #0004; transition: background 0.1s; }
+    .sb-btn:active { background: #ad7727; }
+    .sb-dropdown, .sb-input { font-size: 1em; padding: 0.4em 0.7em; border-radius: 5px; border: 1px solid #333; background: #181921; color: #fff; margin-bottom: 0.6em; margin-top: 0.3em; width: 100%; box-sizing: border-box; }
+    @media (max-width: 900px) {
+      .scoreboard-main { flex-direction: column; height: auto; }
+      .sb-side, .sb-side.right, .scoreboard-center { width: 100%; }
+      .sb-side, .sb-side.right { padding: 1em; }
+      .scoreboard-center { padding: 1.2em 0 0.2em 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Tabs header -->
+  <div id="tabs">
+    <button class="tab-btn active" onclick="showTab(0)">Scoreboard</button>
+	<button class="tab-btn" onclick="showTab(1)">Bracket</button>
+	<button class="tab-btn" onclick="showTab(2)">Top 8</button>
+	<button class="tab-btn" onclick="showTab(3)">Twitch Bot</button>
+	<button class="tab-btn" onclick="showTab(4)">Challonge</button>
+  </div>
+
+  <!-- TAB 1: SCOREBOARD -->
+  <div class="tab-panel active">
+    <div class="scoreboard-main">
+      <div class="sb-side">
+        <img class="sb-player-img" src="https://static.wikia.nocookie.net/streetfighter/images/2/29/JuriSF6render.png" alt="Juri" />
+        <div class="sb-side-content">
+          <div class="sb-player-name" id="p1Name">Personaje 1</div>
+        </div>
+      </div>
+      <div class="scoreboard-center">
+        <div class="sb-event" id="sbEvent">MOONSTYLE</div>
+        <div class="sb-score-row">
+          <span id="p1Score">0</span>
+          <span style="color:#aaa; margin:0 0.45em;">-</span>
+          <span id="p2Score">0</span>
+        </div>
+        <div class="sb-score-labels">
+          <span id="p1Tag">Player One</span>
+          <span id="p2Tag">Player Two</span>
+        </div>
+        <div class="sb-comm-row">
+          <span><i class="fa fa-microphone"></i> Commentator #1</span>
+          <span><i class="fa fa-microphone"></i> Commentator #2</span>
+        </div>
+      </div>
+      <div class="sb-side right">
+        <img class="sb-player-img" src="https://static.wikia.nocookie.net/streetfighter/images/1/1e/KenSF6render.png" alt="Ken" />
+        <div class="sb-side-content">
+          <div class="sb-player-name" id="p2Name">Ken</div>
+        </div>
+      </div>
+    </div>
+    <div class="sb-bottom-controls">
+      <div class="sb-bottom-col">
+        <label>Player One<input class="sb-input" id="p1NameInput" value="Juri" /></label>
+        <label>Sponsor/Tag<input class="sb-input" id="p1TagInput" value="Player One" /></label>
+        <label>Character
+          <select class="sb-dropdown" id="p1Char">
+            <option>Juri</option>
+            <option>Cammy</option>
+            <option>Chun-Li</option>
+          </select>
+        </label>
+        <button class="sb-btn" onclick="changeScore(1,1)">Increase Score</button>
+        <button class="sb-btn" style="background:#333;" onclick="changeScore(1,-1)">Decrease Score</button>
+      </div>
+      <div class="sb-bottom-col" style="text-align:center;">
+        <label style="margin-bottom:1em;">
+			Game
+			<select id="gameSel" onchange="cambiarJuego()" style="margin-left:0.5em;">
+			  <option value="UNI2">Under Night In-Birth II</option>
+			  <option value="GGST">Guilty Gear Strive</option>
+			  <option value="SF6">Street Fighter 6</option>
+			  <!-- ... -->
+			</select>
+		  </label>
+        <button class="sb-btn" style="margin:0 auto;" onclick="swap()">Switch Players</button>
+        <button class="sb-btn" style="background:#555;" onclick="resetScores()">Reset Scores</button>
+		<button class="sb-btn" style="font-size:1.4em; padding: 0.8em 2.2em;" onclick="guardarScoreboard()">
+        Guardar Scoreboard
+      </button>
+	  <span id="msgGuardado" style="margin-left:1.2em; color:#8fff9f; font-size:1.1em;"></span>
+      </div>
+      <div class="sb-bottom-col" style="text-align:right;">
+        <label>Player Two<input class="sb-input" id="p2NameInput" value="Ken" /></label>
+        <label>Sponsor/Tag<input class="sb-input" id="p2TagInput" value="Player Two" /></label>
+        <label>Character
+          <select class="sb-dropdown" id="p2Char">
+            <option>Ken</option>
+            <option>Ryu</option>
+            <option>Guile</option>
+          </select>
+        </label>
+        <button class="sb-btn" onclick="changeScore(2,1)">Increase Score</button>
+        <button class="sb-btn" style="background:#333;" onclick="changeScore(2,-1)">Decrease Score</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: CHALLONGE -->
+  <div class="tab-panel">
+    <div style="text-align:center; margin:1em 0;">
+      <input id="apikey" type="password" placeholder="Challonge API Key" style="padding:0.5em; width:200px;" />
+      <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
+      <span id="msgApi" style="margin-left:1em; color:#9fa;"></span>
+      <br><br>
+      <input id="slugChallonge" placeholder="Slug de Challonge (ej: BVOXXVIuni2)" style="padding:0.5em; width:200px;" />
+      <button class="sb-btn" onclick="cargarJugadoresChallonge()">Cargar jugadores</button>
+      <select id="jugadoresChallonge" style="margin-left:1em; padding:0.4em;">
+        <option value="">Selecciona jugador</option>
+      </select>
+      <button class="sb-btn" onclick="ponerJugador1()">P1</button>
+      <button class="sb-btn" onclick="ponerJugador2()">P2</button>
+      <span id="msgChallonge" style="color:#aaffaa; margin-left:1em;"></span>
+    </div>
+  </div>
+  
+  <!-- TAB 3: BRACKET -->
+<div class="tab-panel" id="tab-bracket">
+  <div style="text-align:center; margin:2em;">
+    <input id="slugBracket" placeholder="Slug de Challonge (ej: BVOXXVIuni2)" style="padding:0.5em; width:220px;" />
+    <button class="sb-btn" onclick="mostrarBracket()">Mostrar Bracket</button>
+    <br><br>
+    <iframe id="challongeBracket" style="width:90vw; height:70vh; border:none; background:#111;" allowtransparency="true"></iframe>
+  </div>
+</div>
+<!-- TAB 4: TOP 8 -->
+<div class="tab-panel" id="tab-top8">
+  <div style="text-align:center; margin:2em;">
+    <input id="slugTop8" placeholder="Slug de Challonge" style="padding:0.5em; width:220px;" />
+    <button class="sb-btn" onclick="cargarTop8()">Cargar Top 8</button>
+    <br><br>
+    <table style="margin:0 auto; background:#222; border-radius:10px; padding:1em; box-shadow:0 4px 12px #000a;">
+      <thead>
+        <tr>
+          <th style="padding:0.7em 2em;">Puesto</th>
+          <th style="padding:0.7em 2em;">Jugador</th>
+          <th style="padding:0.7em 2em;">Personaje</th>
+        </tr>
+      </thead>
+      <tbody id="top8Table"></tbody>
+    </table>
+    <button class="sb-btn" style="margin-top:1em;" onclick="guardarTop8()">Guardar Top 8</button>
+    <span id="msgTop8" style="margin-left:1.2em; color:#8fff9f; font-size:1.1em;"></span>
+  </div>
+</div>
+ <!-- TAB 4: Twitchbot -->
+<div class="tab-panel" id="tab-twitchbot">
+  <div style="text-align:center; margin:2em;">
+    <h2>Conectar bot a Twitch</h2>
+    <input id="twitchUser" placeholder="Usuario de Twitch" style="padding:0.5em; width:140px;" />
+    <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." style="padding:0.5em; width:210px;" />
+    <input id="twitchChannel" placeholder="Canal (sin #)" style="padding:0.5em; width:140px;" />
+    <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
+    <span id="msgTwitch" style="margin-left:1.2em; color:#8fff9f; font-size:1.1em;"></span>
+    <br><br>
+    <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
+    <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
+    <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
+    <br><br>
+    <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." style="padding:0.5em; width:320px;" />
+    <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
+  </div>
+</div>
+
+
+  <script src="https://kit.fontawesome.com/50e6749e1a.js" crossorigin="anonymous"></script>
+  <script>
+    // ----- Tabs -----
+	(async function cargarScoreboardAlAbrir() {
+  const res = await ipcRenderer.invoke('load-json');
+  if (res.ok && res.data) {
+    const d = res.data;
+    if (d.player1) document.getElementById('p1NameInput').value = d.player1;
+    if (d.player2) document.getElementById('p2NameInput').value = d.player2;
+    if (typeof d.score1 === "number") document.getElementById('p1Score').textContent = d.score1;
+    if (typeof d.score2 === "number") document.getElementById('p2Score').textContent = d.score2;
+    if (d.tag1) document.getElementById('p1TagInput').value = d.tag1;
+    if (d.tag2) document.getElementById('p2TagInput').value = d.tag2;
+    if (d.char1) document.getElementById('p1Char').value = d.char1;
+    if (d.char2) document.getElementById('p2Char').value = d.char2;
+    if (d.game) document.getElementById('gameSel').value = d.game;
+    updateVisual && updateVisual();
+  }
+})();
+
+//Twitchbot
+let ultimoSlugBracket = ''; // asegúrate de actualizar esto cuando cargues el slug/bracket
+
+async function conectarTwitchBot() {
+  const username = document.getElementById('twitchUser').value.trim();
+  const oauth = document.getElementById('twitchOAuth').value.trim();
+  const channel = document.getElementById('twitchChannel').value.trim();
+  if (!username || !oauth || !channel) {
+    document.getElementById('msgTwitch').textContent = "❌ Faltan datos";
+    return;
+  }
+  const res = await ipcRenderer.invoke('twitch-connect', { username, oauth, channel: "#" + channel });
+  document.getElementById('msgTwitch').textContent = res.ok ? "✅ Conectado" : "❌ " + res.error;
+}
+async function enviarComandoBot(cmd) {
+  if (!cmd) return;
+  const res = await ipcRenderer.invoke('twitch-say', { message: cmd });
+  document.getElementById('msgTwitch').textContent = res.ok ? `✅ "${cmd}" enviado` : "❌ " + res.error;
+}
+async function enviarBracketBot() {
+  const res = await ipcRenderer.invoke('twitch-say', { message: '!bracket' });
+  document.getElementById('msgTwitch').textContent = res.ok ? "✅ !bracket enviado" : "❌ " + res.error;
+}
+//personajes
+let listaPersonajes = [];
+let imgPersonajes = {};
+
+async function cambiarJuego() {
+  const juegoFolder = document.getElementById('gameSel').value;
+  const res = await ipcRenderer.invoke('get-personajes', juegoFolder);
+  if (res.personajes && res.personajes.length) {
+    listaPersonajes = res.personajes.map(p => p.nombre);
+    imgPersonajes = {};
+    res.personajes.forEach(p => { imgPersonajes[p.nombre] = p.imagen; });
+    llenarSelectPersonajes('p1Char');
+    llenarSelectPersonajes('p2Char');
+    // Si tienes selects para Top 8:
+    for (let i = 0; i < 8; ++i) llenarSelectPersonajes('top8char'+i);
+    // Actualiza visual para refrescar las imágenes de personaje actuales
+    updateVisual();
+  } else {
+    listaPersonajes = [];
+    imgPersonajes = {};
+    llenarSelectPersonajes('p1Char');
+    llenarSelectPersonajes('p2Char');
+    for (let i = 0; i < 8; ++i) llenarSelectPersonajes('top8char'+i);
+    updateVisual();
+  }
+}
+
+// Inicializa con el juego seleccionado al cargar la app:
+window.addEventListener('DOMContentLoaded', cambiarJuego);
+
+function llenarSelectPersonajes(id) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  select.innerHTML = listaPersonajes.map(
+    char => `<option value="${char}">${char}</option>`
+  ).join('');
+}
+
+function llenarSelectPersonajes(id) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  select.innerHTML = listaPersonajes.map(
+    char => `<option value="${char}">${char}</option>`
+  ).join('');
+}
+
+async function cargarTop8() {
+  const slug = document.getElementById('slugTop8').value.trim();
+  const msg = document.getElementById('msgTop8');
+  msg.textContent = "Cargando...";
+  const r = await ipcRenderer.invoke('get-top8', slug);
+  if (r.error || !r.top8) {
+    msg.textContent = r.error || "No se pudo obtener el top 8.";
+    document.getElementById('top8Table').innerHTML = "";
+    return;
+  }
+  msg.textContent = "Top 8 cargado.";
+  const tbody = document.getElementById('top8Table');
+  tbody.innerHTML = "";
+  r.top8.forEach((p, idx) => {
+    tbody.innerHTML += `
+      <tr>
+        <td style="padding:0.5em 1em;">${idx+1}</td>
+        <td style="padding:0.5em 1em;">${p.name}</td>
+        <td style="padding:0.5em 1em;">
+          <select class="sb-dropdown" id="top8char${idx}">
+            ${personajesLista.map(char => `<option value="${char}">${char}</option>`).join("")}
+          </select>
+        </td>
+      </tr>
+    `;
+  });
+  setTimeout(()=>msg.textContent='', 2500);
+}
+
+async function guardarTop8() {
+  const tbody = document.getElementById('top8Table');
+  if (!tbody.children.length) return;
+  const top8Data = [];
+  for (let i = 0; i < tbody.children.length; ++i) {
+    const jugador = tbody.children[i].children[1].textContent;
+    const personaje = document.getElementById('top8char'+i).value;
+    top8Data.push({ nombre: jugador, personaje });
+  }
+  // Guarda como top8.json
+  const dir = await ipcRenderer.invoke('open-folder');
+  // Puedes guardar con el mismo handler save-json o crear uno aparte si quieres solo el top8.
+  // Ejemplo con save-json:
+  const res = await ipcRenderer.invoke('save-json', { top8: top8Data });
+  document.getElementById('msgTop8').textContent = res.ok ? "✅ Top 8 guardado." : "❌ Error al guardar";
+  setTimeout(()=>{ document.getElementById('msgTop8').textContent=''; }, 3000);
+}
+	function mostrarBracket() {
+	  const slug = document.getElementById('slugBracket').value.trim();
+	  const iframe = document.getElementById('challongeBracket');
+	  if (!slug) {
+		iframe.src = '';
+		return;
+	  }
+	  iframe.src = `https://challonge.com/${slug}/module?theme=2&show_standings=1&show_tournament_name=1`;
+	}
+    function showTab(n) {
+      document.querySelectorAll('.tab-btn').forEach((btn,i)=>btn.classList.toggle('active',i===n));
+      document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+    }
+
+    // Scoreboard logic (igual que antes)
+    const { ipcRenderer } = require('electron');
+    document.querySelectorAll('.sb-input, .sb-dropdown').forEach(el => {
+      el.addEventListener('input', updateVisual);
+    });
+
+    function updateVisual() {
+	  document.getElementById('p1Name').textContent = document.getElementById('p1NameInput').value;
+	  document.getElementById('p1Tag').textContent = document.getElementById('p1TagInput').value;
+	  document.getElementById('p2Name').textContent = document.getElementById('p2NameInput').value;
+	  document.getElementById('p2Tag').textContent = document.getElementById('p2TagInput').value;
+	  // Cambia imágenes de personaje según select y juego actual
+	  const p1Char = document.getElementById('p1Char').value;
+	  const p2Char = document.getElementById('p2Char').value;
+	  document.querySelector('.sb-side .sb-player-img').src = imgPersonajes[p1Char] || '';
+	  document.querySelector('.sb-side.right .sb-player-img').src = imgPersonajes[p2Char] || '';
+	}
+
+    function changeScore(player, delta) {
+      const id = player === 1 ? 'p1Score' : 'p2Score';
+      let score = parseInt(document.getElementById(id).textContent) || 0;
+      score = Math.max(0, score + delta);
+      document.getElementById(id).textContent = score;
+    }
+    function swap() {
+      let p1Name = document.getElementById('p1NameInput').value;
+      let p2Name = document.getElementById('p2NameInput').value;
+      let p1Tag = document.getElementById('p1TagInput').value;
+      let p2Tag = document.getElementById('p2TagInput').value;
+      let p1Score = document.getElementById('p1Score').textContent;
+      let p2Score = document.getElementById('p2Score').textContent;
+      let p1Char = document.getElementById('p1Char').value;
+      let p2Char = document.getElementById('p2Char').value;
+      document.getElementById('p1NameInput').value = p2Name;
+      document.getElementById('p2NameInput').value = p1Name;
+      document.getElementById('p1TagInput').value = p2Tag;
+      document.getElementById('p2TagInput').value = p1Tag;
+      document.getElementById('p1Score').textContent = p2Score;
+      document.getElementById('p2Score').textContent = p1Score;
+      document.getElementById('p1Char').value = p2Char;
+      document.getElementById('p2Char').value = p1Char;
+      updateVisual();
+    }
+    function resetScores() {
+      document.getElementById('p1Score').textContent = 0;
+      document.getElementById('p2Score').textContent = 0;
+    }
+    function getScoreboardData() {
+      return {
+        player1: document.getElementById('p1NameInput').value,
+        player2: document.getElementById('p2NameInput').value,
+        score1: Number(document.getElementById('p1Score').textContent),
+        score2: Number(document.getElementById('p2Score').textContent),
+        tag1: document.getElementById('p1TagInput').value,
+        tag2: document.getElementById('p2TagInput').value,
+        char1: document.getElementById('p1Char').value,
+        char2: document.getElementById('p2Char').value,
+        game: document.getElementById('gameSel').value
+      };
+    }
+    async function guardarScoreboard() {
+      const data = getScoreboardData();
+      const res = await ipcRenderer.invoke('save-json', data);
+      const msg = document.getElementById('msgGuardado');
+      if (res.ok) {
+        msg.textContent = '✅ ¡Guardado!';
+        setTimeout(()=>{ msg.textContent=''; }, 3000);
+      } else {
+        msg.textContent = '❌ Error al guardar';
+      }
+    }
+    async function abrirOutput() {
+      await ipcRenderer.invoke('open-folder');
+    }
+
+    // --- CHALLONGE TAB LOGIC ---
+    async function guardarConfig() {
+	  const apiKey = document.getElementById('apikey').value.trim();
+	  const oauth = document.getElementById('twitchOAuth').value.trim();
+	  const twitchUser = document.getElementById('twitchUser').value.trim();
+	  const twitchChannel = document.getElementById('twitchChannel').value.trim();
+	  await ipcRenderer.invoke('save-config', { apiKey, oauth, twitchUser, twitchChannel });
+	  // Mensaje de éxito, etc.
+	}
+	(async function cargarConfigAlInicio() {
+  const res = await ipcRenderer.invoke('load-config');
+  if (res.ok && res.config) {
+    if (res.config.apiKey) document.getElementById('apikey').value = res.config.apiKey;
+    if (res.config.twitchOAuth) document.getElementById('twitchOAuth').value = res.config.twitchOAuth;
+    if (res.config.twitchUser) document.getElementById('twitchUser').value = res.config.twitchUser;
+    if (res.config.twitchChannel) document.getElementById('twitchChannel').value = res.config.twitchChannel;
+  }
+})();
+    (async function(){
+      const r = await ipcRenderer.invoke('load-api-key');
+      if (r.ok && r.key) document.getElementById('apikey').value = r.key;
+    })();
+    async function cargarJugadoresChallonge() {
+      const slug = document.getElementById('slugChallonge').value.trim();
+      if (!slug) return;
+      document.getElementById('msgChallonge').textContent = "Consultando...";
+      const r = await ipcRenderer.invoke('get-participants', slug);
+      if (r.error) {
+        document.getElementById('msgChallonge').textContent = r.error;
+        return;
+      }
+      let opts = '<option value="">Selecciona jugador</option>';
+      (r.participants || []).forEach(p => {
+        opts += `<option value="${p.name}">${p.name}</option>`;
+      });
+      document.getElementById('jugadoresChallonge').innerHTML = opts;
+      document.getElementById('msgChallonge').textContent = "Jugadores cargados.";
+      setTimeout(()=>document.getElementById('msgChallonge').textContent="",2000);
+    }
+    function ponerJugador1() {
+      const name = document.getElementById('jugadoresChallonge').value;
+      if (name) document.getElementById('p1NameInput').value = name;
+      updateVisual();
+    }
+    function ponerJugador2() {
+      const name = document.getElementById('jugadoresChallonge').value;
+      if (name) document.getElementById('p2NameInput').value = name;
+      updateVisual();
+    }
+  </script>
+</body>
+</html>
