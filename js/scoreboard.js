@@ -122,9 +122,11 @@ function getScoreboardData() {
     tag2: document.getElementById('p2TagInput').value,
     char1: document.getElementById('p1Char').value,
     char2: document.getElementById('p2Char').value,
-    game: document.getElementById('gameSel').value
+    game: document.getElementById('gameSel').value,
+    round: window.currentRoundName || '' // <-- esto guarda la ronda
   };
 }
+
 
 async function guardarScoreboard() {
   const data = getScoreboardData();
@@ -225,14 +227,15 @@ async function cargarTop8() {
     `;
   });
 
-  // --- Agrega estas líneas aquí ---
+  // --- Obtén el nombre del torneo desde Challonge y GUÁRDALO GLOBAL ---
   const titleRes = await ipcRenderer.invoke('get-tournament-title', slug);
   let nombreTorneo = titleRes.title || slug;
+  window.nombreTorneoActual = nombreTorneo;  // <<--- LÍNEA CRUCIAL
   mostrarMensajeTop8(nombreTorneo, r.top8);
-  // --- hasta aquí ---
 
   setTimeout(() => msg.textContent = '', 2500);
 }
+
 
 
 
@@ -240,13 +243,26 @@ async function guardarTop8() {
   const tbody = document.getElementById('top8Table');
   if (!tbody.children.length) return;
   const top8Data = [];
+  const juego = document.getElementById('gameSel').value; // ← CORREGIDO
+
+  // Obtén el nombre del torneo desde donde lo guardes globalmente
+  // Supongamos que lo tienes en window.nombreTorneoActual (ajusta si es diferente)
+  const nombreTorneo = window.nombreTorneoActual || "Torneo sin nombre";
+  const fecha = new Date().toLocaleDateString('es-CL');
+
   for (let i = 0; i < tbody.children.length; ++i) {
     const jugador = tbody.children[i].children[1].textContent;
     const personaje = document.getElementById('top8char' + i).value;
-    top8Data.push({ nombre: jugador, personaje });
+    top8Data.push({ nombre: jugador, personaje, juego });
   }
-  const dir = await ipcRenderer.invoke('open-folder');
-  const res = await ipcRenderer.invoke('save-json', { top8: top8Data });
+  
+  // Guarda el JSON incluyendo el campo 'evento'
+  const res = await ipcRenderer.invoke('save-json', {
+    evento: nombreTorneo,  // <--- aquí va el nombre del torneo de Challonge
+    fecha: fecha,
+    top8: top8Data
+  });
+
   document.getElementById('msgTop8').textContent = res.ok ? "✅ Top 8 guardado." : "❌ Error al guardar";
   setTimeout(() => { document.getElementById('msgTop8').textContent = ''; }, 3000);
 }
@@ -329,6 +345,25 @@ function mostrarBracket() {
 // ================================
 let matchesCargados = [];
 
+function nombreDeRonda(round, roundsInfo) {
+  // roundsInfo: { maxWinners: N, minLosers: -N, maxLosers: -1 }
+  // Puedes mejorarlo según el tamaño del bracket (esto es un ejemplo simple para Top 8/16/32)
+  if (round > 0) {
+    if (round === roundsInfo.maxWinners) return "Winners Finals";
+    if (round === roundsInfo.maxWinners - 1) return "Winners Semis";
+    if (round === 1) return "Winners R1";
+    return "Winners Bracket";
+  }
+  if (round < 0) {
+    if (round === -1) return "Losers Top 8";
+    if (round === roundsInfo.minLosers) return "Losers Finals";
+    if (round === roundsInfo.minLosers + 1) return "Losers Semis";
+    return "Losers Bracket";
+  }
+  return "";
+}
+
+
 async function cargarMatches() {
   const slug = document.getElementById('editSlug').value.trim();
   if (!slug) {
@@ -343,12 +378,23 @@ async function cargarMatches() {
     return;
   }
   matchesCargados = res.matches || [];
+
+  // === BLOQUE NUEVO PARA NOMBRES BONITOS DE RONDAS ===
+  const winnerRounds = matchesCargados.filter(m => m.round > 0).map(m => m.round);
+  const maxWinners = winnerRounds.length ? Math.max(...winnerRounds) : 1;
+  const loserRounds = matchesCargados.filter(m => m.round < 0).map(m => m.round);
+  const minLosers = loserRounds.length ? Math.min(...loserRounds) : -1;
+  const maxLosers = loserRounds.length ? Math.max(...loserRounds) : -1;
+  const roundsInfo = { maxWinners, minLosers, maxLosers };
+	
   const select = document.getElementById('selectMatch');
   select.innerHTML = matchesCargados.map(m =>
     `<option value="${m.id}">
-      [${m.round > 0 ? "Winners" : "Losers"} R${Math.abs(m.round)}] ${m.player1_name} vs ${m.player2_name}
+      [${nombreDeRonda(m.round, roundsInfo)}] ${m.player1_name} vs ${m.player2_name}
     </option>`
   ).join('');
+  // === FIN DEL BLOQUE NUEVO ===
+
   select.style.display = "";
   document.getElementById('msgMatches').textContent = "Selecciona un match";
   select.onchange = mostrarMatchEnScoreboard;
@@ -356,13 +402,30 @@ async function cargarMatches() {
     select.selectedIndex = 0;
     mostrarMatchEnScoreboard();
   }
+
 }
+
 
 function mostrarMatchEnScoreboard() {
   const select = document.getElementById('selectMatch');
   const matchId = select.value;
   const match = matchesCargados.find(m => String(m.id) === String(matchId));
   if (!match) return;
+
+  // ========== CALCULA roundsInfo en cada llamada ==========
+  // Así siempre se refresca según los matches cargados
+  const winnerRounds = matchesCargados.filter(m => m.round > 0).map(m => m.round);
+  const maxWinners = winnerRounds.length ? Math.max(...winnerRounds) : 1;
+  const loserRounds = matchesCargados.filter(m => m.round < 0).map(m => m.round);
+  const minLosers = loserRounds.length ? Math.min(...loserRounds) : -1;
+  const maxLosers = loserRounds.length ? Math.max(...loserRounds) : -1;
+  const roundsInfo = { maxWinners, minLosers, maxLosers };
+
+  // Calcula el nombre de la ronda con roundsInfo actualizado
+  const roundName = nombreDeRonda(match.round, roundsInfo);
+  document.getElementById('sbEvent').textContent = roundName;
+  window.currentRoundName = roundName;
+
   document.getElementById('p1NameInput').value = match.player1_name;
   document.getElementById('p2NameInput').value = match.player2_name;
   if (match.scores_csv) {
@@ -377,6 +440,7 @@ function mostrarMatchEnScoreboard() {
   }
   if (typeof updateVisual === "function") updateVisual();
 }
+
 
 // ================================
 //      REPORTAR RESULTADO
@@ -526,4 +590,20 @@ async function cambiarEscenaOBS(scene) {
   document.getElementById('msgOBS').innerHTML = res.ok
     ? `<span style="color:#8fff9f">&#x2705; Cambiado a "${scene}"</span>`
     : `<span style="color:#ffb3b3">&#x274C; ${res.error || "No se pudo cambiar"}</span>`;
+}
+async function capturarEscenaOBS() {
+  const res = await window.ipcRenderer.invoke('capturar-escena-obs');
+  const msg = document.getElementById('msgCapturaOBS');
+  if (res.ok) {
+    msg.textContent = "✅ Captura copiada al portapapeles";
+  } else {
+    msg.textContent = "❌ Error: " + (res.error || "No se pudo capturar");
+  }
+  setTimeout(() => { msg.textContent = ""; }, 2500);
+}
+
+function twittearMensaje() {
+  // Toma el mensaje del textarea (o del input que quieras usar)
+  const mensaje = encodeURIComponent(document.getElementById('mensajeTop8Text').value);
+  window.open(`https://twitter.com/intent/tweet?text=${mensaje}`, '_blank');
 }

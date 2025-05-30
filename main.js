@@ -1,17 +1,21 @@
+// =========================
+//      DEPENDENCIAS
+// =========================
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
+const tmi = require('tmi.js');
 const configFile = path.join(app.getPath('userData'), 'scoreboard-config.json');
+
 let saveDir = null;
 let userApiKey = null;
+let twitchBot = null;
+let twitchChannelActual = '';
 
-// Quitar menú superior
-app.on('browser-window-created', (_, win) => {
-  win.setMenu(null);
-});
-
-// Pregunta solo la primera vez
+// =========================
+//   UTILIDAD: CARPETA
+// =========================
 function ensureSaveDir(win) {
   if (saveDir) return saveDir;
   if (fs.existsSync(configFile)) {
@@ -38,13 +42,143 @@ function ensureSaveDir(win) {
     return saveDir;
   }
 }
-//top8
-ipcMain.handle('get-top8', async (event, slug) => {
-  // Usa la misma lógica que tu handler de Challonge
-  if (!userApiKey) return { error: 'API key no establecida.' };
-  const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${userApiKey}`;
+
+// =========================
+//      CREAR VENTANA
+// =========================
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    icon: path.join(__dirname, 'icon.ico'),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+  });
+  win.loadFile('index.html');
+  win.once('ready-to-show', () => {
+    ensureSaveDir(win);
+  });
+}
+
+app.on('browser-window-created', (_, win) => {
+  win.setMenu(null);
+});
+
+app.whenReady().then(createWindow);
+
+// =========================
+//     IPC HANDLERS
+// =========================
+
+// -------- Scoreboard JSON --------
+ipcMain.handle('save-json', async (event, data) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'scoreboard.json');
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  return { ok: true, file };
+});
+
+ipcMain.handle('open-folder', async () => {
+  const dir = ensureSaveDir();
+  shell.openPath(dir);
+  return { ok: true, dir };
+});
+
+ipcMain.handle('load-json', async () => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'scoreboard.json');
+  if (fs.existsSync(file)) {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return { ok: true, data, file };
+  }
+  return { ok: false, file };
+});
+
+// -------- Guardar/Cargar API Key y Credenciales Twitch --------
+ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel }) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  let data = {};
+  if (fs.existsSync(file)) {
+    try {
+      data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch (e) {}
+  }
+  if (apiKey) data.apiKey = apiKey;
+  if (twitchOAuth) data.twitchOAuth = twitchOAuth;
+  if (twitchUser) data.twitchUser = twitchUser;
+  if (twitchChannel) data.twitchChannel = twitchChannel;
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  return { ok: true };
+});
+
+ipcMain.handle('load-api-key', async () => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  if (fs.existsSync(file)) {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return {
+      ok: true,
+      apiKey: data.apiKey || '',
+      twitchOAuth: data.twitchOAuth || '',
+      twitchUser: data.twitchUser || '',
+      twitchChannel: data.twitchChannel || ''
+    };
+  }
+  return { ok: false, apiKey: '', twitchOAuth: '', twitchUser: '', twitchChannel: '' };
+});
+
+// =========================
+//        CHALLONGE
+// =========================
+
+// Obtener jugadores desde Challonge
+ipcMain.handle('get-participants', async (event, slug) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
+  }
+  if (!apiKey) return { error: 'API key no establecida.' };
+
+  const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
   try {
-    const res = await require('node-fetch')(url);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Error consultando Challonge');
+    const data = await res.json();
+    const participants = data.map(p => ({
+      id: p.participant.id,
+      name: p.participant.name,
+      final_rank: p.participant.final_rank || null
+    }));
+    return { participants };
+  } catch (e) {
+    return { error: 'No se pudo consultar Challonge: ' + e.message };
+  }
+});
+
+// Obtener Top 8
+ipcMain.handle('get-top8', async (event, slug) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
+  }
+  if (!apiKey) return { error: 'API key no establecida.' };
+
+  const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
+  try {
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Error consultando Challonge');
     const data = await res.json();
     const top8 = data
@@ -57,11 +191,109 @@ ipcMain.handle('get-top8', async (event, slug) => {
     return { error: 'No se pudo consultar Challonge: ' + e.message };
   }
 });
-//twitch integration
-const tmi = require('tmi.js');
 
-let twitchBot = null;
-let twitchChannelActual = '';
+// Obtener matches y participantes (solo matches abiertos)
+ipcMain.handle('get-matches-and-participants', async (event, slug) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
+  }
+  if (!apiKey) return { error: 'API key no establecida.' };
+
+  const urlPart = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
+  const urlMatch = `https://api.challonge.com/v1/tournaments/${slug}/matches.json?api_key=${apiKey}`;
+  try {
+    const [partRes, matchRes] = await Promise.all([
+      fetch(urlPart),
+      fetch(urlMatch)
+    ]);
+    if (!partRes.ok || !matchRes.ok) throw new Error('Error consultando Challonge');
+    const partData = await partRes.json();
+    const matchData = await matchRes.json();
+    const participantes = {};
+    partData.forEach(p => {
+      participantes[p.participant.id] = {
+        id: p.participant.id,
+        name: p.participant.name
+      };
+    });
+    // SOLO MATCHES ABIERTOS (sin ganador)
+    const matches = matchData
+      .filter(m => !m.match.winner_id)
+      .map(m => ({
+        id: m.match.id,
+        player1_id: m.match.player1_id,
+        player2_id: m.match.player2_id,
+        player1_name: participantes[m.match.player1_id]?.name || 'TBD',
+        player2_name: participantes[m.match.player2_id]?.name || 'TBD',
+        round: m.match.round,
+        scores_csv: m.match.scores_csv || '',
+        winner_id: m.match.winner_id
+      }));
+    return { matches, participantes: Object.values(participantes) };
+  } catch (e) {
+    return { error: 'No se pudo consultar Challonge: ' + e.message };
+  }
+});
+
+// Modificar resultados (reportar match)
+ipcMain.handle('report-match-score', async (event, { slug, matchId, scoreCsv, winnerId }) => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
+  }
+  if (!apiKey) return { ok: false, error: 'API key no establecida.' };
+
+  const url = `https://api.challonge.com/v1/tournaments/${slug}/matches/${matchId}.json?api_key=${apiKey}`;
+  try {
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        match: {
+          scores_csv: scoreCsv,
+          winner_id: winnerId
+        }
+      })
+    });
+    if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+    const data = await res.json();
+    return { ok: true, match: data.match };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// =========================
+//        PERSONAJES
+// =========================
+ipcMain.handle('get-personajes', async (event, juegoFolder) => {
+  if (!juegoFolder) return { personajes: [] };
+  const dir = path.join(process.cwd(), 'personajes', juegoFolder);
+  if (!fs.existsSync(dir)) return { personajes: [] };
+  const files = fs.readdirSync(dir).filter(f =>
+    f.match(/\.(png|jpg|jpeg)$/i)
+  );
+  const personajes = files.map(f => ({
+    nombre: path.parse(f).name,
+    imagen: 'personajes/' + juegoFolder + '/' + f
+  }));
+  return { personajes };
+});
+
+// =========================
+//       TWITCH INTEGRATION
+// =========================
 
 ipcMain.handle('twitch-connect', async (event, { username, oauth, channel }) => {
   try {
@@ -92,114 +324,83 @@ ipcMain.handle('twitch-say', async (event, { message }) => {
 });
 
 
-
-//personajes
-
-ipcMain.handle('get-personajes', async (event, juegoFolder) => {
-  // juegoFolder es algo como 'SF6', 'UNI2', etc
-  if (!juegoFolder) return { personajes: [] };
-  const dir = path.join(process.cwd(), 'personajes', juegoFolder);
-  if (!fs.existsSync(dir)) return { personajes: [] };
-  const files = fs.readdirSync(dir).filter(f =>
-    f.match(/\.(png|jpg|jpeg)$/i)
-  );
-  const personajes = files.map(f => ({
-    nombre: path.parse(f).name,
-    imagen: 'personajes/' + juegoFolder + '/' + f
-  }));
-  return { personajes };
-});
-
-//
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    icon: path.join(__dirname, 'icon.ico'),
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    }
-  });
-  win.loadFile('index.html');
-  win.once('ready-to-show', () => {
-    ensureSaveDir(win);
-  });
-}
-
-app.whenReady().then(createWindow);
-
-// Guardar scoreboard JSON
-ipcMain.handle('save-json', async (event, data) => {
+ipcMain.handle('get-tournament-title', async (event, slug) => {
   const dir = ensureSaveDir();
-  const file = path.join(dir, 'scoreboard.json');
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-  return { ok: true, file };
-});
-
-// Abrir carpeta de guardado
-ipcMain.handle('open-folder', async () => {
-  const dir = ensureSaveDir();
-  shell.openPath(dir);
-  return { ok: true, dir };
-});
-
-// Cargar scoreboard JSON
-ipcMain.handle('load-json', async () => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'scoreboard.json');
+  const file = path.join(dir, 'apikey.json');
+  let apiKey = '';
   if (fs.existsSync(file)) {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return { ok: true, data, file };
-  }
-  return { ok: false, file };
-});
-
-// Guardar Challonge API Key
-ipcMain.handle('save-config', async (event, { apiKey, oauth, twitchUser, twitchChannel }) => {
-  const configPath = path.join(app.getPath('userData'), 'scoreboard-config.json');
-  let config = {};
-  if (fs.existsSync(configPath)) {
     try {
-      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    } catch(e) {}
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
   }
-  if (apiKey !== undefined) config.apiKey = apiKey;
-  if (oauth !== undefined) config.twitchOAuth = oauth;
-  if (twitchUser !== undefined) config.twitchUser = twitchUser;
-  if (twitchChannel !== undefined) config.twitchChannel = twitchChannel;
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
-  return { ok: true };
-});
-
-// Cargar Challonge API Key
-ipcMain.handle('load-config', async () => {
-  const configPath = path.join(app.getPath('userData'), 'scoreboard-config.json');
-  if (fs.existsSync(configPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      return { ok: true, config };
-    } catch(e) {}
-  }
-  return { ok: false, config: {} };
-});
-
-
-// Obtener jugadores desde Challonge
-ipcMain.handle('get-participants', async (event, slug) => {
-  if (!userApiKey) return { error: 'API key no establecida.' };
-  const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${userApiKey}`;
+  if (!apiKey) return { error: 'API key no establecida.' };
+  const url = `https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`;
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Error consultando Challonge');
     const data = await res.json();
-    const participants = data.map(p => ({
-      id: p.participant.id,
-      name: p.participant.name,
-      final_rank: p.participant.final_rank || null
-    }));
-    return { participants };
+    return { title: data.tournament.name };
   } catch (e) {
     return { error: 'No se pudo consultar Challonge: ' + e.message };
   }
 });
+
+
+// =============== OBS WEBSOCKET ===============
+const OBSWebSocket = require('obs-websocket-js').default;
+let obs = null;
+
+ipcMain.handle('conectar-obs', async (event, { host, port, password }) => {
+  if (!obs) obs = new OBSWebSocket();
+  try {
+    await obs.connect(`ws://${host}:${port}`, password);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'No se pudo conectar' };
+  }
+});
+
+ipcMain.handle('cambiar-escena-obs', async (event, scene) => {
+  if (!obs) return { ok: false, error: 'OBS no conectado' };
+  try {
+    await obs.call('SetCurrentProgramScene', { sceneName: scene });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'No se pudo cambiar la escena' };
+  }
+});
+
+// Obtener lista de escenas
+ipcMain.handle('get-obs-scenes', async () => {
+  if (!obs) return { ok: false, error: 'OBS no conectado' };
+  try {
+    const { scenes } = await obs.call('GetSceneList');
+    return { ok: true, scenes: scenes.map(s => s.sceneName) };
+  } catch (e) {
+    return { ok: false, error: e.message || 'No se pudieron obtener las escenas' };
+  }
+});
+
+
+const { clipboard, nativeImage } = require('electron');
+
+ipcMain.handle('capturar-escena-obs', async () => {
+  if (!obs) return { ok: false, error: 'OBS no conectado' };
+  try {
+    const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
+    const { imageData } = await obs.call('GetSourceScreenshot', {
+      sourceName: currentProgramSceneName,
+      imageFormat: 'png',
+      imageWidth: 1920,
+      imageHeight: 1080
+    });
+    // Crea imagen a partir de base64
+    const image = nativeImage.createFromBuffer(Buffer.from(imageData, 'base64'));
+    clipboard.writeImage(image);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'No se pudo capturar la escena' };
+  }
+});
+

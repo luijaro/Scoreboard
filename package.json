@@ -1,6 +1,6 @@
 {
-  "name": "scoreboard-electron",
-  "version": "1.0.3",
+  "name": "scoreboard-electron version 1.0.5",
+  "version": "1.0.5",
   "description": "Scoreboard visual app con integración personalizada.",
   "main": "main.js",
   "scripts": {
@@ -8,10 +8,11 @@
     "dist": "electron-builder"
   },
   "dependencies": {
+    "obs-websocket-js": "^5.0.6",
     "tmi.js": "^1.8.5"
   },
   "devDependencies": {
-	"electron": "^29.0.0",
+    "electron": "^29.0.0",
     "electron-builder": "^26.0.12"
   },
   "build": {
