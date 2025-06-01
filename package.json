@@ -1,6 +1,6 @@
 {
-  "name": "scoreboard-electron version 1.0.5",
-  "version": "1.0.5",
+  "name": "scoreboard-electron",
+  "version": "1.2.5",
   "description": "Scoreboard visual app con integración personalizada.",
   "main": "main.js",
   "scripts": {

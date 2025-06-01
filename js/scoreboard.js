@@ -1,9 +1,9 @@
-
 // ================================
 //         CARGA INICIAL
 // ================================
 let obsEscenas = [];
 window.ipcRenderer = require('electron').ipcRenderer;
+let ultimoTorneoMatches = null; // <-- Declaración global
 
 (async function cargarScoreboardAlAbrir() {
   const res = await ipcRenderer.invoke('load-json');
@@ -30,6 +30,18 @@ window.addEventListener('DOMContentLoaded', cambiarJuego);
 function showTab(n) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === n));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === n));
+  // Bracket
+  if (n === 1) {
+    cargarTorneosBracket();
+  }
+  // Top 8
+  if (n === 2) {
+    cargarTorneosTop8();
+  }
+  // Credenciales y Matches (ajusta el índice si tu orden es diferente)
+  if (n === 4) {
+    buscarTorneosMatches();
+  }
 }
 
 // ================================
@@ -171,6 +183,7 @@ let imgPersonajes = {};
 async function cambiarJuego() {
   const juegoFolder = document.getElementById('gameSel').value;
   const res = await ipcRenderer.invoke('get-personajes', juegoFolder);
+
   if (res.personajes && res.personajes.length) {
     listaPersonajes = res.personajes.map(p => p.nombre);
     imgPersonajes = {};
@@ -201,8 +214,12 @@ function llenarSelectPersonajes(id) {
 //              TOP 8
 // ================================
 async function cargarTop8() {
-  const slug = document.getElementById('slugTop8').value.trim();
+  const slug = document.getElementById('tournamentTop8').value.trim();
   const msg = document.getElementById('msgTop8');
+  if (!slug) {
+    msg.textContent = "❌ Selecciona un torneo.";
+    return;
+  }
   msg.textContent = "Cargando...";
   const r = await ipcRenderer.invoke('get-top8', slug);
   if (r.error || !r.top8) {
@@ -227,10 +244,10 @@ async function cargarTop8() {
     `;
   });
 
-  // --- Obtén el nombre del torneo desde Challonge y GUÁRDALO GLOBAL ---
+  // --- Obtén el nombre del torneo desde Challonge y guárdalo globalmente ---
   const titleRes = await ipcRenderer.invoke('get-tournament-title', slug);
   let nombreTorneo = titleRes.title || slug;
-  window.nombreTorneoActual = nombreTorneo;  // <<--- LÍNEA CRUCIAL
+  window.nombreTorneoActual = nombreTorneo;
   mostrarMensajeTop8(nombreTorneo, r.top8);
 
   setTimeout(() => msg.textContent = '', 2500);
@@ -331,12 +348,13 @@ function ponerJugador2() {
 //          BRACKET
 // ================================
 function mostrarBracket() {
-  const slug = document.getElementById('slugBracket').value.trim();
+  const slug = document.getElementById('tournamentBracket').value.trim();
   const iframe = document.getElementById('challongeBracket');
   if (!slug) {
     iframe.src = '';
     return;
   }
+  // Puedes ajustar el URL del iframe según tus preferencias
   iframe.src = `https://challonge.com/${slug}/module?theme=2&show_standings=1&show_tournament_name=1`;
 }
 
@@ -365,46 +383,47 @@ function nombreDeRonda(round, roundsInfo) {
 
 
 async function cargarMatches() {
-  const slug = document.getElementById('editSlug').value.trim();
-  if (!slug) {
-    document.getElementById('msgMatches').textContent = "Falta slug.";
+  const apiKey = document.getElementById('apikey').value.trim();
+  const tournamentSlug = document.getElementById('tournamentList').value;
+  const msg = document.getElementById('msgMatches');
+  const selectMatch = document.getElementById('selectMatch');
+
+  if (!apiKey || !tournamentSlug) {
+    msg.textContent = "❌ Selecciona un torneo primero.";
     return;
   }
-  document.getElementById('msgMatches').textContent = "Cargando matches...";
-  const res = await ipcRenderer.invoke('get-matches-and-participants', slug);
-  if (res.error) {
-    document.getElementById('msgMatches').textContent = res.error;
-    document.getElementById('selectMatch').style.display = "none";
-    return;
+
+  msg.textContent = "Cargando matches...";
+  try {
+    const res = await window.ipcRenderer.invoke('get-matches-and-participants', tournamentSlug);
+    if (!res.ok) throw new Error(res.error || "Error al obtener los matches.");
+
+    // Limpia el select y agrega los matches
+    selectMatch.innerHTML = '';
+    matchesCargados = res.matches; // <-- Guarda los matches cargados globalmente
+
+    res.matches.forEach(match => {
+      const option = document.createElement('option');
+      option.value = match.id;
+      option.textContent = `Match #${match.id} - ${match.player1_name} vs ${match.player2_name}`;
+      selectMatch.appendChild(option);
+    });
+
+    selectMatch.style.display = 'block';
+    msg.textContent = "✅ Matches cargados.";
+
+    // Asigna el evento para mostrar los datos del match seleccionado
+    selectMatch.onchange = mostrarMatchEnScoreboard;
+
+    // Si hay al menos un match, selecciona el primero y muestra sus datos automáticamente
+    if (res.matches.length > 0) {
+      selectMatch.selectedIndex = 0;
+      mostrarMatchEnScoreboard();
+    }
+  } catch (error) {
+    msg.textContent = `❌ ${error.message}`;
   }
-  matchesCargados = res.matches || [];
-
-  // === BLOQUE NUEVO PARA NOMBRES BONITOS DE RONDAS ===
-  const winnerRounds = matchesCargados.filter(m => m.round > 0).map(m => m.round);
-  const maxWinners = winnerRounds.length ? Math.max(...winnerRounds) : 1;
-  const loserRounds = matchesCargados.filter(m => m.round < 0).map(m => m.round);
-  const minLosers = loserRounds.length ? Math.min(...loserRounds) : -1;
-  const maxLosers = loserRounds.length ? Math.max(...loserRounds) : -1;
-  const roundsInfo = { maxWinners, minLosers, maxLosers };
-	
-  const select = document.getElementById('selectMatch');
-  select.innerHTML = matchesCargados.map(m =>
-    `<option value="${m.id}">
-      [${nombreDeRonda(m.round, roundsInfo)}] ${m.player1_name} vs ${m.player2_name}
-    </option>`
-  ).join('');
-  // === FIN DEL BLOQUE NUEVO ===
-
-  select.style.display = "";
-  document.getElementById('msgMatches').textContent = "Selecciona un match";
-  select.onchange = mostrarMatchEnScoreboard;
-  if (matchesCargados.length) {
-    select.selectedIndex = 0;
-    mostrarMatchEnScoreboard();
-  }
-
 }
-
 
 function mostrarMatchEnScoreboard() {
   const select = document.getElementById('selectMatch');
@@ -413,7 +432,6 @@ function mostrarMatchEnScoreboard() {
   if (!match) return;
 
   // ========== CALCULA roundsInfo en cada llamada ==========
-  // Así siempre se refresca según los matches cargados
   const winnerRounds = matchesCargados.filter(m => m.round > 0).map(m => m.round);
   const maxWinners = winnerRounds.length ? Math.max(...winnerRounds) : 1;
   const loserRounds = matchesCargados.filter(m => m.round < 0).map(m => m.round);
@@ -421,13 +439,29 @@ function mostrarMatchEnScoreboard() {
   const maxLosers = loserRounds.length ? Math.max(...loserRounds) : -1;
   const roundsInfo = { maxWinners, minLosers, maxLosers };
 
-  // Calcula el nombre de la ronda con roundsInfo actualizado
   const roundName = nombreDeRonda(match.round, roundsInfo);
   document.getElementById('sbEvent').textContent = roundName;
   window.currentRoundName = roundName;
 
-  document.getElementById('p1NameInput').value = match.player1_name;
-  document.getElementById('p2NameInput').value = match.player2_name;
+  // --- NUEVO: Separar tag y nombre si corresponde ---
+  function splitTagAndName(fullName) {
+    if (typeof fullName === "string" && fullName.includes(" | ")) {
+      const [tag, ...rest] = fullName.split(" | ");
+      return { tag: tag.trim(), name: rest.join(" | ").trim() };
+    }
+    return { tag: "", name: fullName };
+  }
+
+  // Jugador 1
+  const p1 = splitTagAndName(match.player1_name);
+  document.getElementById('p1NameInput').value = p1.name;
+  document.getElementById('p1TagInput').value = p1.tag;
+
+  // Jugador 2
+  const p2 = splitTagAndName(match.player2_name);
+  document.getElementById('p2NameInput').value = p2.name;
+  document.getElementById('p2TagInput').value = p2.tag;
+
   if (match.scores_csv) {
     const parts = match.scores_csv.split('-');
     if (parts.length === 2) {
@@ -502,7 +536,7 @@ function generarMensajeTop8(nombreTorneo, top8) {
       rankNum = p.final_rank;
       prevRank = p.final_rank;
     }
-    // Si tienes el campo twitter, úsalo; si no, usa el nombre reemplazando espacios por guión bajo
+    // Si tienes el campo twitter, úsalo; si no, usa el nombre reemplazando espacios por guión_under
     let tag = p.twitter ? `@${p.twitter.replace(/^@/,'')}` : `@${p.name.replace(/\s/g,'_')}`;
     mensaje += `${rankNum}) ${tag}\n`;
   });
@@ -533,21 +567,6 @@ function copiarMensajeTop8() {
 // ================================
 //     OBS
 // ================================
-
-async function conectarOBS() {
-  const host = document.getElementById('obsHost').value.trim() || "localhost";
-  const port = document.getElementById('obsPort').value.trim() || "4455";
-  const password = document.getElementById('obsPassword').value.trim() || "";
-  const res = await window.ipcRenderer.invoke('conectar-obs', { host, port, password });
-  document.getElementById('msgOBS').textContent = res.ok ? "✅ OBS conectado" : "❌ " + res.error;
-  if (res.ok) {
-  setTimeout(cargarEscenasOBS, 400);
-} else {
-  document.getElementById('obsScenesContainer').innerHTML = "";
-}
-}
-
-
 
 async function conectarOBS() {
   const host = document.getElementById('obsHost').value.trim() || "localhost";
@@ -606,4 +625,172 @@ function twittearMensaje() {
   // Toma el mensaje del textarea (o del input que quieras usar)
   const mensaje = encodeURIComponent(document.getElementById('mensajeTop8Text').value);
   window.open(`https://twitter.com/intent/tweet?text=${mensaje}`, '_blank');
+}
+
+// ================================
+//     TORNEOS
+// ================================
+
+async function cargarTorneos() {
+  const apiKey = document.getElementById('apikey').value.trim();
+  const msg = document.getElementById('msgMatches');
+  const tournamentList = document.getElementById('tournamentList');
+  if (!apiKey) {
+    msg.textContent = "❌ Ingresa tu API Key primero.";
+    return;
+  }
+
+  msg.textContent = "Cargando torneos...";
+  try {
+    const res = await window.ipcRenderer.invoke('get-tournaments');
+    if (!res.ok) throw new Error(res.error || "Error al obtener los torneos.");
+    
+    // Muestra todos los torneos sin filtrar
+    const todosTorneos = res.tournaments;
+    console.log("Torneos recibidos:", todosTorneos);
+    
+    tournamentList.innerHTML = '<option value="">Selecciona un torneo...</option>';
+    todosTorneos.forEach(tournament => {
+      const option = document.createElement('option');
+      option.value = tournament.url; // Se usa el slug del torneo
+      option.textContent = tournament.name; // Nombre del torneo
+      tournamentList.appendChild(option);
+    });
+
+    msg.textContent = todosTorneos.length > 0
+      ? "✅ Torneos cargados."
+      : "⚠️ No se encontraron torneos.";
+  } catch (error) {
+    msg.textContent = `❌ ${error.message}`;
+  }
+}
+
+async function cargarTorneosTop8() {
+  const apiKey = document.getElementById('apikey').value.trim();
+  const select = document.getElementById('tournamentTop8');
+  if (!apiKey) {
+    select.innerHTML = '<option value="">Ingresa tu API Key primero</option>';
+    return;
+  }
+  select.innerHTML = '<option value="">Cargando torneos...</option>';
+  try {
+    const res = await ipcRenderer.invoke('get-tournaments');
+    if (!res.ok) throw new Error(res.error || "Error al obtener torneos.");
+    // Ordena los torneos de más nuevo a más antiguo
+    const sortedTournaments = res.tournaments
+      .filter(t => t.created_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (sortedTournaments.length === 0) {
+      select.innerHTML = '<option value="">No se encontraron torneos</option>';
+      return;
+    }
+    let options = '<option value="">Selecciona un torneo...</option>';
+    sortedTournaments.forEach(tournament => {
+      options += `<option value="${tournament.url}">${tournament.name}</option>`;
+    });
+    select.innerHTML = options;
+    
+    // Si ya existe un torneo seleccionado para Top 8, restáuralo
+    if (window.ultimoTorneoTop8) {
+      select.value = window.ultimoTorneoTop8;
+    }
+    
+    // Actualiza la variable global cada vez que se cambia la selección
+    select.onchange = () => {
+      window.ultimoTorneoTop8 = select.value;
+      cargarTop8(); // Se carga el Top 8 automáticamente al seleccionar
+    };
+  } catch (error) {
+    select.innerHTML = `<option value="">❌ ${error.message}</option>`;
+  }
+}
+
+async function cargarTorneosBracket() {
+  const apiKey = document.getElementById('apikey').value.trim();
+  const select = document.getElementById('tournamentBracket');
+  if (!apiKey) {
+    select.innerHTML = '<option value="">Ingresa tu API Key primero</option>';
+    return;
+  }
+  select.innerHTML = '<option value="">Cargando torneos...</option>';
+  try {
+    const res = await ipcRenderer.invoke('get-tournaments');
+    if (!res.ok) throw new Error(res.error || "Error al obtener torneos.");
+    // Ordenar por fecha de creación (más nuevo a más antiguo)
+    const sorted = res.tournaments
+      .filter(t => t.created_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (!sorted.length) {
+      select.innerHTML = '<option value="">No se encontraron torneos</option>';
+      return;
+    }
+    let options = '<option value="">Selecciona un torneo...</option>';
+    sorted.forEach(tournament => {
+      options += `<option value="${tournament.url}">${tournament.name}</option>`;
+    });
+    select.innerHTML = options;
+    
+    // Si ya existe un torneo seleccionado en la sesión, restáuralo
+    if (window.ultimoTorneoBracket) {
+      select.value = window.ultimoTorneoBracket;
+    }
+    
+    // Actualiza la variable global cada vez que se cambia la selección
+    select.onchange = () => {
+      window.ultimoTorneoBracket = select.value;
+      mostrarBracket(); // Se muestra el bracket automáticamente al seleccionar
+    };
+  } catch (error) {
+    select.innerHTML = `<option value="">❌ ${error.message}</option>`;
+  }
+}
+
+
+async function buscarTorneosMatches() {
+  const apiKey = document.getElementById('apikey').value.trim();
+  const msg = document.getElementById('msgMatches');
+  const tournamentList = document.getElementById('tournamentList');
+  if (!apiKey) {
+    msg.textContent = "❌ Ingresa tu API Key primero.";
+    return;
+  }
+
+  msg.textContent = "Buscando torneos in progress...";
+  try {
+    const res = await window.ipcRenderer.invoke('get-tournaments');
+    if (!res.ok) throw new Error(res.error || "Error al obtener los torneos.");
+    
+    const todosTorneos = res.tournaments;
+    console.log("Torneos recibidos:", todosTorneos);
+    
+    const torneosInProgress = todosTorneos.filter(t =>
+      t.state && t.state.toLowerCase() === "underway"
+    );
+
+    tournamentList.innerHTML = '<option value="">Selecciona un torneo in progress...</option>';
+    torneosInProgress.forEach(t => {
+      const option = document.createElement('option');
+      option.value = t.url;
+      option.textContent = t.name;
+      tournamentList.appendChild(option);
+    });
+
+    // Restaurar el último torneo seleccionado si existe
+    if (ultimoTorneoMatches && torneosInProgress.some(t => t.url === ultimoTorneoMatches)) {
+      tournamentList.value = ultimoTorneoMatches;
+      cargarMatches(); // Opcional: cargar matches automáticamente al restaurar
+    }
+
+    // Guardar el último torneo seleccionado cada vez que cambie
+    tournamentList.onchange = () => {
+      ultimoTorneoMatches = tournamentList.value;
+      cargarMatches();
+    };
+
+    msg.textContent = torneosInProgress.length > 0
+      ? "✅ Torneos cargados."
+      : "⚠️ No se encontraron torneos in progress.";
+  } catch (error) {
+    msg.textContent = `❌ ${error.message}`;
+  }
 }

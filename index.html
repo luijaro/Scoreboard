@@ -3,39 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <title>Scoreboard Electron</title>
+  <!-- Fuente Montserrat para estilos -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <!-- Hoja de estilos principal -->
   <link rel="stylesheet" href="scoreboard.css">
 </head>
 <body>
-  <!-- Tabs header -->
-  <div id="tabs">
-
+  <!-- =========================
+       HEADER DE TABS PRINCIPALES
+  ========================== -->
+  <nav id="tabs">
     <button class="tab-btn active" onclick="showTab(0)">Scoreboard</button>
-	<button class="tab-btn" onclick="showTab(1)">Bracket</button>
-	<button class="tab-btn" onclick="showTab(2)">Top 8</button>
-	<button class="tab-btn" onclick="showTab(3)">Comandos Twitch</button>
-	<button class="tab-btn" onclick="showTab(4)">Credenciales</button>
-	<button class="tab-btn" onclick="showTab(5)">Cambiar Escena OBS</button>
-	
-	
-  </div>
+    <button class="tab-btn" onclick="showTab(1)">Bracket</button>
+    <button class="tab-btn" onclick="showTab(2)">Top 8</button>
+    <button class="tab-btn" onclick="showTab(3)">Comandos Twitch</button>
+    <button class="tab-btn" onclick="showTab(4)">Credenciales</button>
+    <button class="tab-btn" onclick="showTab(5)">Cambiar Escena OBS</button>
+    </nav>
 
-  <!-- TAB 1: SCOREBOARD -->
-  <div class="tab-panel active">
+  <!-- =========================
+       TAB 1: SCOREBOARD
+  ========================== -->
+  <section class="tab-panel active">
     <div class="scoreboard-main">
+      <!-- Jugador 1 -->
       <div class="sb-side">
         <img class="sb-player-img" src="https://static.wikia.nocookie.net/streetfighter/images/2/29/JuriSF6render.png" alt="Juri" />
         <div class="sb-side-content">
           <div class="sb-player-name" id="p1Name">Personaje 1</div>
         </div>
       </div>
+      <!-- Centro: Evento y marcador -->
       <div class="scoreboard-center">
         <div class="sb-event" id="sbEvent">MOONSTYLE</div>
         <div class="sb-score-row">
-		  <span id="p1Score" class="score-anim">0</span>
-		  <span style="color:#aaa; margin:0 0.45em;">-</span>
-		  <span id="p2Score" class="score-anim">0</span>
-		</div>
+          <span id="p1Score" class="score-anim">0</span>
+          <span class="sb-score-sep">-</span>
+          <span id="p2Score" class="score-anim">0</span>
+        </div>
         <div class="sb-score-labels">
           <span id="p1Tag">Player One</span>
           <span id="p2Tag">Player Two</span>
@@ -45,6 +50,7 @@
           <span><i class="fa fa-microphone"></i> Commentator #2</span>
         </div>
       </div>
+      <!-- Jugador 2 -->
       <div class="sb-side right">
         <img class="sb-player-img" src="https://static.wikia.nocookie.net/streetfighter/images/1/1e/KenSF6render.png" alt="Ken" />
         <div class="sb-side-content">
@@ -52,181 +58,208 @@
         </div>
       </div>
     </div>
-	<div class="scoreboard-flex-row">
-  <div class="scoreboard-box">
-	<div class="right-align-fields">
-        <label>Player One <input class="sb-input"  id="p1NameInput" value="Juri" /></label>
-        <label>Tag <input class="sb-input" id="p1TagInput" value="Player One" /></label>
-        <label>Character 
-          <select class="sb-dropdown" id="p1Char">
-            <option>Juri</option>
-            <option>Cammy</option>
-            <option>Chun-Li</option>
+    <!-- Controles de Scoreboard -->
+    <div class="scoreboard-flex-row">
+      <!-- Controles Jugador 1 -->
+      <div class="scoreboard-box">
+        <div class="right-align-fields">
+          <label>Player One
+            <input class="sb-input" id="p1NameInput" value="Juri" />
+          </label>
+          <label>Tag
+            <input class="sb-input" id="p1TagInput" value="Player One" />
+          </label>
+          <label>Character
+            <select class="sb-dropdown" id="p1Char">
+              <option>Juri</option>
+              <option>Cammy</option>
+              <option>Chun-Li</option>
+            </select>
+          </label>
+        </div>
+        <div class="sb-btn-group">
+          <button class="sb-btn" onclick="changeScore(1,1)">+1</button>
+          <button class="sb-btn sb-btn-dark" onclick="changeScore(1,-1)">-1</button>
+        </div>
+      </div>
+      <!-- Controles generales -->
+      <div class="scoreboard-controls-box">
+        <label class="game-label">
+          <select id="gameSel" class="game-select" onchange="cambiarJuego()">
+            <option value="UNI2">Under Night In-Birth II</option>
+            <option value="VSAV">Vampire Savior</option>
+            <option value="BBCF">BlazBlue: Central Fiction</option>
+            <option value="GBVSR">Granblue Fantasy Versus Rising</option>
+            <option value="GGST">Guilty Gear Strive</option>
+            <option value="MBTL">Melty Blood: Type Lumina</option>
           </select>
         </label>
-		</div>
-        <div style="display: flex; gap: 0.5em;">
-		  <button class="sb-btn" onclick="changeScore(1,1)">+1</button>
-		  <button class="sb-btn" style="background:#333;" onclick="changeScore(1,-1)">-1</button>
-		</div>
-  </div>
-  <div class="scoreboard-controls-box">
-  <label class="game-label">
-    <select id="gameSel" class="game-select" onchange="cambiarJuego()">
-      <option value="UNI2">Under Night In-Birth II</option>
-	  <option value="VSAV">Vampire Savior</option>
-	  <option value="BBCF">BlazBlue: Central Fiction</option>
-	  <option value="GBVSR">Granblue Fantasy Versus Rising</option>
-	  <option value="GGST">Guilty Gear Strive</option>
-	  <option value="MBTL">Melty Blood: Type Lumina</option>
-      <!-- ... -->
-    </select>
-  </label>
-  <div class="sb-btn-row">
-    <button class="sb-btn switch-btn" onclick="swap()">Switch Players</button>
-    <button class="sb-btn reset-btn" onclick="resetScores()">Reset Scores</button>
-  </div>
-  <button class="sb-btn save-btn" onclick="guardarScoreboard()">
-    Guardar Scoreboard
-  </button>
-  <span id="msgGuardado" class="msg-guardado"></span>
- </div>
-  <div class="scoreboard-box">
-
+        <div class="sb-btn-row">
+          <button class="sb-btn switch-btn" onclick="swap()">Switch Players</button>
+          <button class="sb-btn reset-btn" onclick="resetScores()">Reset Scores</button>
+        </div>
+        <button class="sb-btn save-btn" onclick="guardarScoreboard()">Guardar Scoreboard</button>
+        <span id="msgGuardado" class="msg-guardado"></span>
+      </div>
+      <!-- Controles Jugador 2 -->
+      <div class="scoreboard-box">
         <div class="right-align-fields">
-		  <label>Player Two <input class="sb-input" id="p2NameInput" value="Ken" /></label>
-		  <label>Tag <input class="sb-input" id="p2TagInput" value="Player Two" /></label>
-		  <label>Character 
-			<select class="sb-dropdown" id="p2Char">
-			  <option>Ken</option>
-			  <option>Ryu</option>
-			  <option>Guile</option>
-			</select>
-		  </label>
-		</div>
-        <div style="display: flex; gap: 0.5em;">
-		  <button class="sb-btn" onclick="changeScore(2,1)">+1</button>
-		  <button class="sb-btn" style="background:#333;" onclick="changeScore(2,-1)">-1</button>
-		</div>
-    </div>
-  </div>  </div>
-</div>
-      
-      
-      
-
-  
-  <!-- TAB 2: BRACKET -->
-<div class="tab-panel" id="tab-bracket">
-  <div style="text-align:center; margin:2em;">
-    <input id="slugBracket" placeholder="Slug de Challonge (ej: BVOXXVIuni2)" style="padding:0.5em; width:220px;" />
-    <button class="sb-btn" onclick="mostrarBracket()">Mostrar Bracket</button>
-    <br><br>
-    <iframe id="challongeBracket" style="width:90vw; height:70vh; border:none; background:#111;" allowtransparency="true"></iframe>
-  </div>
-</div>
-<!-- TAB 3: TOP 8 -->
-<div class="tab-panel" id="tab-top8">
-  <div style="text-align:center; margin:2em;">
-    <input id="slugTop8" placeholder="Slug de Challonge" style="padding:0.5em; width:220px;" />
-    <button class="sb-btn" onclick="cargarTop8()">Cargar Top 8</button>
-    <br><br>
-    <table style="margin:0 auto; background:#222; border-radius:10px; padding:1em; box-shadow:0 4px 12px #000a;">
-      <thead>
-        <tr>
-          <th style="padding:0.7em 2em;">Puesto</th>
-          <th style="padding:0.7em 2em;">Jugador</th>
-          <th style="padding:0.7em 2em;">Personaje</th>
-        </tr>
-      </thead>
-      <tbody id="top8Table"></tbody>
-    </table>
-	<div style="margin-top: 1em; text-align: center;">
-  <button class="sb-btn" onclick="copiarMensajeTop8()">Copiar mensaje Top 8</button>
-  <textarea id="mensajeTop8Text" style="width: 90%; height: 120px; margin-top: 1em; font-size: 1.04em;" readonly></textarea>
-  <div id="msgTop8Copy" style="color: #8fff9f; font-size: 1.1em; margin-top: 0.5em;"></div>
-  <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
-</div>
-
-    <button class="sb-btn" style="margin-top:1em;" onclick="guardarTop8()">Guardar Top 8</button>
-    <span id="msgTop8" style="margin-left:1.2em; color:#8fff9f; font-size:1.1em;"></span>
-	
-  </div>
-</div>
- <!-- TAB 3: Twitchbot -->
-<div class="tab-panel" id="tab-twitchcmds">
-  <section class="panel-section">
-    <h2>Comandos Rápidos de Twitch Bot</h2>
-    <div class="form-row">
-      <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
-      <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
-      <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
-    </div>
-    <div class="form-row">
-      <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
-      <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
-    </div>
-  </section>
-</div>
- <!-- TAB 3: Credenciales -->
-<div class="tab-panel" id="tab-twitchbot">
-  <!-- Sección Challonge -->
-  <section class="panel-section">
-    <h2>Challonge</h2>
-    <div class="form-row">
-      <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input" style="width:200px;">
-      <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
-      <span id="msgApi" class="sb-message"></span>
+          <label>Player Two
+            <input class="sb-input" id="p2NameInput" value="Ken" />
+          </label>
+          <label>Tag
+            <input class="sb-input" id="p2TagInput" value="Player Two" />
+          </label>
+          <label>Character
+            <select class="sb-dropdown" id="p2Char">
+              <option>Ken</option>
+              <option>Ryu</option>
+              <option>Guile</option>
+            </select>
+          </label>
+        </div>
+        <div class="sb-btn-group">
+          <button class="sb-btn" onclick="changeScore(2,1)">+1</button>
+          <button class="sb-btn sb-btn-dark" onclick="changeScore(2,-1)">-1</button>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Sección Twitch Bot -->
-  <section class="panel-section">
-    <h2>Conectar bot a Twitch</h2>
-    <div class="form-row">
-      <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input" style="width:140px;">
-      <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input" style="width:210px;">
-      <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input" style="width:140px;">
-      <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
-      <span id="msgTwitch" class="sb-message"></span>
+  <!-- =========================
+       TAB 2: BRACKET
+  ========================== -->
+  <section class="tab-panel" id="tab-bracket">
+    <div class="tab-content-center">
+      <select id="tournamentBracket" class="sb-select" style="width:220px;" onchange="mostrarBracket()">
+        <option value="">Selecciona un torneo...</option>
+      </select>
+      <br><br>
+      <iframe id="challongeBracket" style="width:90vw; height:70vh; border:none; background:#111;" allowtransparency="true"></iframe>
     </div>
   </section>
-  
-  <!-- Sección Matches -->
-  <section class="panel-section">
-    <div class="form-row">
-      <input id="editSlug" class="sb-input" placeholder="Slug del torneo (ej: BVOXXVIuni2)" style="width:220px;">
-      <button class="sb-btn" onclick="cargarMatches()">Cargar matches</button>
-      <select id="selectMatch" class="sb-select" style="display:none;"></select>
-      <span id="msgMatches" class="sb-message"></span>
-    </div>
-    <div class="form-row" style="margin-top:1em;">
-		<button class="sb-btn sb-btn-danger" onclick="confirmarYReportar()">Reportar resultado a Challonge</button>
-	  <span id="msgReportChallonge" class="sb-message"></span>
-	</div>
-  </section>
-</div>
 
-<!-- OBS -->
-<div class="tab-panel">
-  <section class="panel-section">
-    <h2>Cambiar Escena en OBS</h2>
-    <div class="form-row">
-      <input id="obsHost" placeholder="Host OBS (ej: localhost)" class="sb-input" value="localhost">
-      <input id="obsPort" placeholder="Puerto" class="sb-input" value="4455">
-      <input id="obsPassword" placeholder="Contraseña" type="password" class="sb-input">
-      <button class="sb-btn" onclick="conectarOBS()">Conectar</button>
+  <!-- =========================
+       TAB 3: TOP 8
+  ========================== -->
+  <section class="tab-panel" id="tab-top8">
+    <div class="top8-wrapper">
+      <div class="top8-header">
+        <select id="tournamentTop8" class="sb-select" style="width:220px;" onchange="cargarTop8()">
+          <option value="">Selecciona un torneo...</option>
+        </select>
+      </div>
+      <table class="top8-table">
+        <thead>
+          <tr>
+            <th>Puesto</th>
+            <th>Jugador</th>
+            <th>Personaje</th>
+          </tr>
+        </thead>
+        <tbody id="top8Table"></tbody>
+      </table>
+      <div class="top8-controls">
+        <button class="sb-btn" onclick="copiarMensajeTop8()">Copiar mensaje Top 8</button>
+        <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
+        <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
+      </div>
+      <textarea id="mensajeTop8Text" class="top8-textarea" readonly></textarea>
+      <div id="msgTop8Copy" class="msg-top8-copy"></div>
+      <span id="msgTop8" class="msg-top8"></span>
     </div>
-	<div id="obsScenesContainer" style="margin: 1.5em 0 1em 0; display: flex; flex-wrap: wrap; gap: 0.6em;"></div>
-    <span id="msgOBS"></span>
-	<div style="margin-top: 2em;">
-  <button class="sb-btn" onclick="capturarEscenaOBS()">Capturar escena y copiar</button>
-  <span id="msgCapturaOBS" class="sb-message"></span>
-</div>
   </section>
-</div>
-  <div id="versionFooter">Hecho por LuIjAro v1.12</div>
+
+  <!-- =========================
+       TAB 4: TWITCHBOT COMANDOS
+  ========================== -->
+  <section class="tab-panel" id="tab-twitchcmds">
+    <div class="panel-section">
+      <h2>Comandos Rápidos de Twitch Bot</h2>
+      <div class="form-row">
+        <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
+        <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
+        <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
+      </div>
+      <div class="form-row">
+        <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
+        <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       TAB 5: CREDENCIALES Y MATCHES
+  ========================== -->
+  <section class="tab-panel" id="tab-twitchbot">
+    <!-- Sección Challonge -->
+    <div class="panel-section">
+      <h2>Challonge</h2>
+      <div class="form-row">
+        <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input" style="width:200px;">
+        <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
+        <span id="msgApi" class="sb-message"></span>
+      </div>
+      <div class="form-row">
+<!-- <button class="sb-btn" onclick="buscarTorneosMatches()">Buscar Torneos</button> -->      </div>
+      <div class="form-row">
+        <select id="tournamentList" class="sb-select" style="width:220px;" onchange="cargarMatches()">
+          <option value="">Selecciona un torneo...</option>
+        </select>
+        <span id="msgMatches" class="sb-message"></span>
+      </div>
+      <div class="form-row">
+        <select id="selectMatch" class="sb-select" style="width:220px; display:none;"></select>
+      </div>
+      <div class="form-row" style="margin-top:1em;">
+        <button class="sb-btn sb-btn-danger" onclick="confirmarYReportar()">Reportar resultado a Challonge</button>
+        <span id="msgReportChallonge" class="sb-message"></span>
+      </div>
+    </div>
+    <!-- Sección Twitch Bot -->
+    <div class="panel-section">
+      <h2>Conectar bot a Twitch</h2>
+      <div class="form-row">
+        <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input" style="width:140px;">
+        <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input" style="width:210px;">
+        <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input" style="width:140px;">
+        <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
+        <span id="msgTwitch" class="sb-message"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       TAB 6: OBS
+  ========================== -->
+  <section class="tab-panel">
+    <div class="panel-section">
+      <h2>Cambiar Escena en OBS</h2>
+      <div class="form-row">
+        <input id="obsHost" placeholder="Host OBS (ej: localhost)" class="sb-input" value="localhost">
+        <input id="obsPort" placeholder="Puerto" class="sb-input" value="4455">
+        <input id="obsPassword" placeholder="Contraseña" type="password" class="sb-input">
+        <button class="sb-btn" onclick="conectarOBS()">Conectar</button>
+      </div>
+      <div id="obsScenesContainer" class="obs-scenes-container"></div>
+      <span id="msgOBS"></span>
+      <div style="margin-top: 2em;">
+        <button class="sb-btn" onclick="capturarEscenaOBS()">Capturar escena y copiar</button>
+        <span id="msgCapturaOBS" class="sb-message"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       FOOTER Y SCRIPTS
+  ========================== -->
+  <footer id="versionFooter">Hecho por LuIjAro v1.2.5</footer>
+  <!-- Script principal de la app -->
   <script src="js/scoreboard.js"></script>
 </body>
 </html>
 
+<!--
+  Este es un archivo HTML para una aplicación de Scoreboard de torneos de juegos de lucha.
+  Incluye secciones para mostrar el marcador, bracket, top 8, comandos de Twitch y más.
+  Utiliza JavaScript para manejar la lógica y la interacción del usuario.
