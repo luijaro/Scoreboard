@@ -761,9 +761,29 @@ async function cargarTorneosBracket() {
     }
     
     // Actualiza la variable global cada vez que se cambia la selección
-    select.onchange = () => {
+    select.onchange = async () => {
       window.ultimoTorneoBracket = select.value;
-      mostrarBracket(); // Se muestra el bracket automáticamente al seleccionar
+      mostrarBracket();
+
+      // Nuevo: obtener y guardar los matches y el top 8 del torneo seleccionado
+      if (select.value) {
+        // 1. Obtener matches y participantes
+        const resMatches = await window.ipcRenderer.invoke('get-matches-and-participants', select.value);
+        // 2. Obtener Top 8
+        const resTop8 = await ipcRenderer.invoke('get-top8', select.value);
+
+        if (resMatches.ok && resMatches.matches && resTop8.top8) {
+          await window.ipcRenderer.invoke('save-json', {
+            torneo: select.value,
+            fecha: new Date().toLocaleDateString('es-CL'),
+            matches: resMatches.matches,
+            top8: resTop8.top8
+          }, 'bracket_data.json'); // <-- nombre fijo aquí
+          mostrarNotificacion('✅ Matches y Top 8 guardados para el torneo seleccionado.', 'success');
+        } else {
+          mostrarNotificacion('❌ No se pudieron obtener los matches o el Top 8.', 'error');
+        }
+      }
     };
   } catch (error) {
     select.innerHTML = `<option value="">❌ ${error.message}</option>`;

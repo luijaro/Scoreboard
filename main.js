@@ -81,11 +81,11 @@ app.whenReady().then(createWindow); // Cuando la aplicación está lista, crea l
 
 // -------- Scoreboard JSON --------
 // Handler para guardar el JSON del scoreboard
-ipcMain.handle('save-json', async (event, data) => {
-  const dir = ensureSaveDir(); // Obtiene el directorio de guardado
-  const file = path.join(dir, 'scoreboard.json'); // Define la ruta del archivo
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); // Guarda los datos en el archivo JSON
-  return { ok: true, file }; // Retorna un objeto con el estado y la ruta del archivo
+ipcMain.handle('save-json', async (event, data, filename = 'scoreboard.json') => {
+  const dir = ensureSaveDir();
+  const file = path.join(dir, filename);
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  return { ok: true, file };
 });
 
 // Handler para abrir la carpeta de guardado
