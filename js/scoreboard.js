@@ -773,12 +773,25 @@ async function cargarTorneosBracket() {
         const resTop8 = await ipcRenderer.invoke('get-top8', select.value);
 
         if (resMatches.ok && resMatches.matches && resTop8.top8) {
+          // Transforma los matches al formato deseado
+          const matchesFormateados = resMatches.matches.map((m, idx) => {
+            // Puedes generar el id como "ws1", "ws2", etc. o usar el id original
+            // Aquí un ejemplo usando el id original de Challonge:
+            return {
+              id: m.identifier || m.id || `m${idx+1}`,
+              p1: m.player1_name,
+              p2: m.player2_name,
+              p1s: Number((m.scores_csv || '').split('-')[0]) || 0,
+              p2s: Number((m.scores_csv || '').split('-')[1]) || 0
+            };
+          });
+
           await window.ipcRenderer.invoke('save-json', {
             torneo: select.value,
             fecha: new Date().toLocaleDateString('es-CL'),
-            matches: resMatches.matches,
+            matches: matchesFormateados,
             top8: resTop8.top8
-          }, 'bracket_data.json'); // <-- nombre fijo aquí
+          }, 'bracket_data.json');
           mostrarNotificacion('✅ Matches y Top 8 guardados para el torneo seleccionado.', 'success');
         } else {
           mostrarNotificacion('❌ No se pudieron obtener los matches o el Top 8.', 'error');
