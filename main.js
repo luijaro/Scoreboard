@@ -18,30 +18,34 @@ let twitchChannelActual = ''; // Variable para almacenar el canal actual de Twit
 // =========================
 // Función para asegurar que el directorio de guardado exista
 function ensureSaveDir(win) {
-  if (saveDir) return saveDir; // Si ya existe, retorna el directorio
-  if (fs.existsSync(configFile)) { // Verifica si el archivo de configuración existe
+  const os = require('os');
+  const documentsDir = path.join(os.homedir(), 'Documents');
+  const defaultDir = path.join(documentsDir, 'data_scoreboard');
+
+  console.log('Intentando usar carpeta:', defaultDir);
+
+  if (saveDir) return saveDir;
+  if (fs.existsSync(configFile)) {
     try {
-      const config = JSON.parse(fs.readFileSync(configFile, 'utf8')); // Lee y parsea el archivo de configuración
-      if (config.saveDir && fs.existsSync(config.saveDir)) { // Verifica si 'saveDir' existe en la configuración y si el directorio existe
-        saveDir = config.saveDir; // Asigna el directorio de guardado desde la configuración
-        return saveDir; // Retorna el directorio de guardado
+      const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+      if (config.saveDir && fs.existsSync(config.saveDir)) {
+        saveDir = config.saveDir;
+        return saveDir;
       }
-    } catch (e) {} // Ignora errores al leer el archivo de configuración
+    } catch (e) {}
   }
-  const result = dialog.showOpenDialogSync(win, { // Muestra un diálogo para seleccionar un directorio
-    title: 'Selecciona la carpeta donde se guardará tu JSON',
-    properties: ['openDirectory', 'createDirectory'] // Permite seleccionar y crear directorios
-  });
-  if (result && result[0]) { // Si se seleccionó un directorio
-    saveDir = result[0]; // Asigna el directorio seleccionado
-    fs.writeFileSync(configFile, JSON.stringify({ saveDir }), 'utf8'); // Guarda el directorio en el archivo de configuración
-    return saveDir; // Retorna el directorio de guardado
-  } else {
-    // Si cancela, por defecto el escritorio
-    saveDir = path.join(require('os').homedir(), 'Desktop'); // Usa el escritorio como directorio por defecto
-    fs.writeFileSync(configFile, JSON.stringify({ saveDir }), 'utf8'); // Guarda el directorio en el archivo de configuración
-    return saveDir; // Retorna el directorio de guardado
+
+  if (!fs.existsSync(defaultDir)) {
+    try {
+      fs.mkdirSync(defaultDir, { recursive: true });
+      console.log('Carpeta creada:', defaultDir);
+    } catch (err) {
+      console.error('Error creando carpeta:', err);
+    }
   }
+  saveDir = defaultDir;
+  fs.writeFileSync(configFile, JSON.stringify({ saveDir }), 'utf8');
+  return saveDir;
 }
 
 // =========================
@@ -96,7 +100,7 @@ ipcMain.handle('load-json', async () => {
   const dir = ensureSaveDir(); // Obtiene el directorio de guardado
   const file = path.join(dir, 'scoreboard.json'); // Define la ruta del archivo
   if (fs.existsSync(file)) { // Verifica si el archivo existe
-    const data = JSON.parse(fs.readFileSync(file, 'utf8')); // Lee y parsea el archivo JSON
+    const data = JSON.parse(fs.readFileSync(file, 'utf8')); // Lee y parsea el archivo de configuración
     return { ok: true, data, file }; // Retorna un objeto con el estado, los datos y la ruta del archivo
   }
   return { ok: false, file }; // Retorna un objeto con el estado y la ruta del archivo
