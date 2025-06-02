@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
   <!-- Hoja de estilos principal -->
   <link rel="stylesheet" href="scoreboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <!-- =========================
@@ -60,32 +61,49 @@
     </div>
     <!-- Controles de Scoreboard -->
     <div class="scoreboard-flex-row">
-      <!-- Controles Jugador 1 -->
+      <div class="scoreboard-group">
+      <!-- Controles Jugador 1: input y botones en la misma fila -->
       <div class="scoreboard-box">
-        <div class="right-align-fields">
-          <label>Player One
-            <input class="sb-input" id="p1NameInput" value="Juri" />
-          </label>
-          <label>Tag
-            <input class="sb-input" id="p1TagInput" value="Player One" />
-          </label>
-          <label>Character
-            <select class="sb-dropdown" id="p1Char">
-              <option>Juri</option>
-              <option>Cammy</option>
-              <option>Chun-Li</option>
-            </select>
-          </label>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-user"></i></span>
+          <input class="sb-input" id="p1NameInput" placeholder="Player One" />
+          <button class="sb-btn sb-btn-mini" onclick="changeScore(1,1)" title="+1">
+            <i class="fa fa-plus"></i>
+          </button>
+          <button class="sb-btn sb-btn-mini" onclick="changeScore(1,-1)" title="-1">
+            <i class="fa fa-minus"></i>
+          </button>
         </div>
-        <div class="sb-btn-group">
-          <button class="sb-btn" onclick="changeScore(1,1)">+1</button>
-          <button class="sb-btn sb-btn-dark" onclick="changeScore(1,-1)">-1</button>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-users"></i></span>
+          <input class="sb-input" id="p1TagInput" placeholder="Sponsor/Tag" />
+        </div>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-flag"></i></span>
+          <select class="sb-dropdown" id="p1Flag" required>
+            <option value="" disabled selected hidden>No Flag Selected</option>
+            <option value="CL">Chile</option>
+            <option value="AR">Argentina</option>
+            <!-- ... -->
+          </select>
+        </div>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-gamepad"></i></span>
+          <select class="sb-dropdown" id="p1Char" required>
+            <option value="" disabled selected hidden>Juri</option>
+            <option>Juri</option>
+            <option>Ken</option>
+            <!-- ... -->
+          </select>
         </div>
       </div>
+
       <!-- Controles generales -->
       <div class="scoreboard-controls-box">
-        <label class="game-label">
-          <select id="gameSel" class="game-select" onchange="cambiarJuego()">
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-gamepad"></i></span>
+          <select id="gameSel" class="game-select" onchange="cambiarJuego()" required>
+            <option value="" disabled selected hidden>Selecciona un juego</option>
             <option value="UNI2">Under Night In-Birth II</option>
             <option value="VSAV">Vampire Savior</option>
             <option value="BBCF">BlazBlue: Central Fiction</option>
@@ -93,7 +111,16 @@
             <option value="GGST">Guilty Gear Strive</option>
             <option value="MBTL">Melty Blood: Type Lumina</option>
           </select>
-        </label>
+        </div>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-paint-brush"></i></span>
+          <select id="styleSel" class="game-select" required>
+            <option value="" disabled selected hidden>Select Style</option>
+            <option value="default">Default</option>
+            <option value="dark">Dark</option>
+            <!-- ...otros estilos... -->
+          </select>
+        </div>
         <div class="sb-btn-row">
           <button class="sb-btn switch-btn" onclick="swap()">Switch Players</button>
           <button class="sb-btn reset-btn" onclick="resetScores()">Reset Scores</button>
@@ -101,26 +128,40 @@
         <button class="sb-btn save-btn" onclick="guardarScoreboard()">Guardar Scoreboard</button>
         <span id="msgGuardado" class="msg-guardado"></span>
       </div>
-      <!-- Controles Jugador 2 -->
+      <!-- Controles Jugador 2: input y botones en la misma fila -->
       <div class="scoreboard-box">
-        <div class="right-align-fields">
-          <label>Player Two
-            <input class="sb-input" id="p2NameInput" value="Ken" />
-          </label>
-          <label>Tag
-            <input class="sb-input" id="p2TagInput" value="Player Two" />
-          </label>
-          <label>Character
-            <select class="sb-dropdown" id="p2Char">
-              <option>Ken</option>
-              <option>Ryu</option>
-              <option>Guile</option>
-            </select>
-          </label>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-user"></i></span>
+          <input class="sb-input" id="p2NameInput" placeholder="Player Two" />
+          <button class="sb-btn sb-btn-mini" onclick="changeScore(2,1)" title="+1">
+            <i class="fa fa-plus"></i>
+          </button>
+          <button class="sb-btn sb-btn-mini" onclick="changeScore(2,-1)" title="-1">
+            <i class="fa fa-minus"></i>
+          </button>
         </div>
-        <div class="sb-btn-group">
-          <button class="sb-btn" onclick="changeScore(2,1)">+1</button>
-          <button class="sb-btn sb-btn-dark" onclick="changeScore(2,-1)">-1</button>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-users"></i></span>
+          <input class="sb-input" id="p2TagInput" placeholder="Sponsor/Tag" />
+        </div>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-flag"></i></span>
+          <select class="sb-dropdown" id="p2Flag" required>
+            <option value="" disabled selected hidden>No Flag Selected</option>
+            <option value="CL">Chile</option>
+            <option value="AR">Argentina</option>
+            <!-- ... -->
+          </select>
+        </div>
+        <div class="input-row">
+          <span class="input-icon"><i class="fa fa-gamepad"></i></span>
+          <select class="sb-dropdown" id="p2Char" required>
+            <option value="" disabled selected hidden>Ken</option>
+            <option>Ken</option>
+            <option>Ryu</option>
+            <option>Guile</option>
+            <!-- ... -->
+          </select>
         </div>
       </div>
     </div>
@@ -145,31 +186,36 @@
   ========================== -->
   <section class="tab-panel" id="tab-top8">
     <div class="top8-wrapper">
-      <div class="top8-header">
-        <select id="tournamentTop8" class="sb-select" style="width:220px;" onchange="cargarTop8()">
-          <option value="">Selecciona un torneo...</option>
-        </select>
+      <div class="top8-main-content">
+        <div class="top8-header">
+          <select id="tournamentTop8" class="sb-select" style="width:220px;" onchange="cargarTop8()">
+            <option value="">Selecciona un torneo...</option>
+          </select>
+        </div>
+        <table class="top8-table">
+          <thead>
+            <tr>
+              <th>Puesto</th>
+              <th>Jugador</th>
+              <th>Personaje</th>
+              <th>Twitter</th> <!-- Nueva columna -->
+            </tr>
+          </thead>
+          <tbody id="top8Table"></tbody>
+        </table>
+        <div class="top8-controls">
+          <button class="sb-btn" onclick="copiarMensajeTop8()">Copiar mensaje Top 8</button>
+          <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
+          <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
+          <button class="sb-btn" onclick="generarMensajeTop8DesdeInputs()">Generar mensaje</button>
+        </div>
+        <div id="msgTop8Copy" class="msg-top8-copy"></div>
+        <span id="msgTop8" class="msg-top8"></span>
       </div>
-      <table class="top8-table">
-        <thead>
-          <tr>
-            <th>Puesto</th>
-            <th>Jugador</th>
-            <th>Personaje</th>
-            <th>Twitter</th> <!-- Nueva columna -->
-          </tr>
-        </thead>
-        <tbody id="top8Table"></tbody>
-      </table>
-      <div class="top8-controls">
-        <button class="sb-btn" onclick="copiarMensajeTop8()">Copiar mensaje Top 8</button>
-        <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
-        <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
-        <button class="sb-btn" onclick="generarMensajeTop8DesdeInputs()">Generar mensaje</button>
+      <div class="top8-mensaje-box">
+        <textarea id="mensajeTop8Text" class="top8-mensaje-textarea" readonly></textarea>
+        <button class="sb-btn copiar-mensaje-btn" onclick="copiarMensajeTop8()">Copiar mensaje</button>
       </div>
-      <textarea id="mensajeTop8Text" class="top8-textarea" readonly></textarea>
-      <div id="msgTop8Copy" class="msg-top8-copy"></div>
-      <span id="msgTop8" class="msg-top8"></span>
     </div>
   </section>
 
@@ -260,6 +306,8 @@
   <footer id="versionFooter">Hecho por LuIjAro v1.2.5</footer>
   <!-- Script principal de la app -->
   <script src="js/scoreboard.js"></script>
+  <!-- Contenedor global de notificaciones -->
+<div id="notificaciones-app"></div>
 </body>
 </html>
 

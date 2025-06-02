@@ -75,30 +75,45 @@ body {
 /* ==========================
    Inputs & Selects
 ========================== */
-.sb-input, .sb-select, .sb-dropdown {
-  font-size: 0.9em; /* Reducido un 10% */
-  padding: 0.4em 0.7em;
-  border-radius: 5px;
-  border: 1px solid #333;
-  background: #181921;
-  color: #fff;
-  margin-bottom: 0.2em;
-  align-content: center;
-  margin-top: 0.2em;
-  width: auto;
-  min-width: 140px;
+.input-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.7em;
+  width: 100%;
   max-width: 340px;
-  box-sizing: border-box;
 }
-.sb-select {
-  min-width: 160px;
+
+.input-icon {
+  color: #e0e0e0;
+  font-size: 1.1em;
+  margin-right: 0.7em;
+  width: 1.8em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sb-input, .sb-dropdown {
+  background: #23232b;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.7em 1em;
+  margin-bottom: 0.5em;
+  font-size: 1em;
+  box-shadow: 0 2px 7px #0002;
+  transition: background 0.15s;
+}
+.sb-input:focus, .sb-dropdown:focus {
+  background: #292933;
+  outline: 2px solid #c98e2c;
 }
 
 /* ==========================
    Botones
 ========================== */
 .sb-btn {
-  background: #c98e2c;
+  background: #6b207a;
   color: #fff;
   border: none;
   font-size: 0.9em; /* Reducido un 10% */
@@ -112,20 +127,38 @@ body {
   transition: background 0.1s;
 }
 .sb-btn:active {
-  background: #ad7727;
+  background: #4a1554;
 }
 .save-btn {
   width: 80%;
   font-size: 1em; /* Mantén el tamaño */
   padding: 0.8em 0;
   margin-top: 0.2em;
-  background: #c98e2c;
+  background: #6b207a;
   letter-spacing: 1px;
   border-radius: 10px;
   box-shadow: 0 3px 12px #0002;
 }
 .save-btn:active {
-  background: #ad7727;
+  background: #4a1554;
+}
+/* Botones mini para sumar/restar puntaje */
+.sb-btn-mini {
+  background: #9b1453;
+  color: #f3c67c;
+  border: none;
+  font-size: 1.1em;
+  padding: 0.35em 0.7em;
+  margin-left: 0.3em;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0002;
+  transition: background 0.1s, color 0.1s;
+  vertical-align: middle;
+}
+.sb-btn-mini:active {
+  background: #19191f;
+  color: #ad7727;
 }
 
 /* ==========================
@@ -229,12 +262,26 @@ body {
   opacity: 0.85;
 }
 .sb-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2em;
   font-size: 4.5em; /* Reducido un 10% */
   font-weight: bold;
   letter-spacing: 0.12em;
   margin: 0.5em 0 0.3em 0;
   color: #fff;
   text-shadow: 0 4px 22px #000d;
+}
+.score-btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+.sb-score-row .sb-btn-mini {
+  margin: 0;
+  font-size: 1.1em;
+  padding: 0.25em 0.7em;
 }
 .sb-score-labels {
   display: none !important;
@@ -259,7 +306,7 @@ body {
   margin-bottom: 0.5em;
 }
 .sb-btn-danger {
-  background: #d13636;
+  background: #a92323;
   color: #fff;
   border: none;
   font-size: 1em;
@@ -337,16 +384,16 @@ body {
   margin-bottom: 2em;
 }
 .switch-btn {
-  background: #c98e2c;
+  background: #6b207a;
 }
 .switch-btn:active {
-  background: #b57a1a;
+  background: #4a1554;
 }
 .reset-btn {
-  background: #555;
+  background: #6b207a;
 }
 .reset-btn:active {
-  background: #2e2e30;
+  background: #4a1554;
 }
 .scores {
 	
@@ -358,13 +405,13 @@ body {
   font-size: 1em; /* Mantén el tamaño */
   padding: 0.8em 0;
   margin-top: 0.2em;
-  background: #c98e2c;
+  background: #6b207a;
   letter-spacing: 1px;
   border-radius: 10px;
   box-shadow: 0 3px 12px #0002;
 }
 .save-btn:active {
-  background: #ad7727;
+  background: #4a1554;
 }
 
 .msg-guardado {
@@ -382,7 +429,7 @@ body {
 }
 
 .scoreboard-box, .scoreboard-controls-box {
-  background: #212228;
+  background: #23232b; /* Antes: #212228 */
   border-radius: 16px;
   box-shadow: 0 4px 20px #0003;
   padding: 1.5em 0.5em 0.1em 0.5em;
@@ -400,6 +447,16 @@ body {
   min-width: 340px;
   max-width: 410px;
   flex: 1 1 410px;
+}
+
+/* Horizontal para el grupo de controles */
+.scoreboard-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 3vw;
+  width: 100%;
 }
 
 /* Responsive: apila en vertical en móviles */
@@ -473,4 +530,125 @@ body {
 .top8-table th, .top8-table td {
   font-size: 0.95em; /* Reducido un 10% */
   padding: 0.7em 1.1em; /* Ajusta el padding ligeramente */
+}
+
+/* Placeholder color para inputs */
+.sb-input::placeholder {
+  color: #bbb;
+  opacity: 1;
+}
+
+/* Placeholder visual para selects */
+.sb-dropdown:invalid {
+  color: #bbb;
+}
+
+/* Oculta el option placeholder en el desplegable */
+.sb-dropdown option[disabled][selected] {
+  display: none;
+}
+
+/* Notificaciones flotantes en la esquina superior derecha */
+#notificaciones-app {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.7em;
+  pointer-events: none;
+}
+
+.notificacion-flotante {
+  background: #23232b;
+  color: #fff;
+  padding: 1em 1.7em 1em 1.2em;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px #0008;
+  font-size: 1.08em;
+  min-width: 180px;
+  max-width: 340px;
+  opacity: 0.97;
+  pointer-events: auto;
+  animation: fadeInOut 3s forwards;
+  margin-top: 0.2em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+.notificacion-flotante.success { color: #8fff9f; }
+.notificacion-flotante.error { color: #ffb3b3; }
+.notificacion-flotante.info { color: #ffe8b2; }
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-16px);}
+  10% { opacity: 1; transform: translateY(0);}
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-16px);}
+}
+
+/* Mensaje generado Top 8 alineado a la derecha */
+.top8-mensaje-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 1.5em;
+  margin-right: 0.5em;
+}
+
+.top8-mensaje-textarea {
+  background: #23232b;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  font-size: 1em;
+  min-width: 320px;
+  max-width: 420px;
+  min-height: 140px;
+  resize: none;
+  margin-bottom: 0.7em;
+  box-shadow: 0 2px 12px #0005;
+  font-family: 'Montserrat', Arial, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.copiar-mensaje-btn {
+  align-self: flex-end;
+  margin: 0;
+  background: #6b207a;
+}
+.copiar-mensaje-btn:active {
+  background: #4a1554;
+}
+
+.top8-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2.5em;
+  width: 100%;
+}
+
+/* El contenido principal (tabla y controles) */
+.top8-main-content {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* El mensaje generado */
+.top8-mensaje-box {
+  min-width: 320px;
+  max-width: 420px;
+  background: none;
+  margin-top: 0;
+  margin-right: 0.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }

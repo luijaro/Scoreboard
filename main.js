@@ -54,8 +54,8 @@ function ensureSaveDir(win) {
 // Función para crear la ventana principal de la aplicación
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1280, // Ancho estándar
-    height: 720, // Alto estándar
+    width: 1280,
+    height: 750,  //Antes: 720
     resizable: false, // Evita que el usuario cambie el tamaño
     icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {

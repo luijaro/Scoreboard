@@ -143,12 +143,10 @@ function getScoreboardData() {
 async function guardarScoreboard() {
   const data = getScoreboardData();
   const res = await ipcRenderer.invoke('save-json', data);
-  const msg = document.getElementById('msgGuardado');
   if (res.ok) {
-    msg.textContent = '✅ ¡Guardado!';
-    setTimeout(() => { msg.textContent = ''; }, 3000);
+    mostrarNotificacion('✅ ¡Guardado!', 'success');
   } else {
-    msg.textContent = '❌ Error al guardar';
+    mostrarNotificacion('❌ Error al guardar', 'error');
   }
 }
 
@@ -273,8 +271,11 @@ async function guardarTop8() {
     top8: top8Data
   });
 
-  document.getElementById('msgTop8').textContent = res.ok ? "✅ Top 8 guardado." : "❌ Error al guardar";
-  setTimeout(() => { document.getElementById('msgTop8').textContent = ''; }, 3000);
+  if (res.ok) {
+    mostrarNotificacion("✅ Top 8 guardado.", "success");
+  } else {
+    mostrarNotificacion("❌ Error al guardar", "error");
+  }
 }
 
 // ================================
@@ -286,12 +287,11 @@ async function guardarApiKey() {
   const twitchUser = document.getElementById('twitchUser') ? document.getElementById('twitchUser').value.trim() : "";
   const twitchChannel = document.getElementById('twitchChannel') ? document.getElementById('twitchChannel').value.trim() : "";
   if (!apiKey) {
-    document.getElementById('msgApi').textContent = "API Key vacía";
+    mostrarNotificacion("API Key vacía", "error");
     return;
   }
   await ipcRenderer.invoke('save-api-key', { apiKey, twitchOAuth, twitchUser, twitchChannel });
-  document.getElementById('msgApi').textContent = "Datos guardados.";
-  setTimeout(() => { document.getElementById('msgApi').textContent = ''; }, 2000);
+  mostrarNotificacion("Datos guardados.", "success");
 }
 
 (async function cargarCredencialesAlIniciar() {
@@ -313,7 +313,7 @@ async function cargarJugadoresChallonge() {
   document.getElementById('msgChallonge').textContent = "Consultando...";
   const r = await ipcRenderer.invoke('get-participants', slug);
   if (r.error) {
-    document.getElementById('msgChallonge').textContent = r.error;
+    mostrarNotificacion(r.error, "error");
     return;
   }
   let opts = '<option value="">Selecciona jugador</option>';
@@ -476,20 +476,20 @@ async function reportarResultadoChallonge() {
   const select = document.getElementById('selectMatch');
   const matchId = select && select.value;
   if (!matchId || !matchesCargados.length) {
-    document.getElementById('msgReportChallonge').textContent = "Selecciona un match primero.";
+    mostrarNotificacion("Selecciona un match primero.", "error");
     return;
   }
   // CAMBIO: Usar el slug del select de torneos
   const slug = document.getElementById('tournamentList').value.trim();
   if (!slug) {
-    document.getElementById('msgReportChallonge').textContent = "Falta slug del torneo.";
+    mostrarNotificacion("Falta slug del torneo.", "error");
     return;
   }
   const score1 = document.getElementById('p1Score').textContent.trim();
   const score2 = document.getElementById('p2Score').textContent.trim();
   const match = matchesCargados.find(m => String(m.id) === String(matchId));
   if (!match) {
-    document.getElementById('msgReportChallonge').textContent = "Match no encontrado.";
+    mostrarNotificacion("Match no encontrado.", "error");
     return;
   }
   const scoreCsv = `${score1}-${score2}`;
@@ -497,15 +497,17 @@ async function reportarResultadoChallonge() {
   if (Number(score1) > Number(score2)) winnerId = match.player1_id;
   else if (Number(score2) > Number(score1)) winnerId = match.player2_id;
   else {
-    document.getElementById('msgReportChallonge').textContent = "Empate no permitido.";
+    mostrarNotificacion("Empate no permitido.", "error");
     return;
   }
 
   document.getElementById('msgReportChallonge').textContent = "Enviando...";
   const res = await ipcRenderer.invoke('report-match-score', { slug, matchId, scoreCsv, winnerId });
-  document.getElementById('msgReportChallonge').textContent = res.ok
-    ? "✅ Resultado reportado correctamente."
-    : "❌ " + res.error;
+  if (res.ok) {
+    mostrarNotificacion("✅ Resultado reportado correctamente.", "success");
+  } else {
+    mostrarNotificacion("❌ " + res.error, "error");
+  }
 }
 
 function confirmarYReportar() {
@@ -551,11 +553,9 @@ function mostrarMensajeTop8(nombreTorneo, top8) {
 function copiarMensajeTop8() {
   const textarea = document.getElementById('mensajeTop8Text');
   textarea.select();
+  textarea.setSelectionRange(0, 99999); // Para móviles
   document.execCommand('copy');
-  document.getElementById('msgTop8Copy').textContent = "¡Mensaje copiado!";
-  setTimeout(() => {
-    document.getElementById('msgTop8Copy').textContent = "";
-  }, 2000);
+  mostrarNotificacion("¡Mensaje copiado!", "success");
 }
 
 function generarMensajeTop8DesdeInputs() {
@@ -565,7 +565,6 @@ function generarMensajeTop8DesdeInputs() {
     const puesto = tbody.children[i].children[0].textContent;
     let twitter = document.getElementById('top8twitter' + i).value.trim();
     if (!twitter) {
-      // Si no hay twitter, usa @Jugador_con_guion
       const jugador = tbody.children[i].children[1].textContent;
       twitter = '@' + jugador.replace(/\s/g, '_');
     }
@@ -634,9 +633,23 @@ async function capturarEscenaOBS() {
 }
 
 function twittearMensaje() {
-  // Toma el mensaje del textarea (o del input que quieras usar)
-  const mensaje = encodeURIComponent(document.getElementById('mensajeTop8Text').value);
-  window.open(`https://twitter.com/intent/tweet?text=${mensaje}`, '_blank');
+  // Genera el mensaje Top 8 actual
+  const tbody = document.getElementById('top8Table');
+  let mensaje = `Resultados ${window.nombreTorneoActual || ""}\n\n`;
+  for (let i = 0; i < tbody.children.length; ++i) {
+    const puesto = tbody.children[i].children[0].textContent;
+    let twitter = document.getElementById('top8twitter' + i).value.trim();
+    if (!twitter) {
+      // Si no hay twitter, usa @Jugador_con_guion
+      const jugador = tbody.children[i].children[1].textContent;
+      twitter = '@' + jugador.replace(/\s/g, '_');
+    }
+    if (!twitter.startsWith('@')) twitter = '@' + twitter;
+    mensaje += `${puesto}) ${twitter}\n`;
+  }
+  mensaje += `\n¡Gracias por participar!`;
+  // Abre Twitter con el mensaje generado
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
 // ================================
@@ -648,7 +661,7 @@ async function cargarTorneos() {
   const msg = document.getElementById('msgMatches');
   const tournamentList = document.getElementById('tournamentList');
   if (!apiKey) {
-    msg.textContent = "❌ Ingresa tu API Key primero.";
+    mostrarNotificacion("❌ Ingresa tu API Key primero.", "error");
     return;
   }
 
@@ -806,4 +819,18 @@ async function buscarTorneosMatches() {
   } catch (error) {
     msg.textContent = `❌ ${error.message}`;
   }
+}
+
+// Muestra una notificación flotante en la esquina superior derecha
+function mostrarNotificacion(mensaje, tipo = "info", duracion = 3000) {
+  const contenedor = document.getElementById('notificaciones-app');
+  if (!contenedor) return;
+  const div = document.createElement('div');
+  div.className = `notificacion-flotante ${tipo}`;
+  div.textContent = mensaje;
+  contenedor.appendChild(div);
+  setTimeout(() => {
+    div.style.opacity = '0';
+    setTimeout(() => div.remove(), 400);
+  }, duracion);
 }
