@@ -232,6 +232,9 @@ async function cargarTop8() {
             ${listaPersonajes.map(char => `<option value="${char}">${char}</option>`).join("")}
           </select>
         </td>
+        <td style="padding:0.5em 1em;">
+          <input class="sb-input" id="top8twitter${idx}" placeholder="@usuario" style="width:120px;">
+        </td>
       </tr>
     `;
   });
@@ -240,7 +243,7 @@ async function cargarTop8() {
   const titleRes = await ipcRenderer.invoke('get-tournament-title', slug);
   let nombreTorneo = titleRes.title || slug;
   window.nombreTorneoActual = nombreTorneo;
-  mostrarMensajeTop8(nombreTorneo, r.top8);
+  // mostrarMensajeTop8(nombreTorneo, r.top8); // <-- comenta o elimina esta línea
 
   setTimeout(() => msg.textContent = '', 2500);
 }
@@ -252,22 +255,20 @@ async function guardarTop8() {
   const tbody = document.getElementById('top8Table');
   if (!tbody.children.length) return;
   const top8Data = [];
-  const juego = document.getElementById('gameSel').value; // ← CORREGIDO
+  const juego = document.getElementById('gameSel').value;
 
-  // Obtén el nombre del torneo desde donde lo guardes globalmente
-  // Supongamos que lo tienes en window.nombreTorneoActual (ajusta si es diferente)
   const nombreTorneo = window.nombreTorneoActual || "Torneo sin nombre";
   const fecha = new Date().toLocaleDateString('es-CL');
 
   for (let i = 0; i < tbody.children.length; ++i) {
     const jugador = tbody.children[i].children[1].textContent;
     const personaje = document.getElementById('top8char' + i).value;
-    top8Data.push({ nombre: jugador, personaje, juego });
+    const twitter = document.getElementById('top8twitter' + i).value.trim();
+    top8Data.push({ nombre: jugador, personaje, juego, twitter });
   }
   
-  // Guarda el JSON incluyendo el campo 'evento'
   const res = await ipcRenderer.invoke('save-json', {
-    evento: nombreTorneo,  // <--- aquí va el nombre del torneo de Challonge
+    evento: nombreTorneo,
     fecha: fecha,
     top8: top8Data
   });
@@ -528,8 +529,12 @@ function generarMensajeTop8(nombreTorneo, top8) {
       rankNum = p.final_rank;
       prevRank = p.final_rank;
     }
-    // Si tienes el campo twitter, úsalo; si no, usa el nombre reemplazando espacios por guión_under
-    let tag = p.twitter ? `@${p.twitter.replace(/^@/,'')}` : `@${p.name.replace(/\s/g,'_')}`;
+    // Busca el input de twitter si existe (cuando se edita manualmente)
+    let twitterInput = document.getElementById('top8twitter' + i);
+    let twitter = twitterInput ? twitterInput.value.trim() : (p.twitter || "");
+    let tag = twitter
+      ? (twitter.startsWith('@') ? twitter : '@' + twitter)
+      : `@${p.name.replace(/\s/g,'_')}`;
     mensaje += `${rankNum}) ${tag}\n`;
   });
 
@@ -538,7 +543,6 @@ function generarMensajeTop8(nombreTorneo, top8) {
 }
 
 function mostrarMensajeTop8(nombreTorneo, top8) {
-  // Ordena por final_rank (por si acaso)
   top8 = top8.slice().sort((a, b) => a.final_rank - b.final_rank);
   const mensaje = generarMensajeTop8(nombreTorneo, top8);
   document.getElementById('mensajeTop8Text').value = mensaje;
@@ -554,7 +558,23 @@ function copiarMensajeTop8() {
   }, 2000);
 }
 
-
+function generarMensajeTop8DesdeInputs() {
+  const tbody = document.getElementById('top8Table');
+  let mensaje = `Resultados ${window.nombreTorneoActual || ""}\n\n`;
+  for (let i = 0; i < tbody.children.length; ++i) {
+    const puesto = tbody.children[i].children[0].textContent;
+    let twitter = document.getElementById('top8twitter' + i).value.trim();
+    if (!twitter) {
+      // Si no hay twitter, usa @Jugador_con_guion
+      const jugador = tbody.children[i].children[1].textContent;
+      twitter = '@' + jugador.replace(/\s/g, '_');
+    }
+    if (!twitter.startsWith('@')) twitter = '@' + twitter;
+    mensaje += `${puesto}) ${twitter}\n`;
+  }
+  mensaje += `\n¡Gracias por participar!`;
+  document.getElementById('mensajeTop8Text').value = mensaje;
+}
 
 // ================================
 //     OBS
