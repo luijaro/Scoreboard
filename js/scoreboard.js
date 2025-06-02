@@ -96,7 +96,7 @@ function changeScore(player, delta) {
   const id = player === 1 ? 'p1Score' : 'p2Score';
   let score = parseInt(document.getElementById(id).textContent) || 0;
   score = Math.max(0, score + delta);
-  document.getElementById(id).textContent = score;
+  animateScore(id, score);
 }
 
 function swap() {
@@ -164,14 +164,6 @@ function animateScore(id, newScore) {
   el.classList.remove('animated');
   void el.offsetWidth; // Forzar reflow para reiniciar animación
   el.classList.add('animated');
-}
-
-// Ejemplo de uso cuando subes el score:
-function changeScore(player, delta) {
-  const id = player === 1 ? 'p1Score' : 'p2Score';
-  let score = parseInt(document.getElementById(id).textContent) || 0;
-  score = Math.max(0, score + delta);
-  animateScore(id, score);
 }
 
 // ================================
@@ -486,7 +478,8 @@ async function reportarResultadoChallonge() {
     document.getElementById('msgReportChallonge').textContent = "Selecciona un match primero.";
     return;
   }
-  const slug = document.getElementById('editSlug').value.trim();
+  // CAMBIO: Usar el slug del select de torneos
+  const slug = document.getElementById('tournamentList').value.trim();
   if (!slug) {
     document.getElementById('msgReportChallonge').textContent = "Falta slug del torneo.";
     return;
@@ -524,7 +517,6 @@ function confirmarYReportar() {
 //     Top 8 Redes
 // ================================
 
-console.log('Intentando cargar top 8', slug);
 function generarMensajeTop8(nombreTorneo, top8) {
   let mensaje = `Resultados ${nombreTorneo}\n\n`;
 
@@ -778,13 +770,14 @@ async function buscarTorneosMatches() {
     // Restaurar el último torneo seleccionado si existe
     if (ultimoTorneoMatches && torneosInProgress.some(t => t.url === ultimoTorneoMatches)) {
       tournamentList.value = ultimoTorneoMatches;
-      cargarMatches(); // Opcional: cargar matches automáticamente al restaurar
+      // Quitar la llamada automática a cargarMatches()
+      // cargarMatches(); // <-- ELIMINA o comenta esta línea
     }
 
     // Guardar el último torneo seleccionado cada vez que cambie
     tournamentList.onchange = () => {
       ultimoTorneoMatches = tournamentList.value;
-      cargarMatches();
+      // Ya no se llama cargarMatches() aquí
     };
 
     msg.textContent = torneosInProgress.length > 0
