@@ -37,6 +37,16 @@ body {
   opacity: 1;
   font-weight: bold;
 }
+.tab-btn.rutas-tab {
+  background: linear-gradient(90deg, #ffe8b2 0%, #ffb347 100%);
+  color: #222 !important;
+  font-weight: bold;
+  border: 2px solid #ffb347;
+}
+.tab-btn.rutas-tab.active {
+  background: linear-gradient(90deg, #ffb347 0%, #ffe8b2 100%);
+  color: #222 !important;
+}
 .tab-panel {
   display: none;
 }
@@ -685,4 +695,14 @@ body {
 }
 .rutas-float-btn:hover {
   background: #4a1554;
+}
+
+.preview-match {
+  background: #222;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 1em;
+  text-align: center;
+  font-size: 1.1em;
 }

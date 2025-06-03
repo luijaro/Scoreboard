@@ -69,7 +69,7 @@ function createWindow() {
     }
   });
   win.loadFile('index.html');
-  win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
+  // win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
   });
@@ -513,13 +513,13 @@ ipcMain.handle('elegir-ruta', async (event, tipo) => {
 
 ipcMain.handle('abrir-ventana-rutas', () => {
   const win = new BrowserWindow({
-    width: 500,
-    height: 400,
+    width: 600,
+    height: 500,
     resizable: false,
     title: 'Configurar rutas de archivos',
     webPreferences: {
-      nodeIntegration: true,      // <--- IMPORTANTE
-      contextIsolation: false     // <--- IMPORTANTE
+      nodeIntegration: true,      // <--- Esto debe estar en true
+      contextIsolation: false     // <--- Esto debe estar en false
     }
   });
   win.loadFile('rutas.html');

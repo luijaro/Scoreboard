@@ -405,12 +405,16 @@ async function cargarMatches() {
     msg.textContent = "✅ Matches cargados.";
 
     // Asigna el evento para mostrar los datos del match seleccionado
-    selectMatch.onchange = mostrarMatchEnScoreboard;
+    selectMatch.onchange = function() {
+      mostrarMatchEnScoreboard();
+      mostrarPreviewMatch();
+    };
 
     // Si hay al menos un match, selecciona el primero y muestra sus datos automáticamente
     if (res.matches.length > 0) {
       selectMatch.selectedIndex = 0;
       mostrarMatchEnScoreboard();
+      mostrarPreviewMatch();
     }
   } catch (error) {
     msg.textContent = `❌ ${error.message}`;
@@ -925,4 +929,50 @@ document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
 function rutaId(tipo) {
   if (tipo === 'apikey') return 'rutaApiKey';
   return 'ruta' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
+}
+
+// ================================
+//     PREVIEW MATCH
+// ================================
+
+function mostrarPreviewMatch() {
+  const select = document.getElementById('selectMatch');
+  const matchId = select.value;
+  const match = matchesCargados.find(m => String(m.id) === String(matchId));
+  const div = document.getElementById('preview-match');
+  if (!div) return;
+
+  if (!match) {
+    div.innerHTML = '';
+    return;
+  }
+
+  const score1 = document.getElementById('p1Score')?.textContent || '0';
+  const score2 = document.getElementById('p2Score')?.textContent || '0';
+
+  div.innerHTML = `
+    <div style="display:flex;justify-content:center;align-items:center;gap:2em;">
+      <div>
+        <strong>${match.player1_name}</strong>
+        <div>Score: <span>${score1}</span></div>
+      </div>
+      <div style="font-size:2em;">VS</div>
+      <div>
+        <strong>${match.player2_name}</strong>
+        <div>Score: <span>${score2}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+// Llama a esta función cada vez que cambies el score
+document.getElementById('p1Score').addEventListener('DOMSubtreeModified', mostrarPreviewMatch);
+document.getElementById('p2Score').addEventListener('DOMSubtreeModified', mostrarPreviewMatch);
+
+// ================================
+//     RUTAS PERSONALIZADAS
+// ================================
+
+function abrirRutas() {
+  window.ipcRenderer.invoke('abrir-ventana-rutas');
 }
