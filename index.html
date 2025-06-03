@@ -172,12 +172,14 @@
   ========================== -->
   <section class="tab-panel" id="tab-bracket">
     <div class="tab-content-center">
-      <select id="tournamentBracket" class="sb-select" style="width:220px;" onchange="mostrarBracket()">
-        <option value="">Selecciona un torneo...</option>
-      </select>
-      <br><br>
-      <iframe id="challongeBracket" style="width:90vw; height:70vh; border:none; background:#111;" allowtransparency="true"></iframe>
-      
+      <div style="display:flex; justify-content:center; margin-top:2em;">
+        <select id="tournamentBracket" class="sb-select" onchange="mostrarBracket()">
+          <option value="">Selecciona un torneo...</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:center;">
+        <iframe id="challongeBracket" style="width:90vw; max-width:1200px; height:70vh; border:none; background:#111; border-radius:12px;" allowtransparency="true"></iframe>
+      </div>
     </div>
   </section>
 
@@ -187,8 +189,8 @@
   <section class="tab-panel" id="tab-top8">
     <div class="top8-wrapper">
       <div class="top8-main-content">
-        <div class="top8-header">
-          <select id="tournamentTop8" class="sb-select" style="width:220px;" onchange="cargarTop8()">
+        <div class="top8-header" style="margin-top:1.5em; margin-bottom:1em; display:flex; align-items:center;">
+          <select id="tournamentTop8" class="sb-select" style="margin-left:0;">
             <option value="">Selecciona un torneo...</option>
           </select>
         </div>
@@ -198,13 +200,12 @@
               <th>Puesto</th>
               <th>Jugador</th>
               <th>Personaje</th>
-              <th>Twitter</th> <!-- Nueva columna -->
+              <th>Twitter</th>
             </tr>
           </thead>
           <tbody id="top8Table"></tbody>
         </table>
         <div class="top8-controls">
-          <button class="sb-btn" onclick="copiarMensajeTop8()">Copiar mensaje Top 8</button>
           <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
           <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
           <button class="sb-btn" onclick="generarMensajeTop8DesdeInputs()">Generar mensaje</button>
@@ -212,9 +213,12 @@
         <div id="msgTop8Copy" class="msg-top8-copy"></div>
         <span id="msgTop8" class="msg-top8"></span>
       </div>
+      <!-- Caja de mensaje y botón copiar, a la derecha -->
       <div class="top8-mensaje-box">
         <textarea id="mensajeTop8Text" class="top8-mensaje-textarea" readonly></textarea>
-        <button class="sb-btn copiar-mensaje-btn" onclick="copiarMensajeTop8()">Copiar mensaje</button>
+        <button class="sb-btn copiar-mensaje-btn"
+          style="background:#8e44ad; color:#fff; font-weight:bold; font-size:1.1em; padding:0.7em 2em; border-radius:8px; margin-top:0.2em;"
+          onclick="copiarMensajeTop8()">Copiar mensaje</button>
       </div>
     </div>
   </section>

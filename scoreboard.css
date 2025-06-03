@@ -135,6 +135,29 @@ body {
   outline: 2px solid #c98e2c;
 }
 
+/* Select visual estilo dark, centrado y grande */
+.sb-select {
+  background: #23232b;
+  color: #ffe8b2;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.13em;
+  font-weight: bold;
+  padding: 0.6em 1.5em;
+  margin: 0 auto 1.5em auto;
+  display: block;
+  box-shadow: 0 2px 8px #0003;
+  text-align: left;
+  min-width: 320px;
+  max-width: 420px;
+  outline: none;
+  transition: background 0.15s, color 0.15s;
+}
+.sb-select:focus {
+  background: #292933;
+  color: #fff7de;
+}
+
 /* ==========================
    Botones
 ========================== */
@@ -617,13 +640,17 @@ body {
   100% { opacity: 0; transform: translateY(-16px);}
 }
 
-/* Mensaje generado Top 8 alineado a la derecha */
+/* scoreboard.css */
 .top8-mensaje-box {
+  min-width: 320px;
+  max-width: 420px;
+  background: none;
+  margin-top: 1.5em;
+  margin-right: 2.5em;
+  margin-left: 1.5em;      /* <-- Mueve la caja a la izquierda */
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin-top: 1.5em;
-  margin-right: 0.5em;
 }
 
 .top8-mensaje-textarea {
@@ -635,7 +662,7 @@ body {
   font-size: 1em;
   min-width: 320px;
   max-width: 420px;
-  min-height: 140px;
+  min-height: 400px;       /* <-- Más alto verticalmente */
   resize: none;
   margin-bottom: 0.7em;
   box-shadow: 0 2px 12px #0005;
@@ -645,6 +672,7 @@ body {
 
 .copiar-mensaje-btn {
   align-self: flex-end;
+  text-align: center;
   margin: 0;
   background: #6b207a;
 }
@@ -661,23 +689,12 @@ body {
   width: 100%;
 }
 
-/* El contenido principal (tabla y controles) */
 .top8-main-content {
+  margin-left: 1.5em;      /* <-- Mueve la caja a la izquierda */
   flex: 1 1 0;
   min-width: 0;
 }
 
-/* El mensaje generado */
-.top8-mensaje-box {
-  min-width: 320px;
-  max-width: 420px;
-  background: none;
-  margin-top: 0;
-  margin-right: 0.5em;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
 
 .rutas-float-btn {
   position: absolute;
