@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Configurar rutas</title>
+  <link rel="stylesheet" href="scoreboard.css">
+</head>
+<body>
+  <h2>Configurar rutas de archivos</h2>
+  <div class="form-row">
+    <label>Ruta Scoreboard JSON:</label>
+    <input id="rutaScoreboard" class="sb-input" style="width:320px;" readonly>
+    <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
+  </div>
+  <div class="form-row">
+    <label>Ruta Bracket JSON:</label>
+    <input id="rutaBracket" class="sb-input" style="width:320px;" readonly>
+    <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
+  </div>
+  <div class="form-row">
+    <label>Ruta Top8 JSON:</label>
+    <input id="rutaTop8" class="sb-input" style="width:320px;" readonly>
+    <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
+  </div>
+  <div class="form-row">
+    <label>Ruta API Key:</label>
+    <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
+    <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
+  </div>
+  <script src="js/scoreboard.js"></script>
+</body>
+</html>

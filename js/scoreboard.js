@@ -867,3 +867,24 @@ function mostrarNotificacion(mensaje, tipo = "info", duracion = 3000) {
     setTimeout(() => div.remove(), 400);
   }, duracion);
 }
+
+// ================================
+//     RUTAS
+// ================================
+
+async function elegirRuta(tipo) {
+  const res = await window.ipcRenderer.invoke('elegir-ruta', tipo);
+  if (res.ok && res.ruta) {
+    document.getElementById('ruta' + capitalize(tipo)).value = res.ruta;
+    // Guarda la ruta en localStorage o en un archivo de configuración
+    localStorage.setItem('ruta_' + tipo, res.ruta);
+  }
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function abrirVentanaRutas() {
+  window.ipcRenderer.invoke('abrir-ventana-rutas');
+}

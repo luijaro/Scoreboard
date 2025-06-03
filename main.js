@@ -17,36 +17,36 @@ let twitchChannelActual = ''; // Variable para almacenar el canal actual de Twit
 //   UTILIDAD: CARPETA
 // =========================
 // Función para asegurar que el directorio de guardado exista
-function ensureSaveDir(win) {
-  const os = require('os');
-  const documentsDir = path.join(os.homedir(), 'Documents');
-  const defaultDir = path.join(documentsDir, 'data_scoreboard');
+// function ensureSaveDir(win) {
+//   const os = require('os');
+//   const documentsDir = path.join(os.homedir(), 'Documents');
+//   const defaultDir = path.join(documentsDir, 'data_scoreboard');
 
-  console.log('Intentando usar carpeta:', defaultDir);
+//   console.log('Intentando usar carpeta:', defaultDir);
 
-  if (saveDir) return saveDir;
-  if (fs.existsSync(configFile)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-      if (config.saveDir && fs.existsSync(config.saveDir)) {
-        saveDir = config.saveDir;
-        return saveDir;
-      }
-    } catch (e) {}
-  }
+//   if (saveDir) return saveDir;
+//   if (fs.existsSync(configFile)) {
+//     try {
+//       const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+//       if (config.saveDir && fs.existsSync(config.saveDir)) {
+//         saveDir = config.saveDir;
+//         return saveDir;
+//       }
+//     } catch (e) {}
+//   }
 
-  if (!fs.existsSync(defaultDir)) {
-    try {
-      fs.mkdirSync(defaultDir, { recursive: true });
-      console.log('Carpeta creada:', defaultDir);
-    } catch (err) {
-      console.error('Error creando carpeta:', err);
-    }
-  }
-  saveDir = defaultDir;
-  fs.writeFileSync(configFile, JSON.stringify({ saveDir }), 'utf8');
-  return saveDir;
-}
+//   if (!fs.existsSync(defaultDir)) {
+//     try {
+//       fs.mkdirSync(defaultDir, { recursive: true });
+//       console.log('Carpeta creada:', defaultDir);
+//     } catch (err) {
+//       console.error('Error creando carpeta:', err);
+//     }
+//   }
+//   saveDir = defaultDir;
+//   fs.writeFileSync(configFile, JSON.stringify({ saveDir }), 'utf8');
+//   return saveDir;
+// }
 
 // =========================
 //      CREAR VENTANA
@@ -65,7 +65,7 @@ function createWindow() {
   });
   win.loadFile('index.html');
   win.once('ready-to-show', () => {
-    ensureSaveDir(win);
+    // ensureSaveDir(win);
   });
 }
 
@@ -451,5 +451,29 @@ ipcMain.handle('get-tournaments', async () => {
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
   }
+});
+
+ipcMain.handle('elegir-ruta', async (event, tipo) => {
+  const { canceled, filePath } = await dialog.showSaveDialog({
+    title: 'Selecciona destino para ' + tipo,
+    defaultPath: tipo + '.json',
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (canceled) return { ok: false };
+  return { ok: true, ruta: filePath };
+});
+
+ipcMain.handle('abrir-ventana-rutas', () => {
+  const win = new BrowserWindow({
+    width: 500,
+    height: 400,
+    resizable: false,
+    title: 'Configurar rutas de archivos',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+  });
+  win.loadFile('rutas.html');
 });
 
