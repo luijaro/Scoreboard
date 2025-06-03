@@ -142,7 +142,7 @@ function getScoreboardData() {
 
 async function guardarScoreboard() {
   const data = getScoreboardData();
-  const res = await ipcRenderer.invoke('save-json', data);
+  const res = await ipcRenderer.invoke('save-json', data, 'scoreboard');
   if (res.ok) {
     mostrarNotificacion('✅ ¡Guardado!', 'success');
   } else {
@@ -269,8 +269,7 @@ async function guardarTop8() {
     evento: nombreTorneo,
     fecha: fecha,
     top8: top8Data
-  });
-
+  }, 'top8');
   if (res.ok) {
     mostrarNotificacion("✅ Top 8 guardado.", "success");
   } else {
@@ -869,22 +868,61 @@ function mostrarNotificacion(mensaje, tipo = "info", duracion = 3000) {
 }
 
 // ================================
-//     RUTAS
+//     RUTAS PERSONALIZADAS
 // ================================
-
-async function elegirRuta(tipo) {
-  const res = await window.ipcRenderer.invoke('elegir-ruta', tipo);
-  if (res.ok && res.ruta) {
-    document.getElementById('ruta' + capitalize(tipo)).value = res.ruta;
-    // Guarda la ruta en localStorage o en un archivo de configuración
-    localStorage.setItem('ruta_' + tipo, res.ruta);
-  }
-}
 
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function abrirVentanaRutas() {
-  window.ipcRenderer.invoke('abrir-ventana-rutas');
+async function elegirRuta(tipo) {
+  const res = await ipcRenderer.invoke('elegir-ruta', tipo);
+  if (res.ok && res.ruta) {
+    const input = document.getElementById(rutaId(tipo));
+    if (input) {
+      input.value = res.ruta;
+      // Guarda todas las rutas actuales
+      const rutas = {};
+      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+        const inp = document.getElementById(rutaId(t));
+        rutas[t] = inp ? inp.value : '';
+      }
+      await ipcRenderer.invoke('guardar-rutas', rutas);
+    }
+  }
+}
+
+async function guardarTodasLasRutas() {
+  const rutas = {};
+  for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+    const inp = document.getElementById(rutaId(t));
+    rutas[t] = inp ? inp.value : '';
+  }
+  console.log('Rutas a guardar:', rutas);
+  await ipcRenderer.invoke('guardar-rutas', rutas);
+  alert('¡Rutas guardadas!');
+}
+
+// Cargar rutas al mostrar la pestaña de rutas
+async function cargarRutas() {
+  const res = await ipcRenderer.invoke('cargar-rutas');
+  if (res.ok && res.rutas) {
+    for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+      if (res.rutas[tipo]) {
+        document.getElementById(rutaId(tipo)).value = res.rutas[tipo];
+      }
+    }
+  }
+}
+
+// Llama a cargarRutas cuando se muestra la pestaña de rutas
+document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+  btn.addEventListener('click', () => {
+    if (btn.textContent.includes('Configurar rutas')) cargarRutas();
+  });
+});
+
+function rutaId(tipo) {
+  if (tipo === 'apikey') return 'rutaApiKey';
+  return 'ruta' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
 }

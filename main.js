@@ -6,7 +6,12 @@ const fs = require('fs'); // Importa el módulo 'fs' para operaciones de archivo
 const path = require('path'); // Importa el módulo 'path' para manipulación de rutas
 const fetch = require('node-fetch'); // Importa 'node-fetch' para realizar solicitudes HTTP
 const tmi = require('tmi.js'); // Importa 'tmi.js' para interactuar con el chat de Twitch
-const configFile = path.join(app.getPath('userData'), 'scoreboard-config.json'); // Define la ruta del archivo de configuración
+
+const userDataDir = path.join(app.getPath('documents'), 'js');
+if (!fs.existsSync(userDataDir)) {
+  fs.mkdirSync(userDataDir, { recursive: true });
+}
+const configFile = path.join(userDataDir, 'scoreboard-config.json'); // Define la ruta del archivo de configuración
 
 let saveDir = null; // Variable para almacenar el directorio de guardado
 let userApiKey = null; // Variable para almacenar la API key del usuario
@@ -64,6 +69,7 @@ function createWindow() {
     }
   });
   win.loadFile('index.html');
+  win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
   });
@@ -81,65 +87,83 @@ app.whenReady().then(createWindow); // Cuando la aplicación está lista, crea l
 
 // -------- Scoreboard JSON --------
 // Handler para guardar el JSON del scoreboard
-ipcMain.handle('save-json', async (event, data, filename = 'scoreboard.json') => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, filename);
+ipcMain.handle('save-json', async (event, data, tipo = 'scoreboard') => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  let file;
+  if (rutas[tipo]) {
+    file = rutas[tipo];
+  } else {
+    // Por defecto, guarda en Documentos/js/
+    file = path.join(userDataDir, tipo + '.json');
+  }
   fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
   return { ok: true, file };
 });
 
-// Handler para abrir la carpeta de guardado
-ipcMain.handle('open-folder', async () => {
-  const dir = ensureSaveDir(); // Obtiene el directorio de guardado
-  shell.openPath(dir); // Abre el directorio en el explorador de archivos
-  return { ok: true, dir }; // Retorna un objeto con el estado y el directorio
-});
-
 // Handler para cargar el JSON del scoreboard
-ipcMain.handle('load-json', async () => {
-  const dir = ensureSaveDir(); // Obtiene el directorio de guardado
-  const file = path.join(dir, 'scoreboard.json'); // Define la ruta del archivo
-  if (fs.existsSync(file)) { // Verifica si el archivo existe
-    const data = JSON.parse(fs.readFileSync(file, 'utf8')); // Lee y parsea el archivo de configuración
-    return { ok: true, data, file }; // Retorna un objeto con el estado, los datos y la ruta del archivo
+ipcMain.handle('load-json', async (event, tipo = 'scoreboard') => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
   }
-  return { ok: false, file }; // Retorna un objeto con el estado y la ruta del archivo
+  const rutas = config.rutas || {};
+  let file;
+  if (rutas[tipo]) {
+    file = rutas[tipo];
+  } else {
+    file = path.join(userDataDir, tipo + '.json');
+  }
+  if (fs.existsSync(file)) {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return { ok: true, data, file };
+  }
+  return { ok: false, file };
 });
 
 // -------- Guardar/Cargar API Key y Credenciales Twitch --------
 // Handler para guardar la API key y las credenciales de Twitch
 ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel }) => {
-  const dir = ensureSaveDir(); // Obtiene el directorio de guardado
-  const file = path.join(dir, 'apikey.json'); // Define la ruta del archivo
-  let data = {}; // Inicializa un objeto para almacenar los datos
-  if (fs.existsSync(file)) { // Verifica si el archivo existe
-    try {
-      data = JSON.parse(fs.readFileSync(file, 'utf8')); // Lee y parsea el archivo de configuración
-    } catch (e) {} // Ignora errores al leer el archivo
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
   }
-  if (apiKey) data.apiKey = apiKey; // Asigna la API key si se proporciona
-  if (twitchOAuth) data.twitchOAuth = twitchOAuth; // Asigna el OAuth de Twitch si se proporciona
-  if (twitchUser) data.twitchUser = twitchUser; // Asigna el usuario de Twitch si se proporciona
-  if (twitchChannel) data.twitchChannel = twitchChannel; // Asigna el canal de Twitch si se proporciona
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); // Guarda los datos en el archivo JSON
-  return { ok: true }; // Retorna un objeto con el estado
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let data = {};
+  if (fs.existsSync(file)) {
+    try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) {}
+  }
+  if (apiKey) data.apiKey = apiKey;
+  if (twitchOAuth) data.twitchOAuth = twitchOAuth;
+  if (twitchUser) data.twitchUser = twitchUser;
+  if (twitchChannel) data.twitchChannel = twitchChannel;
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+  return { ok: true };
 });
 
 // Handler para cargar la API key y las credenciales de Twitch
 ipcMain.handle('load-api-key', async () => {
-  const dir = ensureSaveDir(); // Obtiene el directorio de guardado
-  const file = path.join(dir, 'apikey.json'); // Define la ruta del archivo
-  if (fs.existsSync(file)) { // Verifica si el archivo existe
-    const data = JSON.parse(fs.readFileSync(file, 'utf8')); // Lee y parsea el archivo JSON
-    return { // Retorna un objeto con el estado y los datos
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  if (fs.existsSync(file)) {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return {
       ok: true,
-      apiKey: data.apiKey || '', // Retorna la API key o una cadena vacía si no existe
-      twitchOAuth: data.twitchOAuth || '', // Retorna el OAuth de Twitch o una cadena vacía si no existe
-      twitchUser: data.twitchUser || '', // Retorna el usuario de Twitch o una cadena vacía si no existe
-      twitchChannel: data.twitchChannel || '' // Retorna el canal de Twitch o una cadena vacía si no existe
+      apiKey: data.apiKey || '',
+      twitchOAuth: data.twitchOAuth || '',
+      twitchUser: data.twitchUser || '',
+      twitchChannel: data.twitchChannel || ''
     };
   }
-  return { ok: false, apiKey: '', twitchOAuth: '', twitchUser: '', twitchChannel: '' }; // Retorna un objeto con el estado y cadenas vacías
+  return { ok: false, apiKey: '', twitchOAuth: '', twitchUser: '', twitchChannel: '' };
 });
 
 // =========================
@@ -148,15 +172,19 @@ ipcMain.handle('load-api-key', async () => {
 
 // Obtener jugadores desde Challonge
 ipcMain.handle('get-participants', async (event, slug) => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+  let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
@@ -177,15 +205,19 @@ ipcMain.handle('get-participants', async (event, slug) => {
 
 // Obtener Top 8
 ipcMain.handle('get-top8', async (event, slug) => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
@@ -206,15 +238,19 @@ ipcMain.handle('get-top8', async (event, slug) => {
 
 // Obtener matches y participantes (solo matches abiertos)
 ipcMain.handle('get-matches-and-participants', async (event, slug) => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   const urlPart = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
@@ -261,15 +297,19 @@ ipcMain.handle('get-matches-and-participants', async (event, slug) => {
 
 // Modificar resultados (reportar match)
 ipcMain.handle('report-match-score', async (event, { slug, matchId, scoreCsv, winnerId }) => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+  let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/matches/${matchId}.json?api_key=${apiKey}`;
@@ -343,15 +383,19 @@ ipcMain.handle('twitch-say', async (event, { message }) => {
 
 
 ipcMain.handle('get-tournament-title', async (event, slug) => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+  let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { error: 'API key no establecida.' };
   const url = `https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`;
   try {
@@ -424,15 +468,19 @@ ipcMain.handle('capturar-escena-obs', async () => {
 
 // Obtener torneos
 ipcMain.handle('get-tournaments', async () => {
-  const dir = ensureSaveDir();
-  const file = path.join(dir, 'apikey.json');
-  let apiKey = '';
-  if (fs.existsSync(file)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      apiKey = data.apiKey || '';
-    } catch (e) {}
-  }
+  let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments.json?api_key=${apiKey}`;
@@ -470,10 +518,37 @@ ipcMain.handle('abrir-ventana-rutas', () => {
     resizable: false,
     title: 'Configurar rutas de archivos',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: true,      // <--- IMPORTANTE
+      contextIsolation: false     // <--- IMPORTANTE
     }
   });
   win.loadFile('rutas.html');
 });
+
+// Guardar rutas en el archivo de configuración
+ipcMain.handle('guardar-rutas', async (event, rutas) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  config.rutas = rutas;
+  fs.writeFileSync(configFile, JSON.stringify(config, null, 2), 'utf8');
+  return { ok: true };
+});
+
+// Cargar rutas desde el archivo de configuración
+ipcMain.handle('cargar-rutas', async () => {
+  if (fs.existsSync(configFile)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+      return { ok: true, rutas: config.rutas || {} };
+    } catch (e) {}
+  }
+  return { ok: false, rutas: {} };
+});
+
+// Inicializar archivo de configuración si no existe
+if (!fs.existsSync(configFile)) {
+  fs.writeFileSync(configFile, JSON.stringify({ rutas: {} }, null, 2), 'utf8');
+}
 

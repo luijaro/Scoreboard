@@ -27,6 +27,50 @@
     <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
     <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
   </div>
-  <script src="js/scoreboard.js"></script>
+  <div class="form-row" style="justify-content: flex-end;">
+    <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    async function elegirRuta(tipo) {
+      const res = await ipcRenderer.invoke('elegir-ruta', tipo);
+      if (res.ok && res.ruta) {
+        document.getElementById('ruta' + capitalize(tipo)).value = res.ruta;
+        // Guarda todas las rutas actuales
+        const rutas = {};
+        for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+          rutas[t] = document.getElementById('ruta' + capitalize(t)).value;
+        }
+        await ipcRenderer.invoke('guardar-rutas', rutas);
+      }
+    }
+
+    async function guardarTodasLasRutas() {
+      console.log('Intentando guardar rutas...');
+      const rutas = {};
+      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+        rutas[t] = document.getElementById('ruta' + capitalize(t)).value;
+      }
+      await ipcRenderer.invoke('guardar-rutas', rutas);
+      alert('¡Rutas guardadas!');
+      window.close();
+    }
+
+    // Al cargar rutas.html
+    window.addEventListener('DOMContentLoaded', async () => {
+      const res = await ipcRenderer.invoke('cargar-rutas');
+      if (res.ok && res.rutas) {
+        for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+          if (res.rutas[tipo]) {
+            document.getElementById('ruta' + capitalize(tipo)).value = res.rutas[tipo];
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>

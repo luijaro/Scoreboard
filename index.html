@@ -20,9 +20,8 @@
     <button class="tab-btn" onclick="showTab(3)">Comandos Twitch</button>
     <button class="tab-btn" onclick="showTab(4)">Credenciales</button>
     <button class="tab-btn" onclick="showTab(5)">Cambiar Escena OBS</button>
+    <button class="tab-btn" onclick="showTab(6)">Configurar rutas</button>
     </nav>
-    <button class="sb-btn rutas-float-btn" onclick="abrirVentanaRutas()">Configurar rutas de archivos...</button>
-
   <!-- =========================
        TAB 1: SCOREBOARD
   ========================== -->
@@ -299,6 +298,36 @@
         <button class="sb-btn" onclick="capturarEscenaOBS()">Capturar escena y copiar</button>
         <span id="msgCapturaOBS" class="sb-message"></span>
       </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       TAB 7: CONFIGURAR RUTAS
+  ========================== -->
+  <section class="tab-panel">
+    <h2>Configurar rutas de archivos</h2>
+    <div class="form-row">
+      <label>Ruta Scoreboard JSON:</label>
+      <input id="rutaScoreboard" class="sb-input" style="width:320px;" readonly>
+      <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
+    </div>
+    <div class="form-row">
+      <label>Ruta Bracket JSON:</label>
+      <input id="rutaBracket" class="sb-input" style="width:320px;" readonly>
+      <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
+    </div>
+    <div class="form-row">
+      <label>Ruta Top8 JSON:</label>
+      <input id="rutaTop8" class="sb-input" style="width:320px;" readonly>
+      <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
+    </div>
+    <div class="form-row">
+      <label>Ruta API Key:</label>
+      <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
+      <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
+    </div>
+    <div class="form-row" style="justify-content: flex-end;">
+      <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
     </div>
   </section>
 
