@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bracket Top 8</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:wght@700&display=swap" rel="stylesheet">
+    <script src="js/libs/jquery-3.6.0.min.js"></script>
+    <script src="js/libs/gsap.min.js"></script>
+    <script src="js/bracket-top8.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Exo', sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        #bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            object-fit: cover;
+            z-index: 0;
+        }
+        #bracket {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+        }
+        #nEvento {
+            position: absolute;
+            top: 3vh;
+            left: 6vw;
+            font-size: 2.2em;
+            color: #7fd6ff;
+            text-shadow: 2px 2px 8px #000a;
+            letter-spacing: 2px;
+            font-weight: bold;
+            z-index: 2;
+        }
+        /* Bracket grid */
+        .bracket-grid {
+            position: absolute;
+            top: 10vh;
+            left: 5vw;
+            width: 90vw;
+            height: 60vh;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 0;
+        }
+        .bracket-cell {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            min-height: 80px;
+        }
+        .round-title {
+            color: #7fd6ff;
+            font-size: 1.1em;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 8px #000;
+            font-weight: bold;
+        }
+        .match {
+            background: rgba(20,40,80,0.7);
+            border: 2px solid #7fd6ff44;
+            border-radius: 12px;
+            min-width: 320px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 12px #0008;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+        }
+        .player-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.1em;
+            font-weight: 700;
+            padding: 8px 18px;
+        }
+        .player-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 10px;
+        }
+        .player-score {
+            background: #7fd6ff;
+            color: #0a1a2a;
+            border-radius: 8px;
+            width: 38px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 900;
+            box-shadow: 0 1px 4px #0004;
+        }
+    </style>
+</head>
+<body>
+    <div id="bracket">
+        <div id="nEvento"></div>
+        <div class="bracket-grid">
+            <!-- Winners Semis -->
+            <div class="bracket-cell" style="grid-column:1;grid-row:1;">
+                <div class="round-title">WINNERS SEMIS</div>
+                <div id="winners-semis"></div>
+            </div>
+            <!-- Winners Final -->
+            <div class="bracket-cell" style="grid-column:2;grid-row:1;">
+                <div class="round-title">WINNERS FINAL</div>
+                <div id="winners-final"></div>
+            </div>
+            <!-- Grand Final -->
+            <div class="bracket-cell" style="grid-column:3;grid-row:1;">
+                <div class="round-title">GRAND FINAL</div>
+                <div id="grand-final"></div>
+            </div>
+            <!-- Losers Top 8 -->
+            <div class="bracket-cell" style="grid-column:1;grid-row:2;">
+                <div class="round-title">LOSERS TOP 8</div>
+                <div id="losers-r1"></div>
+            </div>
+            <!-- Losers Quarters -->
+            <div class="bracket-cell" style="grid-column:2;grid-row:2;">
+                <div class="round-title">LOSERS QUARTERS</div>
+                <div id="losers-quarters"></div>
+            </div>
+            <!-- Losers Semis -->
+            <div class="bracket-cell" style="grid-column:3;grid-row:2;">
+                <div class="round-title">LOSERS SEMIS</div>
+                <div id="losers-semis"></div>
+            </div>
+            <!-- Losers Final -->
+            <div class="bracket-cell" style="grid-column:4;grid-row:2;">
+                <div class="round-title">LOSERS FINAL</div>
+                <div id="losers-final"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
