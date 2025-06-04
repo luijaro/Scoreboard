@@ -69,7 +69,7 @@ function createWindow() {
     }
   });
   win.loadFile('index.html');
-  // win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
+   //win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
   });
@@ -551,4 +551,66 @@ ipcMain.handle('cargar-rutas', async () => {
 if (!fs.existsSync(configFile)) {
   fs.writeFileSync(configFile, JSON.stringify({ rutas: {} }, null, 2), 'utf8');
 }
+
+// =========================
+//      NUEVO HANDLER
+// =========================
+ipcMain.handle('save-json-custom', async (event, data, ruta) => {
+  try {
+    fs.writeFileSync(ruta, JSON.stringify(data, null, 2), 'utf8');
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) {}
+  }
+  if (!apiKey) return { ok: false, error: 'API key no establecida.' };
+
+  const urlPart = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
+  const urlMatch = `https://api.challonge.com/v1/tournaments/${slug}/matches.json?api_key=${apiKey}`;
+  try {
+    const [partRes, matchRes] = await Promise.all([
+      fetch(urlPart),
+      fetch(urlMatch)
+    ]);
+    if (!partRes.ok || !matchRes.ok) throw new Error('Error consultando Challonge');
+    const partData = await partRes.json();
+    const matchData = await matchRes.json();
+    const participantes = {};
+    partData.forEach(p => {
+      participantes[p.participant.id] = {
+        id: p.participant.id,
+        name: p.participant.name
+      };
+    });
+    // DEVUELVE TODOS LOS MATCHES, sin filtros
+    const matches = matchData.map(m => ({
+      id: m.match.id,
+      player1_id: m.match.player1_id,
+      player2_id: m.match.player2_id,
+      player1_name: participantes[m.match.player1_id]?.name || 'TBD',
+      player2_name: participantes[m.match.player2_id]?.name || 'TBD',
+      round: m.match.round,
+      scores_csv: m.match.scores_csv || '',
+      winner_id: m.match.winner_id
+    }));
+    return { ok: true, matches, participantes: Object.values(participantes) };
+  } catch (e) {
+    return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
+  }
+});
 

@@ -1,0 +1,738 @@
+/* ==========================
+   General
+========================== */
+body {
+  background: #1b1d23;
+  color: #fff;
+  font-family: 'Montserrat', Arial, sans-serif;
+  margin: 0;
+  font-size: 0.9em; /* Reduce el tamaño general de las fuentes al 90% */
+  position: relative;
+}
+
+/* ==========================
+   Tabs
+========================== */
+#tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  background: #111;
+  padding: 0.7em 0 0 1em;
+}
+.tab-btn {
+  background: #23252b;
+  color: #fff;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  padding: 0.35em 1em;
+  font-size: 1em; /* Mantén el tamaño de las pestañas */
+  cursor: pointer;
+  opacity: 0.7;
+  transition: background 0.15s, color 0.15s;
+}
+.tab-btn.active {
+  background: #ff6b81;  /* Rojo pálido */
+  color: #fff2f2;       /* Blanco rosado */
+  opacity: 1;
+  font-weight: bold;
+}
+.tab-btn.rutas-tab {
+  background: linear-gradient(90deg, #ffe8b2 0%, #ffb347 100%);
+  color: #222 !important;
+  font-weight: bold;
+  border: 2px solid #ffb347;
+}
+.tab-btn.rutas-tab.active {
+  background: linear-gradient(90deg, #ffb347 0%, #ffe8b2 100%);
+  color: #222 !important;
+}
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
+}
+
+/* Botón de rutas alineado a la derecha de la barra de tabs */
+.rutas-btn {
+  margin-left: auto !important; /* Solo este botón se va a la derecha */
+  margin-right: 12px;
+  background: #310235;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5em 1.2em;
+  height: 2.5em;
+  align-self: center;
+  box-shadow: 0 2px 8px #0002;
+}
+
+/* ==========================
+   Panel de Configuración
+   (Challonge & Twitch)
+========================== */
+.panel-section {
+  background: #191b22;
+  margin: 2em auto 2.5em auto;
+  padding: 2em 2.5em 1.5em 2.5em;
+  border-radius: 12px;
+  box-shadow: 0 0 30px #0006;
+  max-width: 670px;
+  text-align: center;
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2em;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.3em;
+}
+.sb-message {
+  margin-left: 1em;
+  color: #8fff9f;
+  font-size: 1.07em;
+  letter-spacing: .2px;
+  opacity: .85;
+  vertical-align: middle;
+}
+
+/* ==========================
+   Inputs & Selects
+========================== */
+.input-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.7em;
+  width: 100%;
+  max-width: 340px;
+}
+
+.input-icon {
+  color: #e0e0e0;
+  font-size: 1.1em;
+  margin-right: 0.7em;
+  width: 1.8em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sb-input, .sb-dropdown {
+  background: #23232b;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.7em 1em;
+  margin-bottom: 0.5em;
+  font-size: 1em;
+  box-shadow: 0 2px 7px #0002;
+  transition: background 0.15s;
+}
+.sb-input:focus, .sb-dropdown:focus {
+  background: #292933;
+  outline: 2px solid #c98e2c;
+}
+
+/* Select visual estilo dark, centrado y grande */
+.sb-select {
+  background: #23232b;
+  color: #ffe8b2;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.13em;
+  font-weight: bold;
+  padding: 0.6em 1.5em;
+  margin: 0 auto 1.5em auto;
+  display: block;
+  box-shadow: 0 2px 8px #0003;
+  text-align: left;
+  min-width: 320px;
+  max-width: 420px;
+  outline: none;
+  transition: background 0.15s, color 0.15s;
+}
+.sb-select:focus {
+  background: #292933;
+  color: #fff7de;
+}
+
+/* ==========================
+   Botones
+========================== */
+.sb-btn {
+  background: #6b207a;
+  color: #fff;
+  border: none;
+  font-size: 0.9em; /* Reducido un 10% */
+  font-weight: bold;
+  padding: 0.6em 1.2em;
+  margin-top: 1.2em;
+  margin-right: 0.5em;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 7px #0004;
+  transition: background 0.1s;
+}
+.sb-btn:active {
+  background: #4a1554;
+}
+.save-btn {
+  width: 80%;
+  font-size: 1em; /* Mantén el tamaño */
+  padding: 0.8em 0;
+  margin-top: 0.2em;
+  background: #6b207a;
+  letter-spacing: 1px;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px #0002;
+}
+.save-btn:active {
+  background: #4a1554;
+}
+/* Botones mini para sumar/restar puntaje */
+.sb-btn-mini {
+  background: #9b1453;
+  color: #f3c67c;
+  border: none;
+  font-size: 1.1em;
+  padding: 0.35em 0.7em;
+  margin-left: 0.3em;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0002;
+  transition: background 0.1s, color 0.1s;
+  vertical-align: middle;
+}
+.sb-btn-mini:active {
+  background: #19191f;
+  color: #ad7727;
+}
+
+/* ==========================
+   Efectos
+========================== */
+.score-anim {
+  display: inline-block;
+  transition: none;
+}
+
+.score-anim.animated {
+  animation: scoreUp 0.35s cubic-bezier(.5,1.7,.3,1) forwards;
+}
+
+@keyframes scoreUp {
+  0% {
+    opacity: 0;
+    transform: translateY(38px) scale(1.18);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.02);
+    filter: blur(0.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: none;
+  }
+}
+
+
+/* ==========================
+   Scoreboard
+========================== */
+.scoreboard-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  background: #191b22;
+  height: 350px;
+  box-shadow: 0 0 40px #0009;
+  position: relative;
+  overflow: hidden;
+  margin-top: 2em;
+}
+
+.sb-side {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 2em 2em 1em 2em;
+  position: relative;
+}
+.sb-side.right {
+  align-items: flex-end;
+  text-align: right;
+  background: none;
+}
+.sb-player-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  z-index: 0;
+}
+.sb-side-content {
+  position: relative;
+  z-index: 2;
+}
+.sb-player-name {
+  font-size: 1.9em; /* Reducido un 10% */
+  font-weight: 900;
+  margin-top: 1.5em;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 8px #000c;
+}
+
+.scoreboard-center {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.sb-event {
+  margin-top: 0.6em;
+  letter-spacing: 3px;
+  font-size: 0.95em; /* Reducido un 10% */
+  color: #ccc;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.sb-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2em;
+  font-size: 4.5em; /* Reducido un 10% */
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  margin: 0.5em 0 0.3em 0;
+  color: #fff;
+  text-shadow: 0 4px 22px #000d;
+}
+.score-btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+.sb-score-row .sb-btn-mini {
+  margin: 0;
+  font-size: 1.1em;
+  padding: 0.25em 0.7em;
+}
+.sb-score-labels {
+  display: none !important;
+}
+.sb-comm-row {
+  display: none !important;
+}
+.sb-bottom-controls {
+  background: #23252b;
+  box-shadow: 0 0 20px #0007;
+  padding: 1.4em 2em 0.6em 2em;
+  border-radius: 0 0 10px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.sb-bottom-col {
+  flex: 1 1 30%;
+  min-width: 200px;
+  margin-bottom: 0.5em;
+}
+.sb-btn-danger {
+  background: #a92323;
+  color: #fff;
+  border: none;
+  font-size: 1em;
+  font-weight: bold;
+  padding: 0.6em 1.2em;
+  margin-top: 0.2em;
+  margin-right: 0.5em;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 7px #0004;
+  transition: background 0.1s;
+}
+.sb-btn-danger:hover,
+.sb-btn-danger:focus {
+  background: #a92323;
+}
+.sb-btn-danger:active {
+  background: #7a1818;
+}
+.scaled-panel {
+  transform: scale(0.8);
+  transform-origin: top left;
+}
+.sb-bottom-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #212228;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px #0003;
+  padding: 2.2em 2.5em 2.5em 2.5em;
+  margin: 2em auto 1.5em auto;
+  max-width: 390px;
+  min-width: 320px;
+}
+
+.game-label {
+  display: flex;
+  align-items: center;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #ffe8b2;
+  letter-spacing: .5px;
+  margin-bottom: 1.2em;
+}
+.game-label span {
+  margin-right: 0.7em;
+}
+
+.game-select {
+  appearance: none;
+  border: none;
+  background: #2d2e39;
+  color: #ffe8b2;
+  font-size: 1.1em;
+  padding: 0.42em 2em 0.42em 1.1em;
+  border-radius: 7px;
+  font-weight: 700;
+  box-shadow: 0 2px 7px #0002;
+  outline: none;
+  cursor: pointer;
+  transition: background .15s;
+  margin-left: 0.15em;
+}
+.game-select:focus {
+  background: #393c48;
+  color: #fff7de;
+}
+
+.sb-btn-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 0.95em;
+  margin-bottom: 2em;
+}
+.switch-btn {
+  background: #6b207a;
+}
+.switch-btn:active {
+  background: #4a1554;
+}
+.reset-btn {
+  background: #6b207a;
+}
+.reset-btn:active {
+  background: #4a1554;
+}
+.scores {
+	
+	display: inline;
+	
+	}
+.save-btn {
+  width: 80%;
+  font-size: 1em; /* Mantén el tamaño */
+  padding: 0.8em 0;
+  margin-top: 0.2em;
+  background: #6b207a;
+  letter-spacing: 1px;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px #0002;
+}
+.save-btn:active {
+  background: #4a1554;
+}
+
+.msg-guardado {
+  margin-top: 1.3em;
+  color: #8fff9f;
+  font-size: 1.08em;
+  display: block;
+}
+.scoreboard-flex-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch; /* <- importante para que iguale altura */ 
+  gap: 3vw;
+  margin: 1em 0 2em 0;
+}
+
+.scoreboard-box, .scoreboard-controls-box {
+  background: #23232b; /* Antes: #212228 */
+  border-radius: 16px;
+  box-shadow: 0 4px 20px #0003;
+  padding: 1.5em 0.5em 0.1em 0.5em;
+  min-width: 300px;
+  max-width: 370px;
+  margin: 0 0.7em;
+  flex: 1 1 350px;        /* Permite que crezcan igual */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra vertical los hijos */
+  align-items: center;
+}
+
+.scoreboard-controls-box {
+  min-width: 340px;
+  max-width: 410px;
+  flex: 1 1 410px;
+}
+
+/* Horizontal para el grupo de controles */
+.scoreboard-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 3vw;
+  width: 100%;
+}
+
+/* Responsive: apila en vertical en móviles */
+@media (max-width: 960px) {
+  .scoreboard-flex-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 2em;
+  }
+  .scoreboard-box, .scoreboard-controls-box {
+    max-width: 98vw;
+    min-width: 220px;
+  }
+}
+
+/* ==========================
+   Responsive
+========================== */
+@media (max-width: 900px) {
+  .scoreboard-main {
+    flex-direction: column;
+    height: auto;
+  }
+  .sb-side,
+  .sb-side.right,
+  .scoreboard-center {
+    width: 100%;
+  }
+  .sb-side,
+  .sb-side.right {
+    padding: 1em; /* Ajusta el padding */
+  }
+  .scoreboard-center {
+    padding: 1.2em 0 0.5em 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .panel-section {
+    padding: 1em 0.5em 1.2em 0.5em; /* Ajusta el padding */
+    max-width: 95vw;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 0.7em; /* Ajusta el espacio entre elementos */
+  }
+  .sb-input, .sb-select {
+    width: 90vw; /* Ajusta el ancho */
+    min-width: unset;
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 900px) {
+  .bracket-row {
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+  .bracket-round {
+    max-width: 98vw;
+    min-width: 120px;
+    flex: 1 1 100%;
+  }
+}
+
+/* ==========================
+   Footer
+========================== */
+#versionFooter {
+  position: fixed;
+  right: 24px;
+  bottom: 16px;
+  color: #aaa;
+  font-size: 1.08em;
+  opacity: 0.85;
+  letter-spacing: 1px;
+  font-weight: bold;
+  z-index: 999;
+  pointer-events: none;
+  user-select: none;
+}
+
+.top8-table th, .top8-table td {
+  font-size: 0.95em; /* Reducido un 10% */
+  padding: 0.7em 1.1em; /* Ajusta el padding ligeramente */
+}
+
+/* Placeholder color para inputs */
+.sb-input::placeholder {
+  color: #bbb;
+  opacity: 1;
+}
+
+/* Placeholder visual para selects */
+.sb-dropdown:invalid {
+  color: #bbb;
+}
+
+/* Oculta el option placeholder en el desplegable */
+.sb-dropdown option[disabled][selected] {
+  display: none;
+}
+
+/* Notificaciones flotantes en la esquina superior derecha */
+#notificaciones-app {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.7em;
+  pointer-events: none;
+}
+
+.notificacion-flotante {
+  background: #23232b;
+  color: #fff;
+  padding: 1em 1.7em 1em 1.2em;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px #0008;
+  font-size: 1.08em;
+  min-width: 180px;
+  max-width: 340px;
+  opacity: 0.97;
+  pointer-events: auto;
+  animation: fadeInOut 3s forwards;
+  margin-top: 0.2em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+.notificacion-flotante.success { color: #8fff9f; }
+.notificacion-flotante.error { color: #ffb3b3; }
+.notificacion-flotante.info { color: #ffe8b2; }
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-16px);}
+  10% { opacity: 1; transform: translateY(0);}
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-16px);}
+}
+
+/* scoreboard.css */
+.top8-mensaje-box {
+  min-width: 320px;
+  max-width: 420px;
+  background: none;
+  margin-top: 1.5em;
+  margin-right: 2.5em;
+  margin-left: 1.5em;      /* <-- Mueve la caja a la izquierda */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.top8-mensaje-textarea {
+  background: #23232b;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  font-size: 1em;
+  min-width: 320px;
+  max-width: 420px;
+  min-height: 400px;       /* <-- Más alto verticalmente */
+  resize: none;
+  margin-bottom: 0.7em;
+  box-shadow: 0 2px 12px #0005;
+  font-family: 'Montserrat', Arial, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.copiar-mensaje-btn {
+  align-self: flex-end;
+  text-align: center;
+  margin: 0;
+  background: #6b207a;
+}
+.copiar-mensaje-btn:active {
+  background: #4a1554;
+}
+
+.top8-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2.5em;
+  width: 100%;
+}
+
+.top8-main-content {
+  margin-left: 1.5em;      /* <-- Mueve la caja a la izquierda */
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+
+.rutas-float-btn {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  z-index: 100;
+  background: #4e0455;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5em 1.2em;
+  height: 2.5em;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s;
+}
+.rutas-float-btn:hover {
+  background: #4a1554;
+}
+
+.preview-match {
+  background: #222;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 1em;
+  text-align: center;
+  font-size: 1.1em;
+}
+

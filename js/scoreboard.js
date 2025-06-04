@@ -238,8 +238,8 @@ async function cargarTop8() {
   });
 
   // --- Obtén el nombre del torneo desde Challonge y guárdalo globalmente ---
-  const titleRes = await ipcRenderer.invoke('get-tournament-title', slug);
-  let nombreTorneo = titleRes.title || slug;
+  const titleRes = await window.ipcRenderer.invoke('get-tournament-title', slug);
+  const nombreTorneo = titleRes.title || slug;
   window.nombreTorneoActual = nombreTorneo;
   // mostrarMensajeTop8(nombreTorneo, r.top8); // <-- comenta o elimina esta línea
 
@@ -342,11 +342,11 @@ function ponerJugador2() {
 function mostrarBracket() {
   const slug = document.getElementById('tournamentBracket').value.trim();
   const iframe = document.getElementById('challongeBracket');
+  if (!iframe) return; // <-- Evita el error si no existe
   if (!slug) {
     iframe.src = '';
     return;
   }
-  // Puedes ajustar el URL del iframe según tus preferencias
   iframe.src = `https://challonge.com/${slug}/module?theme=2&show_standings=1&show_tournament_name=1`;
 }
 
@@ -651,7 +651,7 @@ function twittearMensaje() {
     mensaje += `${puesto}) ${twitter}\n`;
   }
   mensaje += `\n¡Gracias por participar!`;
-  // Abre Twitter con el mensaje generado
+  // Abre Twitter with el mensaje generado
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
@@ -776,26 +776,15 @@ async function cargarTorneosBracket() {
         const resTop8 = await ipcRenderer.invoke('get-top8', select.value);
 
         if (resMatches.ok && resMatches.matches && resTop8.top8) {
-          // Transforma los matches al formato deseado
-          const matchesFormateados = resMatches.matches.map((m, idx) => {
-            // Puedes generar el id como "ws1", "ws2", etc. o usar el id original
-            // Aquí un ejemplo usando el id original de Challonge:
-            return {
-              id: m.identifier || m.id || `m${idx+1}`,
-              p1: m.player1_name,
-              p2: m.player2_name,
-              p1s: Number((m.scores_csv || '').split('-')[0]) || 0,
-              p2s: Number((m.scores_csv || '').split('-')[1]) || 0
-            };
-          });
+          const matchesFormateados = resMatches.matches.map((m, idx) => ({
+            id: m.identifier || m.id || `m${idx+1}`,
+            p1: m.player1_name,
+            p2: m.player2_name,
+            p1s: Number((m.scores_csv || '').split('-')[0]) || 0,
+            p2s: Number((m.scores_csv || '').split('-')[1]) || 0
+          }));
 
-          await window.ipcRenderer.invoke('save-json', {
-            torneo: select.value,
-            fecha: new Date().toLocaleDateString('es-CL'),
-            matches: matchesFormateados,
-            top8: resTop8.top8
-          }, 'bracket_data.json');
-          mostrarNotificacion('✅ Matches y Top 8 guardados para el torneo seleccionado.', 'success');
+          // Guardar matches cargados globalmente
         } else {
           mostrarNotificacion('❌ No se pudieron obtener los matches o el Top 8.', 'error');
         }
@@ -976,3 +965,38 @@ document.getElementById('p2Score').addEventListener('DOMSubtreeModified', mostra
 function abrirRutas() {
   window.ipcRenderer.invoke('abrir-ventana-rutas');
 }
+
+
+
+
+// Construye un diccionario round_name -> [matches]
+const matchesByRoundName = {};
+Object.values(rondasTop8).flat().forEach(m => {
+  if (!matchesByRoundName[m.round_name]) matchesByRoundName[m.round_name] = [];
+  matchesByRoundName[m.round_name].push(m);
+});
+
+// Render visual solo con los bloques definidos y en orden
+let html = `<div class="bracket-visual-rows">`;
+
+// Winners row
+html += `<div class="bracket-row bracket-row-winners">`;
+["Winners Semis", "Winners Final", "Grand Final", "Grand Final Reset"].forEach(key => {
+  if ((matchesByRoundName[key] || []).length > 0) {
+    html += buildBracketRound(key, matchesByRoundName[key], key);
+  }
+});
+html += `</div>`;
+
+// Losers row
+html += `<div class="bracket-row bracket-row-losers">`;
+["Losers Top 8", "Losers Quarters", "Losers Semis", "Losers Finals"].forEach(key => {
+  if ((matchesByRoundName[key] || []).length > 0) {
+    html += buildBracketRound(key, matchesByRoundName[key], key);
+  }
+});
+html += `</div>`;
+
+html += `</div>`;
+container.innerHTML = html;
+

@@ -6,7 +6,8 @@
   <!-- Fuente Montserrat para estilos -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
   <!-- Hoja de estilos principal -->
-  <link rel="stylesheet" href="scoreboard.css">
+  <link rel="stylesheet" href="css/scoreboard.css">
+  <link rel="stylesheet" href="css/bracket-visual.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -171,17 +172,18 @@
        TAB 2: BRACKET
   ========================== -->
   <section class="tab-panel" id="tab-bracket">
-    <div class="tab-content-center">
-      <div style="display:flex; justify-content:center; margin-top:2em;">
-        <select id="tournamentBracket" class="sb-select" onchange="mostrarBracket()">
+  <div class="tab-content-center">
+    <div class="bracket-card-center">
+      <div style="display: flex; align-items: center; gap: 1em; margin-bottom:2em; ">
+        <select id="tournamentBracket" class="sb-select">
           <option value="">Selecciona un torneo...</option>
         </select>
+        <button class="sb-btn" onclick="renderBracketVisual()">Mostrar Bracket Visual</button>
       </div>
-      <div style="display:flex; justify-content:center;">
-        <iframe id="challongeBracket" style="width:90vw; max-width:1200px; height:70vh; border:none; background:#111; border-radius:12px;" allowtransparency="true"></iframe>
-      </div>
+      <div id="bracket-visual-container" class="bracket-visual-card"></div>
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- =========================
        TAB 3: TOP 8
@@ -348,6 +350,7 @@
   <footer id="versionFooter">Hecho por LuIjAro v1.3.1</footer>
   <!-- Script principal de la app -->
   <script src="js/scoreboard.js"></script>
+  <script src="js/bracket-visual.js"></script>
   <!-- Contenedor global de notificaciones -->
 <div id="notificaciones-app"></div>
 </body>
