@@ -135,7 +135,9 @@ function getScoreboardData() {
     char1: document.getElementById('p1Char').value,
     char2: document.getElementById('p2Char').value,
     game: document.getElementById('gameSel').value,
-    round: window.currentRoundName || '' // <-- esto guarda la ronda
+    round: window.currentRoundName || '', // <-- esto guarda la ronda
+    country1: document.getElementById('p1Flag').value, // <-- AGREGADO
+    country2: document.getElementById('p2Flag').value  // <-- AGREGADO
   };
 }
 
