@@ -502,12 +502,22 @@ if (fs.existsSync(file)) {
 });
 
 ipcMain.handle('elegir-ruta', async (event, tipo) => {
+  let filters = [{ name: 'JSON', extensions: ['json'] }];
+  let defaultExt = '.json';
+  if (tipo === 'usuarios') {
+    filters = [{ name: 'Text', extensions: ['txt'] }];
+    defaultExt = '.txt';
+  }
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: 'Selecciona destino para ' + tipo,
-    defaultPath: tipo + '.json',
-    filters: [{ name: 'JSON', extensions: ['json'] }]
+    defaultPath: tipo + defaultExt,
+    filters
   });
   if (canceled) return { ok: false };
+  // Si es usuarios y el archivo no existe, créalo vacío
+  if (tipo === 'usuarios' && filePath && !fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, '', 'utf8');
+  }
   return { ok: true, ruta: filePath };
 });
 
@@ -611,6 +621,40 @@ ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
     return { ok: true, matches, participantes: Object.values(participantes) };
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
+  }
+});
+
+ipcMain.handle('leer-personajes-txt', async (event) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const rutaTxt = rutas.personajes;
+  if (!rutaTxt || !fs.existsSync(rutaTxt)) return { ok: false, error: 'No se encontró el archivo de personajes.' };
+  try {
+    const contenido = fs.readFileSync(rutaTxt, 'utf8');
+    const personajes = contenido.split('\n').map(l => l.trim()).filter(l => l);
+    return { ok: true, personajes };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('leer-usuarios-txt', async (event) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const rutaTxt = rutas.usuarios;
+  if (!rutaTxt || !fs.existsSync(rutaTxt)) return { ok: false, error: 'No se encontró el archivo de usuarios.' };
+  try {
+    const contenido = fs.readFileSync(rutaTxt, 'utf8');
+    const usuarios = contenido.split('\n').map(l => l.trim()).filter(l => l);
+    return { ok: true, usuarios };
+  } catch (e) {
+    return { ok: false, error: e.message };
   }
 });
 

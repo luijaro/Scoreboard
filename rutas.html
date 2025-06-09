@@ -90,6 +90,11 @@
         <input id="rutaApiKey" class="sb-input" readonly>
         <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
       </div>
+      <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+        <label for="rutaUsuarios" style="min-width:160px;">Usuarios TXT:</label>
+        <input id="rutaUsuarios" class="sb-input" style="width:320px;" readonly>
+        <button class="sb-btn" onclick="elegirRuta('usuarios')">Elegir...</button>
+      </div>
       <div class="form-row" style="justify-content: flex-end;">
         <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
       </div>
@@ -108,7 +113,7 @@
         document.getElementById(rutaId(tipo)).value = res.ruta;
         // Guarda todas las rutas actuales
         const rutas = {};
-        for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+        for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
           rutas[t] = document.getElementById(rutaId(t)).value;
         }
         await ipcRenderer.invoke('guardar-rutas', rutas);
@@ -116,7 +121,7 @@
     }
     async function guardarTodasLasRutas() {
       const rutas = {};
-      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
         rutas[t] = document.getElementById(rutaId(t)).value;
       }
       await ipcRenderer.invoke('guardar-rutas', rutas);
@@ -127,7 +132,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       const res = await ipcRenderer.invoke('cargar-rutas');
       if (res.ok && res.rutas) {
-        for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+        for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
           if (res.rutas[tipo]) {
             document.getElementById(rutaId(tipo)).value = res.rutas[tipo];
           }

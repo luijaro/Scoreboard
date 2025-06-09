@@ -233,11 +233,14 @@ async function cargarTop8() {
           </select>
         </td>
         <td style="padding:0.5em 1em;">
-          <input class="sb-input" id="top8twitter${idx}" placeholder="@usuario" style="width:120px;">
+          <select class="sb-dropdown" id="top8twitter${idx}"></select>
         </td>
       </tr>
     `;
   });
+
+  // ¡Aquí!
+  await llenarUsuariosTop8DesdeTxt();
 
   // --- Obtén el nombre del torneo desde Challonge y guárdalo globalmente ---
   const titleRes = await window.ipcRenderer.invoke('get-tournament-title', slug);
@@ -263,7 +266,7 @@ async function guardarTop8() {
   for (let i = 0; i < tbody.children.length; ++i) {
     const jugador = tbody.children[i].children[1].textContent;
     const personaje = document.getElementById('top8char' + i).value;
-    const twitter = document.getElementById('top8twitter' + i).value.trim();
+    const twitter = document.getElementById('top8twitter' + i).value; // <-- ahora es select
     top8Data.push({ nombre: jugador, personaje, juego, twitter });
   }
   
@@ -876,9 +879,9 @@ async function elegirRuta(tipo) {
     const input = document.getElementById(rutaId(tipo));
     if (input) {
       input.value = res.ruta;
-      // Guarda todas las rutas actuales
+      // Guarda todas las rutas actuales, incluyendo 'usuarios'
       const rutas = {};
-      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
         const inp = document.getElementById(rutaId(t));
         rutas[t] = inp ? inp.value : '';
       }
@@ -889,7 +892,7 @@ async function elegirRuta(tipo) {
 
 async function guardarTodasLasRutas() {
   const rutas = {};
-  for (const t of ['scoreboard', 'bracket', 'top8', 'apikey']) {
+  for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
     const inp = document.getElementById(rutaId(t));
     rutas[t] = inp ? inp.value : '';
   }
@@ -898,27 +901,20 @@ async function guardarTodasLasRutas() {
   alert('¡Rutas guardadas!');
 }
 
-// Cargar rutas al mostrar la pestaña de rutas
 async function cargarRutas() {
   const res = await ipcRenderer.invoke('cargar-rutas');
   if (res.ok && res.rutas) {
-    for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey']) {
-      if (res.rutas[tipo]) {
+    for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
+      if (res.rutas[tipo] !== undefined) {
         document.getElementById(rutaId(tipo)).value = res.rutas[tipo];
       }
     }
   }
 }
 
-// Llama a cargarRutas cuando se muestra la pestaña de rutas
-document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-  btn.addEventListener('click', () => {
-    if (btn.textContent.includes('Configurar rutas')) cargarRutas();
-  });
-});
-
 function rutaId(tipo) {
   if (tipo === 'apikey') return 'rutaApiKey';
+  if (tipo === 'usuarios') return 'rutaUsuarios';
   return 'ruta' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
 }
 
@@ -1001,4 +997,38 @@ html += `</div>`;
 
 html += `</div>`;
 container.innerHTML = html;
+async function llenarPersonajesTop8DesdeTxt() {
+  const res = await ipcRenderer.invoke('leer-personajes-txt');
+  if (res.ok) {
+    for (let i = 0; i < 8; ++i) {
+      const select = document.getElementById('top8char' + i);
+      if (select) {
+        select.innerHTML = res.personajes.map(
+          char => `<option value="${char}">${char}</option>`
+        ).join('');
+      }
+    }
+  } else {
+    // Si falla, puedes dejar la lista por defecto o mostrar un mensaje
+    console.warn(res.error);
+  }
+}
+async function llenarUsuariosTop8DesdeTxt() {
+  const res = await ipcRenderer.invoke('leer-usuarios-txt');
+  if (res.ok) {
+    for (let i = 0; i < 8; ++i) {
+      const select = document.getElementById('top8twitter' + i);
+      if (select) {
+        select.innerHTML = res.usuarios.map(
+          usuario => `<option value="${usuario}">${usuario}</option>`
+        ).join('');
+      }
+    }
+  } else {
+    // Si falla, puedes dejar la lista por defecto o mostrar un mensaje
+    console.warn(res.error);
+  }
+}
+
+
 
