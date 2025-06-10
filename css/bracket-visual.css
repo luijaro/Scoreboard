@@ -126,9 +126,6 @@ body.light-mode .bracket-visual-rows {
   background: none;
 }
 
-body.light-mode .bracket-row {
-  /* Sin fondo oscuro */
-}
 
 body.light-mode .bracket-round {
   background: #fff;
