@@ -523,13 +523,13 @@ ipcMain.handle('elegir-ruta', async (event, tipo) => {
 
 ipcMain.handle('abrir-ventana-rutas', () => {
   const win = new BrowserWindow({
-    width: 600,
-    height: 500,
+    width: 800,      // Nuevo ancho
+    height: 650,     // Nuevo alto
     resizable: false,
     title: 'Configurar rutas de archivos',
     webPreferences: {
-      nodeIntegration: true,      // <--- Esto debe estar en true
-      contextIsolation: false     // <--- Esto debe estar en false
+      nodeIntegration: true,
+      contextIsolation: false
     }
   });
   win.loadFile('rutas.html');

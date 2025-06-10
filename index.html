@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Scoreboard Electron</title>
+  <title>Streamcontrol MS</title>
   <!-- Fuente Montserrat para estilos -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
   <!-- Hoja de estilos principal -->
@@ -119,7 +119,7 @@
             <option value="" disabled selected hidden>Select Style</option>
             <option value="default">Default</option>
             <option value="dark">Dark</option>
-            <!-- ...otros estilos... -->
+            <option value="light">Light</option>
           </select>
         </div>
         <div class="sb-btn-row">
@@ -195,6 +195,7 @@
           <select id="tournamentTop8" class="sb-select" style="margin-left:0;">
             <option value="">Selecciona un torneo...</option>
           </select>
+          <input type="date" id="fechaTop8" style="margin-left:1em; font-size:1em; padding:0.3em 0.7em;">
         </div>
         <table class="top8-table">
           <thead>
@@ -347,7 +348,7 @@
   <!-- ========================
        FOOTER Y SCRIPTS
   ========================== -->
-  <footer id="versionFooter">Hecho por LuIjAro v1.3.1</footer>
+  <footer id="versionFooter">Hecho por LuIjAro v0.8.5</footer>
   <!-- Script principal de la app -->
   <script src="js/scoreboard.js"></script>
   <script src="js/bracket-visual.js"></script>

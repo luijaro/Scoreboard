@@ -115,6 +115,61 @@
   opacity: 0.85;
 }
 
+/* Light mode para Bracket Visual */
+body.light-mode .bracket-card-center,
+body.light-mode .bracket-visual-card {
+  background: #fffbe8;
+  box-shadow: 0 0 40px #bbb6;
+}
+
+body.light-mode .bracket-visual-rows {
+  background: none;
+}
+
+body.light-mode .bracket-row {
+  /* Sin fondo oscuro */
+}
+
+body.light-mode .bracket-round {
+  background: #fff;
+  color: #23232b;
+  box-shadow: 0 2px 12px #bbb5;
+}
+
+body.light-mode .bracket-round-title {
+  color: #7a5c00;
+  background: #fffbe8;
+}
+
+body.light-mode .bracket-match {
+  background: #f6f6f9;
+  box-shadow: 0 1px 6px #bbb3;
+}
+
+body.light-mode .bracket-player {
+  color: #23232b;
+}
+
+body.light-mode .bracket-player-name {
+  color: #23232b;
+}
+
+body.light-mode .bracket-score {
+  background: #ffe8b2;
+  color: #23232b;
+  border-color: #ffb347;
+}
+
+body.light-mode .bracket-score.loser {
+  background: #f2bcbc !important;
+  color: #b71c1c !important;
+}
+
+body.light-mode .bracket-player.loser {
+  color: #b71c1c !important;
+  opacity: 0.85;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .bracket-row {

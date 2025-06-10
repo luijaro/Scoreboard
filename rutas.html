@@ -99,9 +99,7 @@
         <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
       </div>
     </fieldset>
-  </section>
-  <div class="footer-msg">Ventana de configuración de rutas</div>
-  <script>
+  </section>  <script>
     const { ipcRenderer } = require('electron');
     function rutaId(tipo) {
       if (tipo === 'apikey') return 'rutaApiKey';

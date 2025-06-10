@@ -42,6 +42,32 @@ function showTab(n) {
   if (n === 4) {
     buscarTorneosMatches();
   }
+  // Scoreboard: asigna el listener si no está
+  if (n === 0) {
+    const styleSel = document.getElementById('styleSel');
+    if (styleSel && !styleSel.dataset.listener) {
+      styleSel.addEventListener('change', function() {
+        const val = this.value;
+        if (val === 'light') {
+          document.body.classList.add('light-mode');
+          localStorage.setItem('scoreboard-style', 'light');
+        } else {
+          document.body.classList.remove('light-mode');
+          localStorage.setItem('scoreboard-style', 'dark');
+        }
+      });
+      styleSel.dataset.listener = "true";
+    }
+    // Aplica el modo guardado
+    const saved = localStorage.getItem('scoreboard-style');
+    if (saved === 'light') {
+      document.body.classList.add('light-mode');
+      if (styleSel) styleSel.value = 'light';
+    } else {
+      document.body.classList.remove('light-mode');
+      if (styleSel) styleSel.value = 'dark';
+    }
+  }
 }
 
 // ================================
@@ -261,7 +287,12 @@ async function guardarTop8() {
   const juego = document.getElementById('gameSel').value;
 
   const nombreTorneo = window.nombreTorneoActual || "Torneo sin nombre";
-  const fecha = new Date().toLocaleDateString('es-CL');
+  const fechaInput = document.getElementById('fechaTop8');
+  if (fechaInput && !fechaInput.value) {
+    const hoy = new Date();
+    fechaInput.value = hoy.toISOString().slice(0, 10); // yyyy-mm-dd
+  }
+  const fecha = fechaInput && fechaInput.value ? fechaInput.value : new Date().toLocaleDateString('es-CL');
 
   for (let i = 0; i < tbody.children.length; ++i) {
     const jugador = tbody.children[i].children[1].textContent;
@@ -1016,10 +1047,12 @@ async function llenarPersonajesTop8DesdeTxt() {
 async function llenarUsuariosTop8DesdeTxt() {
   const res = await ipcRenderer.invoke('leer-usuarios-txt');
   if (res.ok) {
+    // Ordena alfabéticamente (ignorando mayúsculas/minúsculas)
+    const usuariosOrdenados = res.usuarios.slice().sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
     for (let i = 0; i < 8; ++i) {
       const select = document.getElementById('top8twitter' + i);
       if (select) {
-        select.innerHTML = res.usuarios.map(
+        select.innerHTML = usuariosOrdenados.map(
           usuario => `<option value="${usuario}">${usuario}</option>`
         ).join('');
       }
@@ -1029,6 +1062,16 @@ async function llenarUsuariosTop8DesdeTxt() {
     console.warn(res.error);
   }
 }
+
+// ...al final de scoreboard.js
+window.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem('scoreboard-style');
+  if (saved === 'light') {
+    document.body.classList.add('light-mode');
+    const styleSel = document.getElementById('styleSel');
+    if (styleSel) styleSel.value = 'light';
+  }
+});
 
 
 

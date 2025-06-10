@@ -1,5 +1,5 @@
 {
-  "name": "scoreboard-electron",
+  "name": "streamcontrol-ms",
   "version": "1.2.5",
   "description": "Scoreboard visual app con integración personalizada.",
   "main": "main.js",
@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.tuproyecto.scoreboard",
-    "productName": "Scoreboard Electron",
+    "productName": "Streamcontrol MS",
     "files": [
       "**/*"
     ],
