@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/scoreboard-tab.css" id="css-scoreboard" disabled>
   <link rel="stylesheet" href="css/bracket-tab.css" id="css-bracket" disabled>
   <link rel="stylesheet" href="css/top8-tab.css" id="css-top8" disabled>
+  <link rel="stylesheet" href="css/startgg-tab.css" id="css-startgg" disabled>
 </head>
 <body>
   <!-- =========================
@@ -25,6 +26,7 @@
     <button class="tab-btn" onclick="showTab(4)">Credenciales</button>
     <button class="tab-btn" onclick="showTab(5)">Cambiar Escena OBS</button>
     <button class="tab-btn rutas-tab" onclick="abrirRutas()">Configurar rutas</button>
+    <button class="tab-btn" onclick="showTab(7)">Start.gg</button>
     </nav>
   <!-- =========================
        TAB 1: SCOREBOARD
@@ -348,6 +350,25 @@
     </fieldset>
   </section>
 
+  <!-- =========================
+       TAB 8: START.GG
+  ========================== -->
+  <section class="tab-panel" id="tab-startgg">
+    <div class="panel-section">
+      <h2>Start.gg</h2>
+      <div class="form-row">
+        <input id="startggSlug" class="sb-input" placeholder="Ej: tournament/mi-torneo/event/singles" style="width:320px;">
+        <button class="sb-btn" onclick="buscarStartGG()">Buscar</button>
+      </div>
+      <div class="form-row">
+        <input id="startggToken" class="sb-input" type="password" placeholder="Token start.gg" style="width:320px;">
+        <button class="sb-btn" onclick="guardarStartggToken()">Guardar Token</button>
+        <span id="msgStartggToken" class="sb-message"></span>
+      </div>
+      <div id="startggResults" style="margin-top:1.5em;"></div>
+    </div>
+  </section>
+
   <!-- ========================
        FOOTER Y SCRIPTS
   ========================== -->
@@ -355,6 +376,7 @@
   <!-- Script principal de la app -->
   <script src="js/scoreboard.js"></script>
   <script src="js/bracket-visual.js"></script>
+  <script src="js/startgg.js"></script>
   <!-- Contenedor global de notificaciones -->
 <div id="notificaciones-app"></div>
 </body>

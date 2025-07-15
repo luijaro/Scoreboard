@@ -68,6 +68,9 @@ function showTab(n) {
       if (styleSel) styleSel.value = 'dark';
     }
   }
+  if (n === 7) { // Índice de la pestaña Start.gg
+    if (typeof cargarStartggToken === 'function') cargarStartggToken();
+  }
 }
 
 // ================================
@@ -1072,6 +1075,15 @@ window.addEventListener('DOMContentLoaded', function() {
     if (styleSel) styleSel.value = 'light';
   }
 });
+
+['scoreboard', 'bracket', 'top8', 'twitch', 'obs', 'rutas', 'startgg'].forEach(id => {
+  const link = document.getElementById('css-' + id);
+  if (link) link.disabled = true;
+});
+const tabCssIds = ['scoreboard', 'bracket', 'top8', 'twitch', 'obs', 'rutas', 'startgg'];
+const activeId = tabCssIds[n];
+const activeLink = document.getElementById('css-' + activeId);
+if (activeLink) activeLink.disabled = false;
 
 
 

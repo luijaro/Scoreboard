@@ -126,7 +126,7 @@ ipcMain.handle('load-json', async (event, tipo = 'scoreboard') => {
 
 // -------- Guardar/Cargar API Key y Credenciales Twitch --------
 // Handler para guardar la API key y las credenciales de Twitch
-ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel }) => {
+ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel, startgg }) => {
   let config = {};
   if (fs.existsSync(configFile)) {
     try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
@@ -141,6 +141,7 @@ ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, 
   if (twitchOAuth) data.twitchOAuth = twitchOAuth;
   if (twitchUser) data.twitchUser = twitchUser;
   if (twitchChannel) data.twitchChannel = twitchChannel;
+  if (startgg) data.startgg = startgg;
   fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
   return { ok: true };
 });
@@ -160,7 +161,8 @@ ipcMain.handle('load-api-key', async () => {
       apiKey: data.apiKey || '',
       twitchOAuth: data.twitchOAuth || '',
       twitchUser: data.twitchUser || '',
-      twitchChannel: data.twitchChannel || ''
+      twitchChannel: data.twitchChannel || '',
+      token: data.startgg || ''
     };
   }
   return { ok: false, apiKey: '', twitchOAuth: '', twitchUser: '', twitchChannel: '' };
@@ -657,4 +659,243 @@ ipcMain.handle('leer-usuarios-txt', async (event) => {
     return { ok: false, error: e.message };
   }
 });
+
+ipcMain.handle('guardar-apikey-token', async (event, filePath, token) => {
+  try {
+    let data = {};
+    if (fs.existsSync(filePath)) {
+      data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    }
+    data.startgg = token; // Cambia aquí
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// Ejemplo dentro de tu handler de consulta a start.gg
+const config = fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile, 'utf8')) : {};
+const rutas = config.rutas || {};
+const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let token = '';
+if (fs.existsSync(apikeyPath)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+    token = data.startgg || '';
+  } catch (e) {}
+}
+if (!token) return { error: 'No hay token de start.gg configurado.' };
+// ...continúa con la consulta usando el token...
+
+ipcMain.handle('leer-apikey-json', async (event, filePath) => {
+  if (fs.existsSync(filePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return data;
+    } catch (e) { return {}; }
+  }
+  return {};
+});
+
+ipcMain.handle('startgg-query', async (event, slug) => {
+  // Carga rutas y token
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || ''; // <-- AQUÍ ESTÁ EL PROBLEMA
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+
+  // Consulta GraphQL a start.gg
+  const query = `
+    query TournamentBySlug {
+      tournament(slug: "${slug}") {
+        id
+        name
+        startAt
+        events {
+          id
+          name
+          slug
+        }
+      }
+    }
+  `;
+  try {
+    const res = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query })
+    });
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+ipcMain.handle('startgg-search-tournaments', async (event, keyword) => {
+  // Carga el token como antes
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+
+  // GraphQL query para buscar torneos por nombre
+  const query = `
+    query Tournaments($name: String!) {
+      tournaments(query: {perPage: 10, filter: {name: $name}}) {
+        nodes {
+          name
+          slug
+          startAt
+        }
+      }
+    }
+  `;
+  try {
+    const res = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query, variables: { name: keyword } })
+    });
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+ipcMain.handle('startgg-get-matches', async (event, eventId) => {
+  // Carga rutas y token
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+
+  // Consulta matches del evento
+  const querySets = `
+    query EventSets {
+      event(id: ${eventId}) {
+        name
+        sets(perPage: 32, page: 1) {
+          nodes {
+            id
+            fullRoundText
+            slots {
+              entrant {
+                name
+              }
+              standing {
+                stats {
+                  score {
+                    value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+  try {
+    const resSets = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query: querySets })
+    });
+    const dataSets = await resSets.json();
+    const sets = dataSets.data?.event?.sets?.nodes || [];
+    return { ok: true, eventName: dataSets.data?.event?.name, sets };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
+  // Carga rutas y token (igual que en otros handlers)
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+
+  // Consulta eventos del torneo
+  const queryEvents = `
+    query TournamentBySlug {
+      tournament(slug: "${tournamentSlug}") {
+        id
+        name
+        events {
+          id
+          name
+          slug
+        }
+      }
+    }
+  `;
+  try {
+    const resEvents = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query: queryEvents })
+    });
+    const dataEvents = await resEvents.json();
+    const events = dataEvents.data?.tournament?.events || [];
+    return { ok: true, tournamentName: dataEvents.data?.tournament?.name, events };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
 
