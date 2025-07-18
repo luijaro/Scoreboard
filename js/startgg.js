@@ -131,17 +131,9 @@ function enviarMatchAlScoreboard(p1, p2, s1, s2, round) {
   document.getElementById('p1Name').textContent = p1;
   document.getElementById('p2Name').textContent = p2;
 
-  // Guarda en scoreboard.json
-  guardarScoreboard(p1, p2, s1, s2, round);
-}
+  // Guarda el round en la variable global para que el Scoreboard lo incluya
+  window.currentRoundName = round;
 
-async function guardarScoreboard(p1, p2, s1, s2, round) {
-  const data = {
-    player1: p1,
-    player2: p2,
-    score1: s1,
-    score2: s2,
-    round: round // <--- asegúrate que el campo se llame igual aquí y en el JSON
-  };
-  await window.ipcRenderer.invoke('save-json', data, 'scoreboard');
+  // Llama a la función global del Scoreboard para guardar todos los datos
+  if (typeof guardarScoreboard === "function") guardarScoreboard();
 }
