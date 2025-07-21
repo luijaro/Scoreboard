@@ -69,7 +69,6 @@ function createWindow() {
     }
   });
   win.loadFile('index.html');
-   //win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
   });

@@ -1,3 +1,87 @@
+let timerInterval = null;
+let timerEndTimestamp = null;
+
+// ================================
+//      TEMPORIZADOR (declaraciones globales)
+// ================================
+
+// ================================
+//      MOSTRAR COMENTARISTAS EN SCOREBOARD
+// ================================
+function mostrarComentaristasEnScoreboard(coms) {
+  const el1 = document.getElementById('comm1');
+  const el2 = document.getElementById('comm2');
+  if (el1 && coms && coms[0]) {
+    el1.innerHTML = `<i class='fa fa-microphone'></i> ${coms[0].nombre || ''}${coms[0].twitter ? ` <span style='color:#8e44ad;'>@${coms[0].twitter}</span>` : ''}`;
+  } else if (el1) {
+    el1.innerHTML = `<i class='fa fa-microphone'></i> Commentator #1`;
+  }
+  if (el2 && coms && coms[1]) {
+    el2.innerHTML = `<i class='fa fa-microphone'></i> ${coms[1].nombre || ''}${coms[1].twitter ? ` <span style='color:#8e44ad;'>@${coms[1].twitter}</span>` : ''}`;
+  } else if (el2) {
+    el2.innerHTML = `<i class='fa fa-microphone'></i> Commentator #2`;
+  }
+}
+
+// ================================
+//      CARGAR COMENTARISTAS AL INICIAR
+// ================================
+async function cargarComentaristasAlAbrir() {
+  const res = await ipcRenderer.invoke('load-json');
+  if (res.ok && res.data && res.data.comentaristas) {
+    const coms = res.data.comentaristas;
+    if (coms[0]) {
+      document.getElementById('com1Name').value = coms[0].nombre || '';
+      document.getElementById('com1Twitter').value = coms[0].twitter || '';
+    }
+    if (coms[1]) {
+      document.getElementById('com2Name').value = coms[1].nombre || '';
+      document.getElementById('com2Twitter').value = coms[1].twitter || '';
+    }
+    mostrarComentaristasEnScoreboard(coms);
+  } else {
+    mostrarComentaristasEnScoreboard([]);
+  }
+}
+
+// Llamar al cambiar de pestaña a Comentaristas
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    if (btn.textContent.includes('Comentaristas')) {
+      btn.addEventListener('click', () => {
+        cargarComentaristasAlAbrir();
+        cargarTimerAlAbrir();
+      });
+    }
+  });
+  // Mostrar comentaristas en Scoreboard al iniciar
+  cargarComentaristasAlAbrir();
+  cargarTimerAlAbrir();
+});
+
+// ================================
+//      COMENTARISTAS TAB
+// ================================
+async function guardarComentaristas() {
+  const com1 = document.getElementById('com1Name').value.trim();
+  const tw1 = document.getElementById('com1Twitter').value.trim();
+  const com2 = document.getElementById('com2Name').value.trim();
+  const tw2 = document.getElementById('com2Twitter').value.trim();
+  // Cargar scoreboard actual
+  const resLoad = await ipcRenderer.invoke('load-json');
+  let data = resLoad.ok && resLoad.data ? resLoad.data : {};
+  // Guardar comentaristas y twitters
+  data.comentaristas = [
+    { nombre: com1, twitter: tw1 },
+    { nombre: com2, twitter: tw2 }
+  ];
+  // Guardar en scoreboard.json
+  const resSave = await ipcRenderer.invoke('save-json', data, 'scoreboard');
+  mostrarComentaristasEnScoreboard(data.comentaristas);
+  document.getElementById('msgComentaristas').textContent = resSave.ok ? 'Comentaristas guardados.' : 'Error al guardar.';
+  setTimeout(() => document.getElementById('msgComentaristas').textContent = '', 2000);
+}
+
 // ================================
 //         CARGA INICIAL
 // ================================
@@ -8,6 +92,7 @@ let ultimoTorneoMatches = null; // <-- Declaración global
 (async function cargarScoreboardAlAbrir() {
   const res = await ipcRenderer.invoke('load-json');
   if (res.ok && res.data) {
+    window.ultimoScoreboardData = res.data;
     const d = res.data;
     if (d.player1) document.getElementById('p1NameInput').value = d.player1;
     if (d.player2) document.getElementById('p2NameInput').value = d.player2;
@@ -19,6 +104,8 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     if (d.char2) document.getElementById('p2Char').value = d.char2;
     if (d.game) document.getElementById('gameSel').value = d.game;
     if (typeof updateVisual === "function") updateVisual();
+    // Mostrar comentaristas en Scoreboard si existen
+    if (d.comentaristas) mostrarComentaristasEnScoreboard(d.comentaristas);
   }
 })();
 
@@ -154,6 +241,17 @@ function resetScores() {
 }
 
 function getScoreboardData() {
+  // Cargar los comentaristas actuales del JSON antes de guardar
+  let comentaristas = [];
+  if (window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
+    comentaristas = window.ultimoScoreboardData.comentaristas;
+  } else {
+    // Si no hay, intenta leer de los inputs
+    comentaristas = [
+      { nombre: document.getElementById('com1Name')?.value || '', twitter: document.getElementById('com1Twitter')?.value || '' },
+      { nombre: document.getElementById('com2Name')?.value || '', twitter: document.getElementById('com2Twitter')?.value || '' }
+    ];
+  }
   return {
     player1: document.getElementById('p1NameInput').value,
     player2: document.getElementById('p2NameInput').value,
@@ -164,9 +262,10 @@ function getScoreboardData() {
     char1: document.getElementById('p1Char').value,
     char2: document.getElementById('p2Char').value,
     game: document.getElementById('gameSel').value,
-    round: window.currentRoundName || '', // <-- esto guarda la ronda
-    country1: document.getElementById('p1Flag').value, // <-- AGREGADO
-    country2: document.getElementById('p2Flag').value  // <-- AGREGADO
+    round: window.currentRoundName || '',
+    country1: document.getElementById('p1Flag').value,
+    country2: document.getElementById('p2Flag').value,
+    comentaristas: comentaristas
   };
 }
 
@@ -1084,6 +1183,88 @@ const tabCssIds = ['scoreboard', 'bracket', 'top8', 'twitch', 'obs', 'rutas', 's
 const activeId = tabCssIds[n];
 const activeLink = document.getElementById('css-' + activeId);
 if (activeLink) activeLink.disabled = false;
+
+// ================================
+//      TEMPORIZADOR
+// ================================
+
+
+function fijarTimer() {
+  const minutos = parseInt(document.getElementById('timerInput').value, 10);
+  if (isNaN(minutos) || minutos <= 0) {
+    document.getElementById('msgTimer').textContent = '⏱️ Ingresa minutos válidos';
+    setTimeout(() => document.getElementById('msgTimer').textContent = '', 2000);
+    return;
+  }
+  // Guardar el tiempo de finalización en el JSON
+  const ahora = Date.now();
+  timerEndTimestamp = ahora + minutos * 60 * 1000;
+  mostrarTimer(timerEndTimestamp - ahora);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const restante = timerEndTimestamp - Date.now();
+    if (restante <= 0) {
+      mostrarTimer(0);
+      clearInterval(timerInterval);
+      document.getElementById('msgTimer').textContent = '⏰ ¡Tiempo finalizado!';
+      setTimeout(() => document.getElementById('msgTimer').textContent = '', 3000);
+    } else {
+      mostrarTimer(restante);
+    }
+  }, 1000);
+  document.getElementById('msgTimer').textContent = '⏱️ Timer fijado';
+  setTimeout(() => document.getElementById('msgTimer').textContent = '', 2000);
+  guardarTimerEnScoreboard(timerEndTimestamp);
+}
+
+function mostrarTimer(msRestante) {
+  const el = document.getElementById('timerDisplay');
+  if (!el) return;
+  if (msRestante <= 0) {
+    el.textContent = '00:00';
+    return;
+  }
+  const totalSec = Math.floor(msRestante / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  el.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+async function guardarTimerEnScoreboard(timestamp) {
+  // Cargar scoreboard actual
+  const resLoad = await ipcRenderer.invoke('load-json');
+  let data = resLoad.ok && resLoad.data ? resLoad.data : {};
+  data.timerEndTimestamp = timestamp;
+  await ipcRenderer.invoke('save-json', data, 'scoreboard');
+}
+
+// Al cargar la pestaña comentaristas, mostrar el timer si existe
+async function cargarTimerAlAbrir() {
+  const res = await ipcRenderer.invoke('load-json');
+  if (res.ok && res.data && res.data.timerEndTimestamp) {
+    const restante = res.data.timerEndTimestamp - Date.now();
+    if (restante > 0) {
+      timerEndTimestamp = res.data.timerEndTimestamp;
+      mostrarTimer(restante);
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const r = timerEndTimestamp - Date.now();
+        if (r <= 0) {
+          mostrarTimer(0);
+          clearInterval(timerInterval);
+          document.getElementById('msgTimer').textContent = '⏰ ¡Tiempo finalizado!';
+          setTimeout(() => document.getElementById('msgTimer').textContent = '', 3000);
+        } else {
+          mostrarTimer(r);
+        }
+      }, 1000);
+    } else {
+      mostrarTimer(0);
+    }
+  } else {
+    mostrarTimer(0);
+  }
+}
 
 
 
