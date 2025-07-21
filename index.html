@@ -391,14 +391,24 @@
   <section class="tab-panel" id="tab-startgg">
     <div class="panel-section">
       <h2>Start.gg</h2>
-      <div class="form-row">
-        <input id="startggSlug" class="sb-input" placeholder="Ej: tournament/mi-torneo/event/singles" style="width:320px;">
+      <div class="form-row" style="margin-bottom:1em;">
+        <label for="startggSlug" style="margin-right:1em;">Slug o búsqueda:</label>
+        <input id="startggSlug" class="sb-input" placeholder="Ej: tournament/mi-torneo/event/singles o palabras clave" style="width:320px;">
         <button class="sb-btn" onclick="buscarStartGG()">Buscar</button>
       </div>
-      <div class="form-row">
+      <div class="form-row" style="margin-bottom:1em;">
+        <label for="startggToken" style="margin-right:1em;">Token Start.gg:</label>
         <input id="startggToken" class="sb-input" type="password" placeholder="Token start.gg" style="width:320px;">
         <button class="sb-btn" onclick="guardarStartggToken()">Guardar Token</button>
         <span id="msgStartggToken" class="sb-message"></span>
+      </div>
+      <div class="form-row" style="margin-bottom:1em;">
+        <span style="color:#aaa; font-size:0.95em;">Puedes buscar por nombre de torneo, slug, o pegar la ruta completa de un evento.<br>
+        Ejemplo: <b>tournament/never-give-up-2024/events</b> o <b>Blood Veil Overdrive</b></span>
+      </div>
+      <div class="form-row" style="margin-bottom:1em;">
+        <span style="color:#ffe8b2; font-size:0.95em;">Los resultados mostrarán el estado de cada torneo y evento.<br>
+        Si el evento está terminado, podrás generar el Top 8 automáticamente.</span>
       </div>
       <div id="startggResults" style="margin-top:1.5em;"></div>
     </div>
