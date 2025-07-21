@@ -69,8 +69,6 @@ function createWindow() {
     }
   });
   win.loadFile('index.html');
-  win.webContents.openDevTools(); // <-- Esto abre la consola automáticamente
-
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
   });
@@ -85,6 +83,174 @@ app.whenReady().then(createWindow); // Cuando la aplicación está lista, crea l
 // =========================
 //     IPC HANDLERS
 // =========================
+// Handler para obtener los matches de un evento Start.gg
+ipcMain.handle('startgg-get-matches', async (event, eventId) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+  // Consulta sets (matches) del evento y de cada fase/pool si existen
+  let allSets = [];
+  try {
+    // 1. Consulta las fases del evento
+    const queryPhases = `
+      query EventPhases {
+        event(id: ${eventId}) {
+          phases {
+            id
+            name
+          }
+        }
+      }
+    `;
+    const resPhases = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query: queryPhases })
+    });
+    const dataPhases = await resPhases.json();
+    const phases = dataPhases.data?.event?.phases || [];
+    console.log(`[startgg-get-matches] Fases encontradas: ${phases.length}`);
+    // 2. Si hay fases, consulta los sets de cada fase
+    if (phases.length > 0) {
+      for (const phase of phases) {
+        for (let page = 1; page <= 20; page++) {
+          const querySets = `
+            query PhaseSets {
+              phase(id: ${phase.id}) {
+                sets(perPage: 100, page: ${page}) {
+                  nodes {
+                    id
+                    fullRoundText
+                    slots {
+                      entrant { name }
+                      standing { stats { score { value } } }
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          const res = await fetch('https://api.start.gg/gql/alpha', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ query: querySets })
+          });
+          const data = await res.json();
+          const sets = data.data?.phase?.sets?.nodes || [];
+          console.log(`[startgg-get-matches] Fase ${phase.name} (${phase.id}) - Página ${page}: ${sets.length} sets recibidos`);
+          if (sets.length === 0) break;
+          allSets = allSets.concat(sets);
+          if (sets.length < 100) break;
+        }
+      }
+    } else {
+      // Si no hay fases, consulta sets del evento como antes
+      for (let page = 1; page <= 20; page++) {
+        const querySets = `
+          query EventSets {
+            event(id: ${eventId}) {
+              sets(perPage: 100, page: ${page}) {
+                nodes {
+                  id
+                  fullRoundText
+                  slots {
+                    entrant { name }
+                    standing { stats { score { value } } }
+                  }
+                }
+              }
+            }
+          }
+        `;
+        const res = await fetch('https://api.start.gg/gql/alpha', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ query: querySets })
+        });
+        const data = await res.json();
+        const sets = data.data?.event?.sets?.nodes || [];
+        console.log(`[startgg-get-matches] Evento - Página ${page}: ${sets.length} sets recibidos`);
+        if (sets.length === 0) break;
+        allSets = allSets.concat(sets);
+        if (sets.length < 100) break;
+      }
+    }
+    console.log(`[startgg-get-matches] Total sets recibidos: ${allSets.length}`);
+    if (allSets.length > 0) {
+      console.log('[startgg-get-matches] Ejemplo de set:', allSets[0]);
+    }
+    return { ok: true, sets: allSets };
+  } catch (e) {
+    console.error('[startgg-get-matches] Error:', e);
+    return { error: e.message };
+  }
+});
+// Handler para obtener los eventos de un torneo Start.gg
+ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+  // Consulta eventos del torneo
+  const queryEvents = `
+    query TournamentBySlug {
+      tournament(slug: "${tournamentSlug}") {
+        id
+        name
+        events {
+          id
+          name
+          slug
+        }
+      }
+    }
+  `;
+  try {
+    const resEvents = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query: queryEvents })
+    });
+    const dataEvents = await resEvents.json();
+    const events = dataEvents.data?.tournament?.events || [];
+    return { ok: true, tournamentName: dataEvents.data?.tournament?.name, events };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
 
 // -------- Scoreboard JSON --------
 // Handler para guardar el JSON del scoreboard
@@ -568,6 +734,59 @@ if (!fs.existsSync(configFile)) {
 // =========================
 //      NUEVO HANDLER
 // =========================
+// Handler para obtener el Top 8 (standings) de un evento Start.gg
+ipcMain.handle('startgg-get-standings', async (event, eventId) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+  // Consulta standings del evento
+  const queryStandings = `
+    query EventStandings {
+      event(id: ${eventId}) {
+        name
+        standings(query: { perPage: 8, page: 1 }) {
+          nodes {
+            placement
+            entrant {
+              name
+            }
+          }
+        }
+      }
+    }
+  `;
+  try {
+    const res = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ query: queryStandings })
+    });
+    const data = await res.json();
+    const nodes = data.data?.event?.standings?.nodes || [];
+    const eventName = data.data?.event?.name || '';
+    const top8 = nodes.map(n => ({
+      nombre: n.entrant?.name || '',
+      final_rank: n.placement || null
+    }));
+    return { ok: true, eventName, top8 };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
 ipcMain.handle('save-json-custom', async (event, data, ruta) => {
   try {
     fs.writeFileSync(ruta, JSON.stringify(data, null, 2), 'utf8');
@@ -698,248 +917,3 @@ ipcMain.handle('leer-apikey-json', async (event, filePath) => {
   }
   return {};
 });
-
-ipcMain.handle('startgg-query', async (event, slug) => {
-  // Carga rutas y token
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-  }
-  const rutas = config.rutas || {};
-  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-  let token = '';
-  if (fs.existsSync(apikeyPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-      token = data.startgg || ''; // <-- AQUÍ ESTÁ EL PROBLEMA
-    } catch (e) {}
-  }
-  if (!token) return { error: 'No hay token de start.gg configurado.' };
-
-  // Consulta GraphQL a start.gg
-  const query = `
-    query TournamentBySlug {
-      tournament(slug: "${slug}") {
-        id
-        name
-        startAt
-        events {
-          id
-          name
-          slug
-        }
-      }
-    }
-  `;
-  try {
-    const res = await fetch('https://api.start.gg/gql/alpha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ query })
-    });
-    const data = await res.json();
-    return data;
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-
-ipcMain.handle('startgg-search-tournaments', async (event, keyword) => {
-  // Carga el token como antes
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-  }
-  const rutas = config.rutas || {};
-  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-  let token = '';
-  if (fs.existsSync(apikeyPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-      token = data.startgg || '';
-    } catch (e) {}
-  }
-  if (!token) return { error: 'No hay token de start.gg configurado.' };
-
-  // GraphQL query para buscar torneos por nombre
-  const query = `
-    query Tournaments($name: String!) {
-      tournaments(query: {perPage: 10, filter: {name: $name}}) {
-        nodes {
-          name
-          slug
-          startAt
-        }
-      }
-    }
-  `;
-  try {
-    const res = await fetch('https://api.start.gg/gql/alpha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ query, variables: { name: keyword } })
-    });
-    const data = await res.json();
-    return data;
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-
-ipcMain.handle('startgg-get-matches', async (event, eventId) => {
-  // Carga rutas y token
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-  }
-  const rutas = config.rutas || {};
-  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-  let token = '';
-  if (fs.existsSync(apikeyPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-      token = data.startgg || '';
-    } catch (e) {}
-  }
-  if (!token) return { error: 'No hay token de start.gg configurado.' };
-
-  // Consulta matches del evento
-  const querySets = `
-    query EventSets {
-      event(id: ${eventId}) {
-        name
-        sets(perPage: 32, page: 1) {
-          nodes {
-            id
-            fullRoundText
-            slots {
-              entrant {
-                name
-              }
-              standing {
-                stats {
-                  score {
-                    value
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-  try {
-    const resSets = await fetch('https://api.start.gg/gql/alpha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ query: querySets })
-    });
-    const dataSets = await resSets.json();
-    const sets = dataSets.data?.event?.sets?.nodes || [];
-    return { ok: true, eventName: dataSets.data?.event?.name, sets };
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
-  // Carga rutas y token (igual que en otros handlers)
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-  }
-  const rutas = config.rutas || {};
-  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-  let token = '';
-  if (fs.existsSync(apikeyPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-      token = data.startgg || '';
-    } catch (e) {}
-  }
-  if (!token) return { error: 'No hay token de start.gg configurado.' };
-
-  // Consulta eventos del torneo
-  const queryEvents = `
-    query TournamentBySlug {
-      tournament(slug: "${tournamentSlug}") {
-        id
-        name
-        events {
-          id
-          name
-          slug
-        }
-      }
-    }
-  `;
-  try {
-    const resEvents = await fetch('https://api.start.gg/gql/alpha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ query: queryEvents })
-    });
-    const dataEvents = await resEvents.json();
-    const events = dataEvents.data?.tournament?.events || [];
-    return { ok: true, tournamentName: dataEvents.data?.tournament?.name, events };
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
-  // Carga rutas y token
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-  }
-  const rutas = config.rutas || {};
-  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-  let token = '';
-  if (fs.existsSync(apikeyPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-      token = data.startgg || '';
-    } catch (e) {}
-  }
-  if (!token) return { error: 'No hay token de start.gg configurado.' };
-
-  // Consulta el estado del evento
-  const query = `
-    query EventState {
-      event(id: ${eventId}) {
-        id
-        name
-        state
-      }
-    }
-  `;
-  try {
-    const res = await fetch('https://api.start.gg/gql/alpha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ query })
-    });
-    const data = await res.json();
-    const state = data.data?.event?.state || '';
-    return { state };
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-
-

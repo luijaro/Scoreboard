@@ -1,54 +1,62 @@
 {
-  "evento": "Blood Veil Overdrive XXVI - VSAV",
+  "evento": "Street Fighter 6",
   "fecha": "2025-07-21",
   "top8": [
     {
-      "nombre": "ellecito",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "BLK | Blaz",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 1
     },
     {
-      "nombre": "Shin_Rockman",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "HDG | Atma_",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 2
     },
     {
-      "nombre": "juaking",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "PHD/Evilcraa",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 3
     },
     {
-      "nombre": "Salazio",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "BLK | Craime",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 4
     },
     {
-      "nombre": "Gvts",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "NFMS MaghoCL",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 5
     },
     {
-      "nombre": "Benja",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "HDG - Younghou",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 5
     },
     {
-      "nombre": "ADK5Seth",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "Red Rooster | MonoPR",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 7
     },
     {
-      "nombre": "momonga",
-      "personaje": "akatsuki",
-      "juego": "UNI2",
-      "twitter": "@_Aster_Laker"
+      "nombre": "Nfms morozin",
+      "personaje": "",
+      "juego": "",
+      "twitter": "",
+      "final_rank": 7
     }
   ]
 }
