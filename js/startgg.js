@@ -344,14 +344,28 @@ function escapeQuotes(str) {
 function enviarMatchAlScoreboard(p1, p2, s1, s2, round) {
   showTab(0);
 
-  document.getElementById('p1NameInput').value = p1;
-  document.getElementById('p2NameInput').value = p2;
+  // Extraer tag y nombre si existe el delimitador '|'
+  function splitTagName(str) {
+    if (!str) return { tag: '', name: str };
+    const parts = str.split('|');
+    if (parts.length === 2) {
+      return { tag: parts[0].trim(), name: parts[1].trim() };
+    }
+    return { tag: '', name: str.trim() };
+  }
+  const p1Data = splitTagName(p1);
+  const p2Data = splitTagName(p2);
+
+  document.getElementById('p1NameInput').value = p1Data.name;
+  document.getElementById('p2NameInput').value = p2Data.name;
+  document.getElementById('p1TagInput').value = p1Data.tag;
+  document.getElementById('p2TagInput').value = p2Data.tag;
   document.getElementById('p1Score').textContent = s1;
   document.getElementById('p2Score').textContent = s2;
   document.getElementById('sbEvent').textContent = round;
 
-  document.getElementById('p1Name').textContent = p1;
-  document.getElementById('p2Name').textContent = p2;
+  document.getElementById('p1Name').textContent = p1Data.name;
+  document.getElementById('p2Name').textContent = p2Data.name;
 
   // Guarda el round en la variable global para que el Scoreboard lo incluya
   window.currentRoundName = round;
