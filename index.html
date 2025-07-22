@@ -228,24 +228,6 @@
     </div>
   </div>
 </section>
-
-  <!-- =========================
-       TAB 4: TWITCHBOT COMANDOS
-  ========================== -->
-  <section class="tab-panel" id="tab-twitchcmds">
-    <div class="panel-section">
-      <h2>Comandos Rápidos de Twitch Bot</h2>
-      <div class="form-row">
-        <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
-        <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
-        <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
-      </div>
-      <div class="form-row">
-        <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
-        <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
-      </div>
-    </div>
-  </section>
  <!-- =========================
        TAB 3: TOP 8
   ========================== -->
@@ -286,6 +268,24 @@
       </div>
     </div>
   </section>
+  <!-- =========================
+       TAB 4: TWITCHBOT COMANDOS
+  ========================== -->
+  <section class="tab-panel" id="tab-twitchcmds">
+    <div class="panel-section">
+      <h2>Comandos Rápidos de Twitch Bot</h2>
+      <div class="form-row">
+        <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
+        <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
+        <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
+      </div>
+      <div class="form-row">
+        <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
+        <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
+      </div>
+    </div>
+  </section>
+
 
   <!-- =========================
        TAB 5: CREDENCIALES Y MATCHES
