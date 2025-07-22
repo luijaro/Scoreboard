@@ -205,7 +205,18 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
     return { error: e.message };
   }
 });
+
 // Handler para obtener los eventos de un torneo Start.gg
+ipcMain.handle('save-bracket-json', async (event, bracketData) => {
+  // Ruta absoluta para bracket.json
+  const bracketPath = path.resolve(__dirname, 'example', 'json', 'bracket.json');
+  try {
+    fs.writeFileSync(bracketPath, JSON.stringify(bracketData, null, 2), 'utf8');
+    return { ok: true, file: bracketPath };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
 ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
   let config = {};
   if (fs.existsSync(configFile)) {
@@ -751,6 +762,48 @@ ipcMain.handle('startgg-get-standings', async (event, eventId) => {
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   // Consulta standings del evento
+  // Handler para obtener el estado de un evento Start.gg por ID
+  ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
+    let config = {};
+    if (fs.existsSync(configFile)) {
+      try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    }
+    const rutas = config.rutas || {};
+    const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+    let token = '';
+    if (fs.existsSync(apikeyPath)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+        token = data.startgg || '';
+      } catch (e) {}
+    }
+    if (!token) return { error: 'No hay token de start.gg configurado.' };
+    // Consulta GraphQL para estado del evento
+    const query = `
+      query EventState($eventId: ID!) {
+        event(id: $eventId) {
+          id
+          name
+          state
+        }
+      }
+    `;
+    try {
+      const res = await fetch('https://api.start.gg/gql/alpha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ query, variables: { eventId } })
+      });
+      const data = await res.json();
+      if (data.errors) return { error: data.errors[0]?.message || 'Error al consultar estado del evento.' };
+      return { event: data.data.event, state: data.data.event?.state };
+    } catch (e) {
+      return { error: e.message };
+    }
+  });
   const queryStandings = `
     query EventStandings {
       event(id: ${eventId}) {
