@@ -1,6 +1,12 @@
 // Nueva función para buscar y mostrar eventos de un torneo Start.gg
 async function buscarStartGG() {
-  const texto = document.getElementById('startggSlug').value.trim();
+  const slugInput = document.getElementById('startggSlug');
+  // Asegura que el input esté habilitado y editable
+  if (slugInput) {
+    slugInput.removeAttribute('readonly');
+    slugInput.removeAttribute('disabled');
+  }
+  const texto = slugInput ? slugInput.value.trim() : '';
   // Guardar el slug en localStorage
   if (texto) {
     localStorage.setItem('ultimoStartggSlug', texto);
@@ -394,9 +400,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Guarda el bracket en bracket.json
 async function guardarBracketEnJson(torneo, fecha, sets) {
-  // Extrae y normaliza los datos para bracket.json
+
+
+
+  // Obtener los phaseId únicos de los sets
+  const phaseIdSet = new Set();
+  sets.forEach(set => {
+    if (set.phaseId || set.phase_id) phaseIdSet.add(set.phaseId || set.phase_id);
+  });
+  const phaseIds = Array.from(phaseIdSet);
+
+  // Log para depuración
+  console.log('[Bracket] phaseIds:', phaseIds);
+
+  // Consultar los nombres de fase por phaseId vía IPC
+  let phaseNames = {};
+  if (phaseIds.length > 0) {
+    try {
+      phaseNames = await window.ipcRenderer.invoke('startgg-get-phase-name', phaseIds);
+      console.log('[Bracket] phaseNames:', phaseNames);
+    } catch (e) {
+      console.warn('[Bracket] Error consultando nombres de fase:', e);
+      phaseNames = {};
+    }
+  }
+
+  // Arma los matches y asigna solo el nombre real de la fase
   const matches = sets.map(set => {
-    // Si los datos vienen de Start.gg, asegúrate de extraer los nombres y scores correctamente
     const player1_name = set.player1_name || set.slots?.[0]?.entrant?.name || 'TBD';
     const player2_name = set.player2_name || set.slots?.[1]?.entrant?.name || 'TBD';
     const player1_id = set.player1_id || set.slots?.[0]?.entrant?.id || null;
@@ -404,7 +434,17 @@ async function guardarBracketEnJson(torneo, fecha, sets) {
     const player1_sc = set.player1_sc ?? set.slots?.[0]?.standing?.stats?.score?.value ?? '';
     const player2_sc = set.player2_sc ?? set.slots?.[1]?.standing?.stats?.score?.value ?? '';
     const round_name = set.round_name || set.fullRoundText || '';
-    return {
+    const phaseId = set.phaseId || set.phase_id;
+    // Preferir el campo 'fase' si viene del backend, si no, usar phaseNames
+    let fase = '';
+    if (set.fase) {
+      fase = set.fase;
+    } else if (phaseId && phaseNames[phaseId]) {
+      fase = phaseNames[phaseId];
+    } else if (phaseId) {
+      console.warn(`[Bracket] No se encontró nombre de fase para phaseId: ${phaseId}`);
+    }
+    let match = {
       id: set.id,
       player1_id,
       player2_id,
@@ -415,9 +455,12 @@ async function guardarBracketEnJson(torneo, fecha, sets) {
       winner_id: set.winner_id ?? set.winnerId ?? null,
       player1_sc,
       player2_sc,
-      round_name
+      round_name,
+      fase
     };
+    return match;
   });
+
   // Construye el diccionario de participantes
   const participantes = {};
   matches.forEach(m => {

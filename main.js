@@ -124,6 +124,11 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
     const dataPhases = await resPhases.json();
     const phases = dataPhases.data?.event?.phases || [];
     console.log(`[startgg-get-matches] Fases encontradas: ${phases.length}`);
+    // Crear diccionario de phaseId -> phaseName
+    const phaseIdToName = {};
+    phases.forEach(phase => {
+      phaseIdToName[phase.id] = phase.name;
+    });
     // 2. Si hay fases, consulta los sets de cada fase
     if (phases.length > 0) {
       for (const phase of phases) {
@@ -154,6 +159,11 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
           });
           const data = await res.json();
           const sets = data.data?.phase?.sets?.nodes || [];
+          // Asigna el phaseId y el nombre de la fase a cada set
+          sets.forEach(set => {
+            set.phaseId = phase.id;
+            set.fase = phaseIdToName[phase.id] || '';
+          });
           console.log(`[startgg-get-matches] Fase ${phase.name} (${phase.id}) - Página ${page}: ${sets.length} sets recibidos`);
           if (sets.length === 0) break;
           allSets = allSets.concat(sets);
@@ -189,6 +199,10 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
         });
         const data = await res.json();
         const sets = data.data?.event?.sets?.nodes || [];
+        // No hay phaseId, pero puedes asignar fase vacía
+        sets.forEach(set => {
+          set.fase = '';
+        });
         console.log(`[startgg-get-matches] Evento - Página ${page}: ${sets.length} sets recibidos`);
         if (sets.length === 0) break;
         allSets = allSets.concat(sets);
@@ -209,7 +223,16 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
 // Handler para obtener los eventos de un torneo Start.gg
 ipcMain.handle('save-bracket-json', async (event, bracketData) => {
   // Ruta absoluta para bracket.json
-  const bracketPath = path.resolve(__dirname, 'example', 'json', 'bracket.json');
+  // Leer ruta personalizada de bracket.json desde el archivo de configuración
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try {
+      config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+    } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  // Usar la ruta personalizada si existe, si no usar la ruta por defecto
+  const bracketPath = rutas.bracket || path.resolve(__dirname, 'example', 'json', 'bracket.json');
   try {
     fs.writeFileSync(bracketPath, JSON.stringify(bracketData, null, 2), 'utf8');
     return { ok: true, file: bracketPath };
@@ -746,6 +769,51 @@ if (!fs.existsSync(configFile)) {
 //      NUEVO HANDLER
 // =========================
 // Handler para obtener el Top 8 (standings) de un evento Start.gg
+// Handler para obtener el estado de un evento Start.gg por ID
+ipcMain.removeHandler('startgg-get-event-state');
+ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+  // Consulta GraphQL para estado del evento
+  const query = `
+    query EventState($eventId: ID!) {
+      event(id: $eventId) {
+        id
+        name
+        state
+      }
+    }
+  `;
+  try {
+    const res = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ query, variables: { eventId } })
+    });
+    const data = await res.json();
+    if (data.errors) return { error: data.errors[0]?.message || 'Error al consultar estado del evento.' };
+    return { event: data.data.event, state: data.data.event?.state };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+// Handler para obtener el Top 8 (standings) de un evento Start.gg
 ipcMain.handle('startgg-get-standings', async (event, eventId) => {
   let config = {};
   if (fs.existsSync(configFile)) {
@@ -761,49 +829,6 @@ ipcMain.handle('startgg-get-standings', async (event, eventId) => {
     } catch (e) {}
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
-  // Consulta standings del evento
-  // Handler para obtener el estado de un evento Start.gg por ID
-  ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
-    let config = {};
-    if (fs.existsSync(configFile)) {
-      try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-    }
-    const rutas = config.rutas || {};
-    const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
-    let token = '';
-    if (fs.existsSync(apikeyPath)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
-        token = data.startgg || '';
-      } catch (e) {}
-    }
-    if (!token) return { error: 'No hay token de start.gg configurado.' };
-    // Consulta GraphQL para estado del evento
-    const query = `
-      query EventState($eventId: ID!) {
-        event(id: $eventId) {
-          id
-          name
-          state
-        }
-      }
-    `;
-    try {
-      const res = await fetch('https://api.start.gg/gql/alpha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ query, variables: { eventId } })
-      });
-      const data = await res.json();
-      if (data.errors) return { error: data.errors[0]?.message || 'Error al consultar estado del evento.' };
-      return { event: data.data.event, state: data.data.event?.state };
-    } catch (e) {
-      return { error: e.message };
-    }
-  });
   const queryStandings = `
     query EventStandings {
       event(id: ${eventId}) {
@@ -969,4 +994,50 @@ ipcMain.handle('leer-apikey-json', async (event, filePath) => {
     } catch (e) { return {}; }
   }
   return {};
+});
+
+ipcMain.handle('startgg-get-phase-name', async (event, phaseIds) => {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let token = '';
+  if (fs.existsSync(apikeyPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
+      token = data.startgg || '';
+    } catch (e) {}
+  }
+  if (!token) return { error: 'No hay token de start.gg configurado.' };
+  // Consulta los nombres de las fases
+  const query = `
+    query PhaseNames($phaseIds: [ID!]!) {
+      phases(ids: $phaseIds) {
+        id
+        name
+      }
+    }
+  `;
+  try {
+    const res = await fetch('https://api.start.gg/gql/alpha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ query, variables: { phaseIds } })
+    });
+    const data = await res.json();
+    if (data.errors) return { error: data.errors[0]?.message || 'Error al consultar nombres de fases.' };
+    // Mapea los resultados a un objeto { [phaseId]: nombre }
+    const phaseNames = {};
+    data.data.phases.forEach(phase => {
+      phaseNames[phase.id] = phase.name;
+    });
+    return { ok: true, phaseNames };
+  } catch (e) {
+    return { error: e.message };
+  }
 });
