@@ -109,6 +109,15 @@ let ultimoTorneoMatches = null; // <-- Declaración global
   }
 })();
 
+// Inicializar sub-tabs cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  // Asegurar que el primer sub-tab de Main esté visible
+  showMainSubTab(0);
+  
+  // Asegurar que el primer sub-tab de Challonge esté preparado (cuando se acceda)
+  // showChallongeSubTab(0); // No necesario hasta que se acceda a la pestaña
+});
+
 window.addEventListener('DOMContentLoaded', cambiarJuego);
 
 // ================================
@@ -117,20 +126,14 @@ window.addEventListener('DOMContentLoaded', cambiarJuego);
 function showTab(n) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === n));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === n));
-  // Bracket
-  if (n === 1) {
-    cargarTorneosBracket();
-  }
-  // Top 8
-  if (n === 2) {
-    cargarTorneosTop8();
-  }
-  // Credenciales y Matches (ajusta el índice si tu orden es diferente)
-  if (n === 4) {
-    buscarTorneosMatches();
-  }
-  // Scoreboard: asigna el listener si no está
+  
+  // Tab 0: Scoreboard
   if (n === 0) {
+    // Cargar comentaristas al entrar a Scoreboard
+    cargarComentaristasAlAbrir();
+    cargarTimerAlAbrir();
+    
+    // Configurar listener de estilo si no está configurado
     const styleSel = document.getElementById('styleSel');
     if (styleSel && !styleSel.dataset.listener) {
       styleSel.addEventListener('change', function() {
@@ -155,8 +158,98 @@ function showTab(n) {
       if (styleSel) styleSel.value = 'dark';
     }
   }
-  if (n === 7) { // Índice de la pestaña Start.gg
+  
+  // Tab 1: Comentaristas
+  if (n === 1) {
+    cargarComentaristasAlAbrir();
+    cargarTimerAlAbrir();
+  }
+  
+  // Tab 2: Challonge (unified tab with sub-tabs)
+  if (n === 2) {
+    // Cargar funciones de Challonge al entrar
+    buscarTorneosMatches(); // Para credenciales
+    cargarTorneosBracket(); // Para bracket  
+    cargarTorneosTop8(); // Para top8
+  }
+  
+  // Tab 3: Comandos y Escenas (Twitch + OBS)
+  if (n === 3) {
+    // No specific loading required for Twitch commands or OBS
+  }
+  
+  // Tab 4: Start.gg (was 5, now 4)
+  if (n === 4) {
     if (typeof cargarStartggToken === 'function') cargarStartggToken();
+  }
+}
+
+// ================================
+//           SUB-TABS DE MAIN
+// ================================
+function showMainSubTab(n) {
+  console.log('showMainSubTab called with:', n);
+  
+  // Solo afectar los botones y paneles dentro de #tab-main
+  const mainTab = document.getElementById('tab-main');
+  if (!mainTab) {
+    console.error('tab-main not found');
+    return;
+  }
+  
+  const buttons = mainTab.querySelectorAll('.sub-tab-btn');
+  const panels = mainTab.querySelectorAll('.sub-tab-panel');
+  
+  console.log('Found buttons:', buttons.length, 'panels:', panels.length);
+  
+  buttons.forEach((btn, i) => btn.classList.toggle('active', i === n));
+  panels.forEach((p, i) => p.classList.toggle('active', i === n));
+  
+  // Cargar datos específicos según el sub-tab
+  if (n === 0) {
+    // Scoreboard - ya se carga automáticamente
+  } else if (n === 1) {
+    // Comentaristas
+    cargarComentaristasAlAbrir();
+    cargarTimerAlAbrir();
+  } else if (n === 2) {
+    // Comandos Twitch - no requiere carga especial
+  } else if (n === 3) {
+    // OBS - no requiere carga especial
+  }
+}
+
+// ================================
+//           SUB-TABS DE CHALLONGE
+// ================================
+function showChallongeSubTab(n) {
+  console.log('showChallongeSubTab called with:', n);
+  
+  // Solo afectar los botones y paneles dentro de #tab-challonge
+  const challongeTab = document.getElementById('tab-challonge');
+  if (!challongeTab) {
+    console.error('tab-challonge not found');
+    return;
+  }
+  
+  const buttons = challongeTab.querySelectorAll('.sub-tab-btn');
+  const panels = challongeTab.querySelectorAll('.sub-tab-panel');
+  
+  console.log('Found buttons:', buttons.length, 'panels:', panels.length);
+  
+  buttons.forEach((btn, i) => btn.classList.toggle('active', i === n));
+  panels.forEach((p, i) => p.classList.toggle('active', i === n));
+  
+  // Cargar datos específicos según el sub-tab
+  if (n === 0) {
+    // Credenciales - ya se carga automáticamente
+    buscarTorneosMatches();
+  } else if (n === 1) {
+    // Bracket
+    cargarTorneosBracket();
+  } else if (n === 2) {
+    // Top 8
+    cargarTorneosTop8();
   }
 }
 
@@ -1173,6 +1266,9 @@ window.addEventListener('DOMContentLoaded', function() {
     const styleSel = document.getElementById('styleSel');
     if (styleSel) styleSel.value = 'light';
   }
+  
+  // Initialize Challonge sub-tabs to show first one by default
+  showChallongeSubTab(0);
 });
 
 ['scoreboard', 'bracket', 'top8', 'twitch', 'obs', 'rutas', 'startgg'].forEach(id => {

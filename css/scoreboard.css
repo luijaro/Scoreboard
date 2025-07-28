@@ -54,6 +54,49 @@ body {
   display: block;
 }
 
+/* ==========================
+   Sub-tabs (para Challonge y Main)
+========================== */
+.sub-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 1.5em;
+  background: #2c3e50;
+  padding: 1em;
+  border-radius: 8px;
+}
+.sub-tab-btn {
+  background: #34495e;
+  color: #ecf0f1;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6em 1.2em;
+  font-size: 0.95em;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.sub-tab-btn:hover {
+  background: #3c5a78;
+  opacity: 1;
+}
+.sub-tab-btn.active {
+  background: #e74c3c;
+  color: #fff;
+  opacity: 1;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+.sub-tab-panel {
+  display: none;
+  min-height: 200px;
+}
+.sub-tab-panel.active {
+  display: block;
+}
+
 /* Botón de rutas alineado a la derecha de la barra de tabs */
 .rutas-btn {
   margin-left: auto !important; /* Solo este botón se va a la derecha */

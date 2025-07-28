@@ -12,7 +12,7 @@
     "tmi.js": "^1.8.5"
   },
   "devDependencies": {
-    "electron": "^29.0.0",
+    "electron": "^29.4.6",
     "electron-builder": "^26.0.12"
   },
   "build": {
