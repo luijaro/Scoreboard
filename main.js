@@ -71,6 +71,8 @@ function createWindow() {
   win.loadFile('index.html');
   win.once('ready-to-show', () => {
     // ensureSaveDir(win);
+    // Abrir las herramientas de desarrollador para ver la consola
+    //win.webContents.openDevTools();
   });
 }
 
@@ -439,7 +441,7 @@ if (fs.existsSync(file)) {
   }
 });
 
-// Obtener matches y participantes (solo matches abiertos)
+// Obtener matches y participantes (solo matches abiertos) + información del torneo
 ipcMain.handle('get-matches-and-participants', async (event, slug) => {
 let config = {};
 if (fs.existsSync(configFile)) {
@@ -456,16 +458,21 @@ if (fs.existsSync(file)) {
 }
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
+  const urlTournament = `https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`;
   const urlPart = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
   const urlMatch = `https://api.challonge.com/v1/tournaments/${slug}/matches.json?api_key=${apiKey}`;
   try {
-    const [partRes, matchRes] = await Promise.all([
+    const [tournamentRes, partRes, matchRes] = await Promise.all([
+      fetch(urlTournament),
       fetch(urlPart),
       fetch(urlMatch)
     ]);
-    if (!partRes.ok || !matchRes.ok) throw new Error('Error consultando Challonge');
+    if (!tournamentRes.ok || !partRes.ok || !matchRes.ok) throw new Error('Error consultando Challonge');
+    
+    const tournamentData = await tournamentRes.json();
     const partData = await partRes.json();
     const matchData = await matchRes.json();
+    
     const participantes = {};
     partData.forEach(p => {
       participantes[p.participant.id] = {
@@ -492,9 +499,205 @@ if (fs.existsSync(file)) {
         scores_csv: m.match.scores_csv || '',
         winner_id: m.match.winner_id
       }));
-    return { ok: true, matches, participantes: Object.values(participantes) };
+    
+    return { 
+      ok: true, 
+      matches, 
+      participantes: Object.values(participantes),
+      tournament_type: tournamentData.tournament.tournament_type,
+      tournament_state: tournamentData.tournament.state
+    };
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
+  }
+});
+
+// Obtener matches de grupos específicamente
+ipcMain.handle('get-group-matches', async (event, slug) => {
+let config = {};
+if (fs.existsSync(configFile)) {
+  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+}
+const rutas = config.rutas || {};
+const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+let apiKey = '';
+if (fs.existsSync(file)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    apiKey = data.apiKey || '';
+  } catch (e) {}
+}
+  if (!apiKey) return { ok: false, error: 'API key no establecida.' };
+
+  try {
+    // Obtener información del torneo para confirmar que es de grupos
+    const tournamentRes = await fetch(`https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`);
+    if (!tournamentRes.ok) throw new Error('Error obteniendo información del torneo');
+    
+    const tournamentData = await tournamentRes.json();
+    const tournamentType = tournamentData.tournament.tournament_type;
+    const tournamentState = tournamentData.tournament.state;
+    
+    if ((!tournamentType || (!tournamentType.toLowerCase().includes('group') && !tournamentType.toLowerCase().includes('round robin'))) && 
+        (!tournamentState || !tournamentState.toLowerCase().includes('group'))) {
+      return { ok: false, error: 'Este torneo no es de tipo grupo' };
+    }
+
+    // Obtener participantes y matches
+    const [partRes, matchRes] = await Promise.all([
+      fetch(`https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`),
+      fetch(`https://api.challonge.com/v1/tournaments/${slug}/matches.json?api_key=${apiKey}`)
+    ]);
+    
+    if (!partRes.ok || !matchRes.ok) throw new Error('Error obteniendo datos del torneo');
+    
+    const partData = await partRes.json();
+    const matchData = await matchRes.json();
+    
+    console.log('🐛 Debug get-group-matches:');
+    console.log('  - Tournament type:', tournamentType);
+    console.log('  - Tournament state:', tournamentState);
+    console.log('  - Participantes encontrados:', partData.length);
+    console.log('  - Matches totales:', matchData.length);
+    console.log('  - Primeros 3 participantes:', partData.slice(0, 3));
+    console.log('  - Primeros 3 matches:', matchData.slice(0, 3));
+    
+    // Crear un mapa más flexible de participantes usando group_player_ids
+    const participantes = {};
+    const playerMapping = {}; // Mapa de player_id -> nombre
+    
+    partData.forEach(p => {
+      const participantId = p.participant.id;
+      const participantName = p.participant.name || p.participant.display_name;
+      
+      participantes[participantId] = {
+        id: participantId,
+        name: participantName,
+        group_name: p.participant.group_id ? `Group ${p.participant.group_id}` : 'Group Stage',
+        group_player_ids: p.participant.group_player_ids || []
+      };
+      
+      // CLAVE: Mapear cada group_player_id al nombre del participante
+      if (p.participant.group_player_ids && Array.isArray(p.participant.group_player_ids)) {
+        p.participant.group_player_ids.forEach(playerId => {
+          playerMapping[playerId] = participantName;
+        });
+      }
+    });
+    
+    console.log('🎯 Group Player IDs mapping:');
+    partData.forEach(p => {
+      console.log(`  - ${p.participant.name}: participant_id=${p.participant.id}, group_player_ids=${JSON.stringify(p.participant.group_player_ids)}`);
+    });
+    
+    console.log('🔍 Player mapping creado:', playerMapping);
+    
+    // También intentar obtener el mapping correcto desde la API de matches específicos como fallback
+    let fullTournamentData = null;
+    
+    try {
+      // Obtener datos completos del torneo que incluye participantes con IDs correctos
+      const fullRes = await fetch(`https://api.challonge.com/v1/tournaments/${slug}.json?include_participants=1&include_matches=1&api_key=${apiKey}`);
+      if (fullRes.ok) {
+        fullTournamentData = await fullRes.json();
+        if (fullTournamentData.tournament && fullTournamentData.tournament.participants) {
+          // Agregar cualquier mapeo adicional del API completo
+          fullTournamentData.tournament.participants.forEach(p => {
+            if (p.participant.group_player_ids && Array.isArray(p.participant.group_player_ids)) {
+              p.participant.group_player_ids.forEach(playerId => {
+                if (!playerMapping[playerId]) {
+                  playerMapping[playerId] = p.participant.name || p.participant.display_name;
+                }
+              });
+            }
+          });
+          console.log('🔍 Player mapping actualizado con API completo:', Object.keys(playerMapping).length, 'jugadores');
+        }
+        
+        // Si también tenemos matches en el response completo, usarlos
+        if (fullTournamentData.tournament && fullTournamentData.tournament.matches) {
+          console.log('🔍 Matches from full API:', fullTournamentData.tournament.matches.length);
+          console.log('🔍 Sample match IDs:', fullTournamentData.tournament.matches.slice(0, 3).map(m => `${m.match.player1_id} vs ${m.match.player2_id}`));
+        }
+      }
+    } catch (e) {
+      console.log('⚠️ No se pudo obtener mapping detallado:', e.message);
+    }
+    
+    console.log('🐛 Mapeando participantes:');
+    console.log('  - Participantes por ID:', Object.keys(participantes));
+    console.log('  - Player IDs en matches:', matchData.slice(0, 3).map(m => `${m.match.player1_id} vs ${m.match.player2_id}`));
+    console.log('  - Player mapping final disponible:', playerMapping);
+    
+    // Función para buscar nombre de jugador
+    function findPlayerName(playerId) {
+      // Buscar en el mapping de group_player_ids (que es lo correcto)
+      if (playerMapping[playerId]) {
+        console.log(`✅ Found player ${playerId} -> ${playerMapping[playerId]}`);
+        return playerMapping[playerId];
+      }
+      // Como fallback, buscar en participantes normales (probablemente no funcionará para grupos)
+      if (participantes[playerId]) {
+        console.log(`⚠️ Fallback: Found player ${playerId} -> ${participantes[playerId].name}`);
+        return participantes[playerId].name;
+      }
+      // Si no encontramos nada, retornar TBD
+      console.log(`❌ Player ${playerId} not found in mapping`);
+      return 'TBD';
+    }
+    
+    // Determinar qué matches usar - preferir los de la API completa si tienen group_id
+    let matchesToProcess = matchData;
+    
+    if (fullTournamentData && fullTournamentData.tournament && fullTournamentData.tournament.matches) {
+      const fullMatches = fullTournamentData.tournament.matches;
+      const groupMatchesFromFull = fullMatches.filter(m => m.match.group_id);
+      
+      if (groupMatchesFromFull.length > 0) {
+        console.log('🎯 Usando matches de la API completa:', groupMatchesFromFull.length, 'matches de grupos');
+        matchesToProcess = groupMatchesFromFull;
+      }
+    }
+    
+    // Filtrar matches de grupos - solo matches abiertos que tengan group_id
+    const groupMatches = matchesToProcess
+      .filter(m => m.match.group_id && m.match.state === 'open') // Solo matches de grupos que estén abiertos
+      .map(m => {
+        const player1_name = findPlayerName(m.match.player1_id);
+        const player2_name = findPlayerName(m.match.player2_id);
+        
+        console.log(`🔍 Match ${m.match.id} (${m.match.state}): ${m.match.player1_id} (${player1_name}) vs ${m.match.player2_id} (${player2_name})`);
+        
+        return {
+          id: m.match.id,
+          player1_id: m.match.player1_id,
+          player2_id: m.match.player2_id,
+          player1_name: player1_name,
+          player2_name: player2_name,
+          round: m.match.round,
+          scores_csv: m.match.scores_csv || '',
+          winner_id: m.match.winner_id,
+          group_name: "Round Robin", // Cambiar todos los matches de grupos a "Round Robin"
+          identifier: m.match.identifier || `Match ${m.match.id}`,
+          state: m.match.state
+        };
+      })
+      .filter(m => m.player1_name !== 'TBD' && m.player2_name !== 'TBD'); // Filtrar solo los que no pudimos mapear
+    
+    console.log('🐛 Después del filtrado:');
+    console.log('  - Matches totales encontrados:', matchesToProcess.length);
+    console.log('  - Matches con group_id:', matchesToProcess.filter(m => m.match.group_id).length);
+    console.log('  - Matches abiertos (state=open):', matchesToProcess.filter(m => m.match.group_id && m.match.state === 'open').length);
+    console.log('  - Group matches finales (abiertos y con nombres):', groupMatches.length);
+    console.log('  - Group matches:', groupMatches);
+    
+    return { 
+      ok: true, 
+      matches: groupMatches,
+      participantes: Object.values(participantes)
+    };
+  } catch (e) {
+    return { ok: false, error: 'No se pudieron obtener los matches de grupos: ' + e.message };
   }
 });
 

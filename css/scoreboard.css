@@ -150,6 +150,7 @@ body {
   margin-bottom: 0.7em;
   width: 100%;
   max-width: 340px;
+  overflow: hidden;
 }
 
 .input-icon {
@@ -172,6 +173,10 @@ body {
   font-size: 1em;
   box-shadow: 0 2px 7px #0002;
   transition: background 0.15s;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sb-input:focus, .sb-dropdown:focus {
   background: #292933;
@@ -464,6 +469,11 @@ body {
   cursor: pointer;
   transition: background .15s;
   margin-left: 0.15em;
+  max-width: 100%;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .game-select:focus {
   background: #393c48;

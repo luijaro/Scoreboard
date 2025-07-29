@@ -588,20 +588,64 @@ let matchesCargados = [];
 
 function nombreDeRonda(round, roundsInfo) {
   // roundsInfo: { maxWinners: N, minLosers: -N, maxLosers: -1 }
-  // Puedes mejorarlo según el tamaño del bracket (esto es un ejemplo simple para Top 8/16/32)
+  
   if (round > 0) {
-    if (round === roundsInfo.maxWinners) return "Winners Finals";
-    if (round === roundsInfo.maxWinners - 1) return "Winners Semis";
-    if (round === 1) return "Winners R1";
-    return "Winners Bracket";
+    // Winners Bracket
+    // Determinar cuántas rondas hay en total en el Winners Bracket
+    const totalWinnersRounds = roundsInfo.maxWinners;
+    
+    console.log(`🏆 Winners Bracket - Round ${round}:`);
+    console.log(`  - Total rondas en Winners: ${totalWinnersRounds}`);
+    console.log(`  - maxWinners: ${roundsInfo.maxWinners}`);
+    
+    // En torneos de doble eliminación, la lógica típica es:
+    // - Si hay 1 ronda: debe ser Winners Final
+    // - Si hay 2 rondas: ronda 2 = Winners Final, ronda 1 = Winners Semis  
+    // - Si hay 3 rondas: ronda 3 = Winners Final, ronda 2 = Winners Semis, ronda 1 = Winners Quarters
+    // - Si hay 4+ rondas: usar la lógica original
+    
+    if (totalWinnersRounds === 1) {
+      console.log(`  → Solo 1 ronda en Winners: Round ${round} = Winners Final`);
+      return "Winners Final";
+    } else if (totalWinnersRounds === 2) {
+      console.log(`  → 2 rondas en Winners: Round ${round} = ${round === 2 ? 'Winners Final' : 'Winners Semis'}`);
+      if (round === 2) return "Winners Final";
+      if (round === 1) return "Winners Semis";
+    } else if (totalWinnersRounds === 3) {
+      console.log(`  → 3 rondas en Winners: Round ${round} = ${round === 3 ? 'Winners Final' : round === 2 ? 'Winners Semis' : 'Winners Quarters'}`);
+      if (round === 3) return "Winners Final";
+      if (round === 2) return "Winners Semis";
+      if (round === 1) return "Winners Quarters";
+    } else {
+      console.log(`  → ${totalWinnersRounds} rondas en Winners, usando lógica original`);
+      // Lógica original para torneos más grandes
+      if (round === roundsInfo.maxWinners) return "Winners Final";
+      if (round === roundsInfo.maxWinners - 1) return "Winners Semis";
+      if (round === roundsInfo.maxWinners - 2) return "Winners Quarters";
+      if (round === roundsInfo.maxWinners - 3) return "Winners Round 1";
+      if (round === 1) return "Winners Round 1";
+      return `Winners Round ${round}`;
+    }
   }
+  
   if (round < 0) {
-    if (round === -1) return "Losers Top 8";
-    if (round === roundsInfo.minLosers) return "Losers Finals";
+    // Losers Bracket - mientras más negativo, mejor ronda
+    // Con la estructura completa del torneo, podemos usar la lógica correcta
+    console.log(`🎯 Calculando nombre para Losers Round ${round}`);
+    console.log(`  - minLosers: ${roundsInfo.minLosers}, maxLosers: ${roundsInfo.maxLosers}`);
+    
+    if (round === roundsInfo.minLosers) return "Losers Final";
     if (round === roundsInfo.minLosers + 1) return "Losers Semis";
-    return "Losers Bracket";
+    if (round === roundsInfo.minLosers + 2) return "Losers Quarters";
+    
+    // Para rondas tempranas del losers bracket
+    const roundsFromStart = Math.abs(round);
+    return `Losers Round ${roundsFromStart}`;
   }
-  return "";
+  
+  if (round === 0) return "Grand Finals";
+  
+  return `Round ${round}`;
 }
 
 
@@ -618,22 +662,107 @@ async function cargarMatches() {
 
   msg.textContent = "Cargando matches...";
   try {
-    const res = await window.ipcRenderer.invoke('get-matches-and-participants', tournamentSlug);
-    if (!res.ok) throw new Error(res.error || "Error al obtener los matches.");
+    console.log("🔍 Iniciando carga de matches para torneo:", tournamentSlug);
+    
+    // Primero obtener TODOS los matches (incluyendo TBD vs TBD)
+    const allMatchesRes = await window.ipcRenderer.invoke('get-all-matches-and-participants', tournamentSlug);
+    console.log("📥 Respuesta de get-all-matches-and-participants:", allMatchesRes);
+    
+    // Si esa función no existe, usar la función original como fallback
+    let res;
+    if (allMatchesRes && allMatchesRes.ok) {
+      res = allMatchesRes;
+      console.log("✅ Usando matches completos incluyendo pendientes");
+    } else {
+      console.log("⚠️ Función de matches completos no disponible, usando función original");
+      res = await window.ipcRenderer.invoke('get-matches-and-participants', tournamentSlug);
+    }
+    
+    if (!res.ok) {
+      console.error("❌ Error al obtener matches:", res.error);
+      throw new Error(res.error || "Error al obtener los matches.");
+    }
+
+    // Debug: mostrar información del torneo
+    console.log("🏆 Información del torneo:");
+    console.log("  - Número de matches de eliminatorias:", res.matches ? res.matches.length : 0);
+    console.log("  - Tipo de torneo:", res.tournament_type || "No especificado");
+    console.log("  - Estado del torneo:", res.tournament_state || "No especificado");
+    console.log("  - Matches completos:", res.matches);
+
+    let allMatches = res.matches || [];
+    let tipoMatches = "eliminatorias";
+
+    // Si no hay matches de eliminatorias y es un torneo de grupos, intentar obtener matches de grupos
+    if ((!res.matches || res.matches.length === 0) && 
+        ((res.tournament_type && (res.tournament_type.toLowerCase().includes("group") || res.tournament_type.toLowerCase().includes("round robin"))) ||
+         (res.tournament_state && res.tournament_state.toLowerCase().includes("group")))) {
+      
+      console.log("🔄 Intentando obtener matches de grupos...");
+      msg.textContent = "Cargando matches de grupos...";
+      
+      try {
+        const groupRes = await window.ipcRenderer.invoke('get-group-matches', tournamentSlug);
+        console.log("📥 Respuesta de get-group-matches:", groupRes);
+        
+        if (groupRes.ok && groupRes.matches && groupRes.matches.length > 0) {
+          allMatches = groupRes.matches;
+          tipoMatches = "grupos";
+          console.log("✅ Matches de grupos encontrados:", allMatches.length);
+          console.log("📋 Lista de matches de grupos:", allMatches);
+        } else {
+          console.log("⚠️ No se pudieron obtener matches de grupos:", groupRes.error || "Sin matches disponibles");
+        }
+      } catch (groupError) {
+        console.error("❌ Error al obtener matches de grupos:", groupError);
+      }
+    }
 
     // Limpia el select y agrega los matches
     selectMatch.innerHTML = '';
-    matchesCargados = res.matches; // <-- Guarda los matches cargados globalmente
+    matchesCargados = allMatches;
 
-    res.matches.forEach(match => {
+    if (!allMatches || allMatches.length === 0) {
+      let mensaje = "⚠️ No se encontraron matches.";
+      
+      if ((res.tournament_type && (res.tournament_type.toLowerCase().includes("group") || res.tournament_type.toLowerCase().includes("round robin"))) ||
+          (res.tournament_state && res.tournament_state.toLowerCase().includes("group"))) {
+        mensaje = "⚠️ No se encontraron matches de eliminatorias ni de grupos. El torneo puede no haber comenzado aún.";
+      } else {
+        mensaje += " Esto puede ocurrir si el torneo aún no ha comenzado o si hay un problema con la configuración.";
+      }
+      
+      console.log("📝 Mensaje final:", mensaje);
+      msg.textContent = mensaje;
+      selectMatch.style.display = 'none';
+      return;
+    }
+
+    // Mostrar solo los matches que tienen jugadores asignados en el select
+    const matchesConJugadores = allMatches.filter(match => 
+      match.player1_name && match.player2_name && 
+      !match.player1_name.includes('TBD') && !match.player2_name.includes('TBD')
+    );
+
+    matchesConJugadores.forEach(match => {
       const option = document.createElement('option');
       option.value = match.id;
-      option.textContent = `Match #${match.id} - ${match.player1_name} vs ${match.player2_name}`;
+      
+      // Mostrar información adicional según el tipo de match
+      let matchInfo = "";
+      if (tipoMatches === "grupos" && match.group_name) {
+        matchInfo = ` (${match.group_name})`;
+      } else if (match.round && match.round !== 0) {
+        matchInfo = ` (R${match.round})`;
+      }
+      
+      option.textContent = `Match #${match.id} - ${match.player1_name} vs ${match.player2_name}${matchInfo}`;
       selectMatch.appendChild(option);
     });
 
     selectMatch.style.display = 'block';
-    msg.textContent = "✅ Matches cargados.";
+    msg.textContent = `✅ ${matchesConJugadores.length}/${allMatches.length} matches cargados (mostrando solo matches con jugadores asignados).`;
+    console.log(`🎉 Carga completada: ${allMatches.length} matches totales, ${matchesConJugadores.length} con jugadores`);
 
     // Asigna el evento para mostrar los datos del match seleccionado
     selectMatch.onchange = function() {
@@ -642,12 +771,13 @@ async function cargarMatches() {
     };
 
     // Si hay al menos un match, selecciona el primero y muestra sus datos automáticamente
-    if (res.matches.length > 0) {
+    if (matchesConJugadores.length > 0) {
       selectMatch.selectedIndex = 0;
       mostrarMatchEnScoreboard();
       mostrarPreviewMatch();
     }
   } catch (error) {
+    console.error("💥 Error general en cargarMatches:", error);
     msg.textContent = `❌ ${error.message}`;
   }
 }
@@ -658,15 +788,45 @@ function mostrarMatchEnScoreboard() {
   const match = matchesCargados.find(m => String(m.id) === String(matchId));
   if (!match) return;
 
-  // ========== CALCULA roundsInfo en cada llamada ==========
-  const winnerRounds = matchesCargados.filter(m => m.round > 0).map(m => m.round);
-  const maxWinners = winnerRounds.length ? Math.max(...winnerRounds) : 1;
-  const loserRounds = matchesCargados.filter(m => m.round < 0).map(m => m.round);
-  const minLosers = loserRounds.length ? Math.min(...loserRounds) : -1;
-  const maxLosers = loserRounds.length ? Math.max(...loserRounds) : -1;
-  const roundsInfo = { maxWinners, minLosers, maxLosers };
-
-  const roundName = nombreDeRonda(match.round, roundsInfo);
+  // Determinar el nombre de la ronda/evento
+  let roundName = "";
+  
+  if (match.group_name) {
+    // Es un match de grupos
+    roundName = match.group_name;
+  } else if (match.round !== undefined && match.round !== null) {
+    // Es un match de eliminatorias con información de ronda
+    // Usar TODOS los matches del torneo (incluyendo TBD vs TBD) para calcular la estructura
+    const allWinnerRounds = matchesCargados
+      .filter(m => m.round !== undefined && m.round !== null && m.round > 0)
+      .map(m => m.round);
+    const allLoserRounds = matchesCargados
+      .filter(m => m.round !== undefined && m.round !== null && m.round < 0)
+      .map(m => m.round);
+    
+    // IMPORTANTE: Excluir la ronda 0 (Grand Final) del cálculo de Winners Bracket
+    // El Grand Final no es parte de la estructura del Winners Bracket
+    const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
+    const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
+    const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
+    
+    console.log(`🔍 Debug rondas para match ${match.id} (usando TODOS los matches):`);
+    console.log(`  - Round actual: ${match.round}`);
+    console.log(`  - Total matches en el torneo: ${matchesCargados.length}`);
+    console.log(`  - Winners rounds encontradas (excluyendo Grand Final): [${allWinnerRounds.sort((a,b) => a-b).join(', ')}]`);
+    console.log(`  - Losers rounds encontradas: [${allLoserRounds.sort((a,b) => b-a).join(', ')}]`);
+    console.log(`  - Grand Finals detectados: ${matchesCargados.filter(m => m.round === 0).length} matches`);
+    console.log(`  - maxWinners: ${maxWinners}, minLosers: ${minLosers}, maxLosers: ${maxLosers}`);
+    
+    const roundsInfo = { maxWinners, minLosers, maxLosers };
+    roundName = nombreDeRonda(match.round, roundsInfo);
+    
+    console.log(`  - Nombre de ronda calculado: "${roundName}"`);
+  } else {
+    // Match sin información específica de ronda
+    roundName = `Match #${match.id}`;
+  }
+  
   document.getElementById('sbEvent').textContent = roundName;
   window.currentRoundName = roundName;
 
@@ -1045,7 +1205,10 @@ async function buscarTorneosMatches() {
     console.log("Torneos recibidos:", todosTorneos);
     
     const torneosInProgress = todosTorneos.filter(t =>
-      t.state && t.state.toLowerCase() === "underway"
+      t.state && (
+        t.state.toLowerCase() === "underway" ||
+        t.state.toLowerCase() === "group_stages_underway"
+      )
     );
 
     tournamentList.innerHTML = '<option value="">Selecciona un torneo in progress...</option>';
