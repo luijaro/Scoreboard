@@ -291,6 +291,8 @@ ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
 // -------- Scoreboard JSON --------
 // Handler para guardar el JSON del scoreboard
 ipcMain.handle('save-json', async (event, data, tipo = 'scoreboard') => {
+  console.log(`[save-json] Handler llamado. Tipo: ${tipo}`);
+  console.log('[save-json] Datos recibidos:', data);
   let config = {};
   if (fs.existsSync(configFile)) {
     try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
@@ -303,8 +305,15 @@ ipcMain.handle('save-json', async (event, data, tipo = 'scoreboard') => {
     // Por defecto, guarda en Documentos/js/
     file = path.join(userDataDir, tipo + '.json');
   }
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-  return { ok: true, file };
+  console.log(`[save-json] Guardando en archivo: ${file}`);
+  try {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    console.log(`[save-json] Archivo guardado exitosamente: ${file}`);
+    return { ok: true, file };
+  } catch (e) {
+    console.error(`[save-json] Error guardando archivo: ${file}`, e);
+    return { ok: false, error: e.message };
+  }
 });
 
 // Handler para cargar el JSON del scoreboard

@@ -190,42 +190,76 @@ async function generarTop8StartGG(eventId, eventName) {
         twitters = resUsuarios.usuarios;
       }
     } catch {}
-    // Construir datos para top8.json
+    
+    // Obtener personajes del juego seleccionado en scoreboard
+    let personajes = ["akatsuki", "nanase", "hyde", "gordeau", "merkava", "hilda", "chaos", "vatista", "carmine", "seth", "yuzuriha", "eltnum", "wagner", "enkidu", "londrekia", "phonon", "byakuya", "sion", "akira", "kuon", "kaguya"];
+    try {
+      const gameSelect = document.getElementById('gameSel');
+      if (gameSelect && gameSelect.value) {
+        const resPersonajes = await window.ipcRenderer.invoke('get-personajes', gameSelect.value);
+        if (resPersonajes.personajes && resPersonajes.personajes.length > 0) {
+          personajes = resPersonajes.personajes.map(p => p.nombre);
+        }
+      }
+    } catch (e) {
+      console.warn('Error obteniendo personajes del juego seleccionado:', e);
+    }
+    
+    // Construir datos para top8.json, prellenando personaje y twitter
+    const personajeDefault = personajes[0] || '';
+    const twitterDefault = twitters[0] || '';
+    const juegoDefault = document.getElementById('gameSel')?.value || '';
+    const eventoNombre = eventName || res.eventName || '';
+    window.top8EventoActual = eventoNombre; // Guardar globalmente para el guardado posterior
     const top8Data = {
-      evento: eventName || res.eventName || '',
+      evento: eventoNombre,
       fecha: new Date().toISOString().slice(0, 10),
-      top8: jugadores.map(j => ({ nombre: j.nombre, personaje: '', juego: '', twitter: '', final_rank: j.final_rank }))
+      top8: jugadores.map(j => ({
+        nombre: j.nombre,
+        personaje: personajeDefault,
+        juego: juegoDefault,
+        twitter: twitterDefault,
+        final_rank: j.final_rank
+      }))
     };
     // Guardar usando el handler save-json
     const resSave = await window.ipcRenderer.invoke('save-json', top8Data, 'top8');
     if (resSave.ok) {
       // Renderizar tabla editable de Top 8
-      const personajes = ["akatsuki", "nanase", "hyde", "gordeau", "merkava", "hilda", "chaos", "vatista", "carmine", "seth", "yuzuriha", "eltnum", "wagner", "enkidu", "londrekia", "phonon", "byakuya", "sion", "akira", "kuon", "kaguya"];
-      let html = `<table style='width:100%;border-collapse:collapse;background:#23243a;color:#fff;font-family:Montserrat,sans-serif;'>`;
+      let html = `<div style='margin-bottom:1em;color:#27ae60;font-weight:bold;'>✅ Top 8 generado y guardado.</div>`;
+      html += `<table id='top8Table' style='width:100%;border-collapse:collapse;background:#23243a;color:#fff;font-family:Montserrat,sans-serif;'>`;
       html += `<thead><tr style='background:#191b22;'>
         <th style='padding:0.7em 0.5em;'>Puesto</th>
         <th style='padding:0.7em 0.5em;'>Jugador</th>
         <th style='padding:0.7em 0.5em;'>Personaje</th>
         <th style='padding:0.7em 0.5em;'>Twitter</th>
       </tr></thead><tbody>`;
-      top8Data.top8.forEach(j => {
+      top8Data.top8.forEach((j, index) => {
         html += `<tr>
           <td style='text-align:center;font-weight:bold;'>${j.final_rank}</td>
           <td style='text-align:center;'>${j.nombre}</td>
           <td style='text-align:center;'>
-            <select style='background:#23243a;color:#fff;border-radius:6px;padding:0.3em 0.7em;'>
-              ${personajes.map(p => `<option${p==="akatsuki"?" selected":""}>${p}</option>`).join("")}
+            <select id='char${index}' style='background:#23243a;color:#fff;border-radius:6px;padding:0.3em 0.7em;'>
+              ${personajes.map(p => `<option value="${p}"${p===personajes[0]?" selected":""}>${p}</option>`).join("")}
             </select>
           </td>
           <td style='text-align:center;'>
-            <select style='background:#23243a;color:#fff;border-radius:6px;padding:0.3em 0.7em;'>
-              ${twitters.map(t => `<option${t==twitters[0]?" selected":""}>${t}</option>`).join("")}
+            <select id='twitter${index}' style='background:#23243a;color:#fff;border-radius:6px;padding:0.3em 0.7em;'>
+              ${twitters.map(t => `<option value="${t}"${t===twitters[0]?" selected":""}>${t}</option>`).join("")}
             </select>
           </td>
         </tr>`;
       });
       html += `</tbody></table>`;
-      resultsDiv.innerHTML = `<div style='margin-bottom:1em;color:#27ae60;font-weight:bold;'>✅ Top 8 generado y guardado.</div>` + html;
+      html += `<div style='margin-top:1em;display:flex;justify-content:space-between;gap:1em;'>
+        <button class='sb-btn' style='background:#8e44ad;color:#fff;font-weight:bold;border-radius:7px;padding:0.7em 1.5em;' onclick='actualizarTop8StartGG("${eventId}", "${eventName.replace(/'/g, "\\'")}");'>
+          <i class="fa fa-refresh"></i> Actualizar Top 8
+        </button>
+        <button class='sb-btn' style='background:#27ae60;color:#fff;font-weight:bold;border-radius:7px;padding:0.7em 1.5em;' onclick='guardarTop8Actualizado();'>
+          <i class="fa fa-save"></i> Guardar Cambios
+        </button>
+      </div>`;
+      resultsDiv.innerHTML = html;
     } else {
       resultsDiv.textContent = '❌ Error al guardar Top 8.';
     }
@@ -233,6 +267,96 @@ async function generarTop8StartGG(eventId, eventName) {
     resultsDiv.textContent = '❌ Error: ' + e.message;
   }
 }
+
+// Nueva función para actualizar el Top 8 (regenerarlo)
+async function actualizarTop8StartGG(eventId, eventName) {
+  if (confirm('¿Estás seguro de que quieres actualizar el Top 8? Esto reemplazará los datos actuales.')) {
+    await generarTop8StartGG(eventId, eventName);
+  }
+}
+
+// Nueva función para guardar los cambios del Top 8 editado
+async function guardarTop8Actualizado() {
+  try {
+    const tabla = document.getElementById('top8Table');
+    if (!tabla) {
+      alert('❌ No se encontró la tabla del Top 8');
+      return;
+    }
+    console.log('[guardarTop8Actualizado] Tabla encontrada:', tabla);
+    console.log('[guardarTop8Actualizado] HTML de la tabla:', tabla.outerHTML.substring(0, 500));
+    
+    // Buscar directamente las filas del tbody
+    const filas = tabla.querySelectorAll('tbody tr');
+    console.log('[guardarTop8Actualizado] Filas encontradas:', filas.length);
+    
+    // También intentar con un selector más específico
+    const filasAlternativo = document.querySelectorAll('#top8Table tbody tr');
+    console.log('[guardarTop8Actualizado] Filas alternativo:', filasAlternativo.length);
+    
+    if (!filas.length && !filasAlternativo.length) {
+      alert('❌ No hay filas en la tabla del Top 8. No se guardará el archivo.');
+      return;
+    }
+    
+    // Usar las filas que funcionen
+    const filasFinales = filas.length > 0 ? filas : filasAlternativo;
+    // Recuperar el nombre del evento de la variable global o del JSON actual
+    let eventoNombre = window.top8EventoActual || '';
+    if (!eventoNombre) {
+      // Intentar leer el evento del JSON actual
+      try {
+        const resLoad = await window.ipcRenderer.invoke('load-json', 'top8');
+        if (resLoad.ok && resLoad.data && resLoad.data.evento) {
+          eventoNombre = resLoad.data.evento;
+        }
+      } catch {}
+    }
+    const top8Data = {
+      evento: eventoNombre,
+      fecha: new Date().toISOString().slice(0, 10),
+      top8: []
+    };
+    filasFinales.forEach((fila, index) => {
+      const puesto = fila.cells[0].textContent;
+      const jugador = fila.cells[1].textContent;
+      const personajeSelect = fila.querySelector(`#char${index}`);
+      const twitterSelect = fila.querySelector(`#twitter${index}`);
+      
+      console.log(`[guardarTop8Actualizado] Fila ${index}:`, {
+        puesto,
+        jugador,
+        personajeSelect: personajeSelect?.value,
+        twitterSelect: twitterSelect?.value
+      });
+      
+      if (personajeSelect && twitterSelect) {
+        top8Data.top8.push({
+          nombre: jugador,
+          personaje: personajeSelect.value,
+          juego: document.getElementById('gameSel')?.value || '',
+          twitter: twitterSelect.value,
+          final_rank: parseInt(puesto)
+        });
+      } else {
+        console.warn(`[guardarTop8Actualizado] No se encontraron selects para fila ${index}`);
+      }
+    });
+    // Log para depuración
+    console.log('[guardarTop8Actualizado] Datos a guardar:', top8Data);
+    // Guardar los datos actualizados
+    const resSave = await window.ipcRenderer.invoke('save-json', top8Data, 'top8');
+    console.log('[guardarTop8Actualizado] Respuesta del backend:', resSave);
+    if (resSave.ok) {
+      alert('✅ Top 8 actualizado y guardado correctamente');
+    } else {
+      alert('❌ Error al guardar Top 8 actualizado');
+    }
+  } catch (e) {
+    alert('❌ Error: ' + e.message);
+  }
+}
+
 async function guardarStartggToken() {
   const token = document.getElementById('startggToken').value.trim();
   const msg = document.getElementById('msgStartggToken');
