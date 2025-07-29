@@ -72,7 +72,7 @@
         <div class="scoreboard-box">
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-user"></i></span>
-            <input class="sb-input" id="p1NameInput" placeholder="Player One" />
+            <input class="sb-input" id="p1NameInput" placeholder="Player One" value="Jugador 1" />
             <button class="sb-btn sb-btn-mini" onclick="changeScore(1,1)" title="+1">
               <i class="fa fa-plus"></i>
             </button>
@@ -82,17 +82,17 @@
           </div>
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-users"></i></span>
-            <input class="sb-input" id="p1TagInput" placeholder="Sponsor/Tag" />
+            <input class="sb-input" id="p1TagInput" placeholder="Sponsor/Tag" value="Team" />
           </div>
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-flag"></i></span>
             <select class="sb-dropdown" id="p1Flag" required>
-              <option value="" disabled selected hidden>No Flag Selected</option>
+              <option value="" disabled hidden>No Flag Selected</option>
               <option value="AR">Argentina</option>
               <option value="AU">Australia</option>
               <option value="BR">Brasil</option>
               <option value="CA">Canadá</option>
-              <option value="CL">Chile</option>
+              <option value="CL" selected>Chile</option>
               <option value="CO">Colombia</option>
               <option value="CR">Costa Rica</option>
               <option value="DO">República Dominicana</option>
@@ -120,8 +120,8 @@
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-gamepad"></i></span>
             <select class="sb-dropdown" id="p1Char" required>
-              <option value="" disabled selected hidden>Juri</option>
-              <option>Juri</option>
+              <option value="" disabled hidden>Juri</option>
+              <option selected>Juri</option>
               <option>Ken</option>
               <!-- ... -->
             </select>
@@ -149,8 +149,8 @@
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-paint-brush"></i></span>
             <select id="styleSel" class="game-select" required>
-              <option value="" disabled selected hidden>Select Style</option>
-              <option value="default">Default</option>
+              <option value="" disabled hidden>Select Style</option>
+              <option value="default" selected>Default</option>
               <option value="dark">Dark</option>
               <option value="light">Light</option>
             </select>
@@ -166,7 +166,7 @@
         <div class="scoreboard-box">
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-user"></i></span>
-            <input class="sb-input" id="p2NameInput" placeholder="Player Two" />
+            <input class="sb-input" id="p2NameInput" placeholder="Player Two" value="Jugador 2" />
             <button class="sb-btn sb-btn-mini" onclick="changeScore(2,1)" title="+1">
               <i class="fa fa-plus"></i>
             </button>
@@ -176,17 +176,17 @@
           </div>
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-users"></i></span>
-            <input class="sb-input" id="p2TagInput" placeholder="Sponsor/Tag" />
+            <input class="sb-input" id="p2TagInput" placeholder="Sponsor/Tag" value="Team" />
           </div>
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-flag"></i></span>
             <select class="sb-dropdown" id="p2Flag" required>
-              <option value="" disabled selected hidden>No Flag Selected</option>
+              <option value="" disabled hidden>No Flag Selected</option>
               <option value="AR">Argentina</option>
               <option value="AU">Australia</option>
               <option value="BR">Brasil</option>
               <option value="CA">Canadá</option>
-              <option value="CL">Chile</option>
+              <option value="CL" selected>Chile</option>
               <option value="CO">Colombia</option>
               <option value="CR">Costa Rica</option>
               <option value="DO">República Dominicana</option>
@@ -214,8 +214,8 @@
           <div class="input-row">
             <span class="input-icon"><i class="fa fa-gamepad"></i></span>
             <select class="sb-dropdown" id="p2Char" required>
-              <option value="" disabled selected hidden>Ken</option>
-              <option>Ken</option>
+              <option value="" disabled hidden>Ken</option>
+              <option selected>Ken</option>
               <option>Ryu</option>
               <option>Guile</option>
               <!-- ... -->
