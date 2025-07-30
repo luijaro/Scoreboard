@@ -103,6 +103,8 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     if (d.char1) document.getElementById('p1Char').value = d.char1;
     if (d.char2) document.getElementById('p2Char').value = d.char2;
     if (d.game) document.getElementById('gameSel').value = d.game;
+    if (d.event) document.getElementById('sbEvent').textContent = d.event;
+    if (d.round) document.getElementById('sbRound').value = d.round;
     if (typeof updateVisual === "function") updateVisual();
     // Mostrar comentaristas en Scoreboard si existen
     if (d.comentaristas) mostrarComentaristasEnScoreboard(d.comentaristas);
@@ -290,6 +292,21 @@ document.querySelectorAll('.sb-input, .sb-dropdown').forEach(el => {
   el.addEventListener('input', updateVisual);
 });
 
+// Agregar listener de auto-guardado para el campo round
+document.addEventListener('DOMContentLoaded', function() {
+  const sbRoundElement = document.getElementById('sbRound');
+  if (sbRoundElement) {
+    sbRoundElement.addEventListener('input', function() {
+      // Auto-guardar datos después de un delay para evitar muchas escrituras
+      clearTimeout(window.roundSaveTimeout);
+      window.roundSaveTimeout = setTimeout(async () => {
+        const data = getScoreboardData();
+        await ipcRenderer.invoke('save-json', data, 'scoreboard');
+      }, 1000); // Guardar 1 segundo después de que el usuario termine de escribir
+    });
+  }
+});
+
 function updateVisual() {
   document.getElementById('p1Name').textContent = document.getElementById('p1NameInput').value;
   document.getElementById('p1Tag').textContent = document.getElementById('p1TagInput').value;
@@ -355,7 +372,8 @@ function getScoreboardData() {
     char1: document.getElementById('p1Char').value,
     char2: document.getElementById('p2Char').value,
     game: document.getElementById('gameSel').value,
-    round: window.currentRoundName || '',
+    event: document.getElementById('sbEvent').textContent,
+    round: document.getElementById('sbRound').value,
     country1: document.getElementById('p1Flag').value,
     country2: document.getElementById('p2Flag').value,
     comentaristas: comentaristas
@@ -827,7 +845,7 @@ function mostrarMatchEnScoreboard() {
     roundName = `Match #${match.id}`;
   }
   
-  document.getElementById('sbEvent').textContent = roundName;
+  document.getElementById('sbEvent').value = roundName;
   window.currentRoundName = roundName;
 
   // --- NUEVO: Separar tag y nombre si corresponde ---

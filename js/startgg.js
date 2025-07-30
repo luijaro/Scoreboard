@@ -408,61 +408,321 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function consultarMatchesStartGG(eventId, eventName) {
   const resultsDiv = document.getElementById('startggResults');
-  resultsDiv.textContent = "Buscando matches del evento...";
+  resultsDiv.textContent = "Buscando brackets del evento...";
   try {
     const res = await window.ipcRenderer.invoke('startgg-get-matches', eventId);
-    // Debug: mostrar cantidad y contenido de sets recibidos
     console.log('Respuesta startgg-get-matches:', res);
     if (res.error) {
       resultsDiv.textContent = "❌ " + res.error;
       return;
     }
     if (res.ok && res.sets && res.sets.length > 0) {
-      resultsDiv.innerHTML = `<div style='color:#ffe8b2; font-size:0.95em; margin-bottom:0.7em;'>Recibidos ${res.sets.length} matches.</div>`;
-      // Mostrar todos los matches recibidos, sin filtrar
-      let html = '';
-      const matchButtonStyle = `
-        display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-        background:#23243a; color:#ffe8b2; border-radius:8px; border:1px solid #8e44ad;
-        box-shadow:0 1px 4px #0003; padding:0.35em 0.5em; margin:0.12em 0;
-        font-size:0.92em; font-family:Montserrat,sans-serif; font-weight:500;
-        transition:background .18s,box-shadow .18s;
-        width:100%; min-width:0; cursor:pointer; height:70px; max-height:70px; overflow:hidden;
-      `;
-      const gridStyle = `
-        display:flex; flex-direction:column; gap:0.18em; margin-top:0.5em; margin-bottom:0.5em;
-      `;
-      function renderMatrix(matchesArr) {
-        let matrixHtml = '';
-        for (let i = 0; i < matchesArr.length; i += 3) {
-          matrixHtml += `<div style='display:flex; flex-direction:row; gap:0.18em;'>`;
-          for (let j = 0; j < 3; j++) {
-            const set = matchesArr[i + j];
-            if (!set) continue;
-            const p1 = set.slots[0]?.entrant?.name || 'TBD';
-            const p2 = set.slots[1]?.entrant?.name || 'TBD';
-            const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
-            const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
-            const round = set.fullRoundText || '';
-            matrixHtml += `<button class="sb-btn" style="${matchButtonStyle}"
-              onclick="enviarMatchAlScoreboard('${escapeQuotes(p1)}','${escapeQuotes(p2)}','${s1}','${s2}','${escapeQuotes(round)}')"
-              title="${round}">
-              <span style='font-size:0.98em;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>${p1} <span style='color:#27ae60;'>${s1}</span> vs <span style='color:#e67e22;'>${s2}</span> ${p2}</span>
-              <span style='font-size:0.92em;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'><b>${round}</b></span>
-            </button>`;
-          }
-          matrixHtml += `</div>`;
-        }
-        return matrixHtml;
+      // Primero filtrar todos los matches en progreso con dos luchadores
+      const matchesEnProgreso = res.sets.filter(set => {
+        const p1 = set.slots[0]?.entrant?.name || 'TBD';
+        const p2 = set.slots[1]?.entrant?.name || 'TBD';
+        const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
+        const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
+        
+        const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
+        const sinGanador = !set.winnerId && !set.winner_id;
+        const scoresIncompletos = s1 === '' || s2 === '' || s1 === null || s2 === null;
+        
+        return tieneDosLuchadores && (sinGanador || scoresIncompletos);
+      });
+      
+      if (matchesEnProgreso.length === 0) {
+        resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em;'>No hay matches en progreso con dos luchadores en este evento.</div>`;
+        return;
       }
-      html += `<b>Matches de ${eventName} (Todos):</b><div style='${gridStyle}'>` +
-        renderMatrix(res.sets) + `</div>`;
-      resultsDiv.innerHTML += html;
+      
+      // Extraer brackets únicos solo de los matches en progreso
+      const bracketsMap = new Map();
+      matchesEnProgreso.forEach(set => {
+        const fase = set.fase || 'Sin fase';
+        const round = set.fullRoundText || 'Sin ronda';
+        
+        // Determinar categoría principal basada en el texto de la ronda y fase
+        let category = '';
+        const roundLower = round.toLowerCase();
+        const faseLower = fase.toLowerCase();
+        const combined = `${faseLower} ${roundLower}`;
+        
+        if (combined.includes('grand final') || combined.includes('grandfinal')) {
+          category = 'Grand Final';
+        } else if (combined.includes('losers final') || combined.includes('loser final')) {
+          category = 'Losers Final';
+        } else if (combined.includes('winners final') || combined.includes('winner final')) {
+          category = 'Winners Final';
+        } else if (combined.includes('top 8') || combined.includes('top8') || 
+                   combined.includes('quarter') || combined.includes('semifinals') ||
+                   combined.includes('semi final')) {
+          category = 'Top 8';
+        } else if (combined.includes('top 16') || combined.includes('top16')) {
+          category = 'Top 16';
+        } else if (combined.includes('top 32') || combined.includes('top32')) {
+          category = 'Top 32';
+        } else if (combined.includes('top 64') || combined.includes('top64')) {
+          category = 'Top 64';
+        } else if (combined.includes('pools') || combined.includes('pool')) {
+          category = 'Pools';
+        } else if (combined.includes('bracket')) {
+          category = 'Brackets';
+        } else {
+          // Para otras rondas, usar el nombre de la fase o ronda más descriptiva
+          category = fase.length > round.length ? fase : round;
+        }
+        
+        const key = `${category}|${fase}|${round}`;
+        
+        if (!bracketsMap.has(key)) {
+          bracketsMap.set(key, {
+            category: category,
+            fase: fase,
+            round: round,
+            displayName: fase === round ? fase : `${fase} - ${round}`,
+            count: 0
+          });
+        }
+        bracketsMap.get(key).count++;
+      });
+      
+      if (bracketsMap.size === 0) {
+        resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em;'>No se encontraron fases con matches en progreso en este evento.</div>`;
+        return;
+      }
+      
+      // Ordenar categorías por importancia
+      const categoryOrder = ['Grand Final', 'Losers Final', 'Winners Final', 'Top 8', 'Top 16', 'Top 32', 'Top 64', 'Brackets', 'Pools'];
+      const sortedBrackets = Array.from(bracketsMap.entries()).sort((a, b) => {
+        const orderA = categoryOrder.indexOf(a[1].category);
+        const orderB = categoryOrder.indexOf(b[1].category);
+        
+        if (orderA === -1 && orderB === -1) return a[1].category.localeCompare(b[1].category);
+        if (orderA === -1) return 1;
+        if (orderB === -1) return -1;
+        return orderA - orderB;
+      });
+      
+      // Mostrar selector de brackets
+      let html = `
+        <div style='color:#ffe8b2; font-size:1.1em; margin-bottom:1em; font-weight:bold;'>
+          📋 Fases con matches en progreso (${matchesEnProgreso.length} total):
+        </div>
+        <div style='margin-bottom:1em;'>
+          <select id='bracketSelector' style='
+            background:#23243a; color:#ffe8b2; border:1px solid #8e44ad; border-radius:6px;
+            padding:0.5em 1em; font-size:1em; width:100%; max-width:400px;
+          '>
+            <option value=''>-- Selecciona una fase --</option>
+      `;
+      
+      sortedBrackets.forEach(([key, bracket]) => {
+        html += `<option value='${key}'>${bracket.category} (${bracket.count} matches)</option>`;
+      });
+      
+      html += `
+          </select>
+          <button class='sb-btn' style='
+            background:#8e44ad; color:#fff; font-weight:bold; margin-left:1em;
+            border-radius:7px; padding:0.5em 1.5em;
+          ' onclick='mostrarMatchesDeBracket(${eventId}, "${eventName}")'>
+            <i class="fa fa-eye"></i> Ver Matches
+          </button>
+          <button class='sb-btn' style='
+            background:#27ae60; color:#fff; font-weight:bold; margin-left:0.5em;
+            border-radius:7px; padding:0.5em 1.2em;
+          ' onclick='actualizarMatches(${eventId}, "${eventName}")' 
+          title='Actualizar matches en tiempo real'>
+            <i class="fa fa-refresh"></i> Actualizar
+          </button>
+        </div>
+        <div id='bracketMatches'></div>
+      `;
+      
+      resultsDiv.innerHTML = html;
+      
+      // Guardar los sets en una variable global para acceso posterior
+      window.currentEventSets = res.sets;
+      
     } else {
-      resultsDiv.textContent = "No se encontraron matches para este evento.";
+      resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em;'>No se encontraron matches en este evento.</div>`;
     }
-  } catch (e) {
-    resultsDiv.textContent = "❌ Error: " + e.message;
+  } catch (error) {
+    console.error('Error consultando matches:', error);
+    resultsDiv.textContent = "❌ Error al consultar matches: " + error.message;
+  }
+}
+
+// Nueva función para mostrar matches de un bracket específico
+function mostrarMatchesDeBracket(eventId, eventName) {
+  const selector = document.getElementById('bracketSelector');
+  const selectedBracket = selector.value;
+  
+  if (!selectedBracket) {
+    alert('Por favor selecciona una fase.');
+    return;
+  }
+  
+  const [category, fase, round] = selectedBracket.split('|');
+  const setsDelBracket = window.currentEventSets.filter(set => {
+    const setFase = set.fase || 'Sin fase';
+    const setRound = set.fullRoundText || 'Sin ronda';
+    return setFase === fase && setRound === round;
+  });
+  
+  // Filtrar solo matches con dos luchadores y en progreso
+  const matchesEnProgreso = setsDelBracket.filter(set => {
+    const p1 = set.slots[0]?.entrant?.name || 'TBD';
+    const p2 = set.slots[1]?.entrant?.name || 'TBD';
+    const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
+    const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
+    
+    const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
+    const sinGanador = !set.winnerId && !set.winner_id;
+    const scoresIncompletos = s1 === '' || s2 === '' || s1 === null || s2 === null;
+    
+    return tieneDosLuchadores && (sinGanador || scoresIncompletos);
+  });
+  
+  const bracketMatchesDiv = document.getElementById('bracketMatches');
+  
+  if (matchesEnProgreso.length === 0) {
+    bracketMatchesDiv.innerHTML = `
+      <div style='color:#e67e22; font-size:0.95em; margin-top:1em; padding:1em; background:#332222; border-radius:8px;'>
+        📋 No hay matches en progreso con dos luchadores en ${category}.
+      </div>
+    `;
+    return;
+  }
+  
+  let html = `
+    <div style='color:#ffe8b2; font-size:1em; margin:1em 0 0.5em 0; font-weight:bold;'>
+      🥊 Matches de ${category} (${matchesEnProgreso.length} en progreso):
+    </div>
+    <div style='margin-bottom:1em;'>
+      <input type='text' id='matchSearchInput' placeholder='🔍 Buscar match por nombre de jugador...' 
+        style='
+          width:100%; max-width:400px; padding:0.7em 1em; border-radius:8px; 
+          border:1px solid #8e44ad; background:#23243a; color:#ffe8b2;
+          font-size:0.95em; font-family:Montserrat,sans-serif;
+        '
+        oninput='filtrarMatches()'
+      />
+    </div>
+    <div id='matchesGrid' style='display:grid; grid-template-columns:repeat(3, 1fr); gap:0.8em; margin-top:0.8em;'>
+  `;
+  
+  matchesEnProgreso.forEach((set, index) => {
+    const p1 = set.slots[0]?.entrant?.name || 'TBD';
+    const p2 = set.slots[1]?.entrant?.name || 'TBD';
+    const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
+    const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
+    const round = set.fullRoundText || '';
+    
+    html += `
+      <button class="sb-btn match-item" data-index="${index}" data-players="${p1.toLowerCase()} ${p2.toLowerCase()}" style='
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        background:#23243a; color:#ffe8b2; border-radius:8px; border:1px solid #8e44ad;
+        box-shadow:0 1px 4px #0003; padding:0.8em 0.6em; height:auto; min-height:80px;
+        font-size:0.85em; font-family:Montserrat,sans-serif; font-weight:500;
+        transition:background .18s,box-shadow .18s; cursor:pointer; text-align:center;
+      '
+      onclick="enviarMatchAlScoreboard('${escapeQuotes(p1)}','${escapeQuotes(p2)}','${s1}','${s2}','${escapeQuotes(round)}')"
+      onmouseover="this.style.background='#2a2b42'" 
+      onmouseout="this.style.background='#23243a'"
+      title="Enviar al scoreboard">
+        <div style='font-weight:bold; margin-bottom:0.4em; font-size:0.95em; line-height:1.2;'>
+          ${p1} <span style='color:#27ae60;'>${s1}</span> vs <span style='color:#e67e22;'>${s2}</span> ${p2}
+        </div>
+        <div style='font-size:0.8em; color:#aaa; line-height:1.1;'>
+          ${round}
+        </div>
+      </button>
+    `;
+  });
+  
+  html += '</div>';
+  bracketMatchesDiv.innerHTML = html;
+}
+
+// Función para filtrar matches en tiempo real
+function filtrarMatches() {
+  const searchInput = document.getElementById('matchSearchInput');
+  const matchItems = document.querySelectorAll('.match-item');
+  
+  if (!searchInput || !matchItems.length) return;
+  
+  const searchTerm = searchInput.value.toLowerCase().trim();
+  let visibleCount = 0;
+  
+  matchItems.forEach(item => {
+    const players = item.getAttribute('data-players') || '';
+    const isVisible = searchTerm === '' || players.includes(searchTerm);
+    
+    if (isVisible) {
+      item.style.display = 'flex';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  // Actualizar contador de matches visibles
+  const titleDiv = document.querySelector('#bracketMatches div:first-child');
+  if (titleDiv && searchTerm !== '') {
+    const originalText = titleDiv.textContent;
+    const baseText = originalText.split('(')[0];
+    titleDiv.textContent = `${baseText}(${visibleCount} mostrados de ${matchItems.length})`;
+  } else if (titleDiv && searchTerm === '') {
+    const originalText = titleDiv.textContent;
+    const baseText = originalText.split('(')[0];
+    titleDiv.textContent = `${baseText}(${matchItems.length} en progreso)`;
+  }
+}
+
+// Función para actualizar matches en tiempo real
+async function actualizarMatches(eventId, eventName) {
+  const updateBtn = document.querySelector('button[onclick*="actualizarMatches"]');
+  const originalText = updateBtn.innerHTML;
+  
+  // Mostrar estado de carga
+  updateBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Actualizando...';
+  updateBtn.disabled = true;
+  updateBtn.style.background = '#6c757d';
+  
+  try {
+    // Volver a consultar los matches del evento
+    await consultarMatchesStartGG(eventId, eventName);
+    
+    // Si hay un bracket seleccionado, mostrar automáticamente sus matches actualizados
+    const bracketSelector = document.getElementById('bracketSelector');
+    if (bracketSelector && bracketSelector.value) {
+      mostrarMatchesDeBracket(eventId, eventName);
+    }
+    
+    // Mostrar mensaje de éxito temporal
+    updateBtn.innerHTML = '<i class="fa fa-check"></i> Actualizado';
+    updateBtn.style.background = '#27ae60';
+    
+    setTimeout(() => {
+      updateBtn.innerHTML = originalText;
+      updateBtn.style.background = '#27ae60';
+      updateBtn.disabled = false;
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error actualizando matches:', error);
+    
+    // Mostrar error temporal
+    updateBtn.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Error';
+    updateBtn.style.background = '#e74c3c';
+    
+    setTimeout(() => {
+      updateBtn.innerHTML = originalText;
+      updateBtn.style.background = '#27ae60';
+      updateBtn.disabled = false;
+    }, 3000);
   }
 }
 
@@ -490,9 +750,14 @@ function enviarMatchAlScoreboard(p1, p2, s1, s2, round) {
   document.getElementById('p2NameInput').value = p2Data.name;
   document.getElementById('p1TagInput').value = p1Data.tag;
   document.getElementById('p2TagInput').value = p2Data.tag;
-  document.getElementById('p1Score').textContent = s1;
-  document.getElementById('p2Score').textContent = s2;
-  document.getElementById('sbEvent').textContent = round;
+  
+  // Para matches en progreso, establecer scores como 0-0
+  document.getElementById('p1Score').textContent = '0';
+  document.getElementById('p2Score').textContent = '0';
+  
+  // Siempre actualizar el campo de ronda con la información de Start.gg
+  const sbRoundElement = document.getElementById('sbRound');
+  sbRoundElement.value = round;
 
   document.getElementById('p1Name').textContent = p1Data.name;
   document.getElementById('p2Name').textContent = p2Data.name;

@@ -360,6 +360,60 @@ body {
   font-weight: 700;
   opacity: 0.85;
 }
+
+.sb-event-input {
+  margin-top: 0.6em;
+  letter-spacing: 3px;
+  font-size: 0.95em;
+  color: #ccc;
+  font-weight: 700;
+  opacity: 0.85;
+  background: transparent;
+  border: none;
+  text-align: center;
+  outline: none;
+  width: 100%;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.sb-event-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.sb-event-input::placeholder {
+  color: #666;
+  font-weight: 400;
+}
+
+.sb-round-input {
+  margin-top: 0.6em;
+  letter-spacing: 2px;
+  font-size: 0.85em;
+  color: #f39c12;
+  font-weight: 600;
+  opacity: 0.9;
+  background: transparent;
+  border: none;
+  text-align: center;
+  outline: none;
+  width: 100%;
+  padding: 0.3em 0.5em;
+  border-radius: 4px;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.sb-round-input:focus {
+  background: rgba(243, 156, 18, 0.15);
+  opacity: 1;
+}
+
+.sb-round-input::placeholder {
+  color: #996600;
+  font-weight: 400;
+}
 .sb-score-row {
   display: flex;
   align-items: center;
