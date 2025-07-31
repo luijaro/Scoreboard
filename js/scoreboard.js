@@ -6,6 +6,56 @@ let timerEndTimestamp = null;
 // ================================
 
 // ================================
+//      STREAM DECK LISTENERS
+// ================================
+const { ipcRenderer } = require('electron');
+
+// Escuchar comandos del Stream Deck
+ipcRenderer.on('stream-deck-score-change', (event, data) => {
+  console.log('[Stream Deck] Score change received:', data);
+  const scoreElement = document.getElementById(data.player === 'player1' ? 'p1Score' : 'p2Score');
+  if (scoreElement) {
+    scoreElement.textContent = data.newScore;
+    // Animar el cambio
+    animateScore(scoreElement.id, data.newScore);
+  }
+});
+
+ipcRenderer.on('stream-deck-reset-scores', (event) => {
+  console.log('[Stream Deck] Reset scores received');
+  document.getElementById('p1Score').textContent = 0;
+  document.getElementById('p2Score').textContent = 0;
+  // Animar ambos scores
+  animateScore('p1Score', 0);
+  animateScore('p2Score', 0);
+});
+
+ipcRenderer.on('stream-deck-swap-players', (event) => {
+  console.log('[Stream Deck] Swap players received');
+  // Ejecutar la función swap existente
+  swap();
+});
+
+ipcRenderer.on('stream-deck-reset-timer', (event) => {
+  console.log('[Stream Deck] Reset timer received');
+  // Resetear el timer usando la función existente
+  if (typeof resetearTimer === 'function') {
+    resetearTimer();
+  } else {
+    // Fallback manual
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    timerEndTimestamp = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (timerDisplay) {
+      timerDisplay.textContent = '00:00';
+    }
+  }
+});
+
+// ================================
 //      MOSTRAR COMENTARISTAS EN SCOREBOARD
 // ================================
 function mostrarComentaristasEnScoreboard(coms) {
@@ -300,7 +350,6 @@ async function enviarComandoBot(cmd) {
 // ================================
 //          SCOREBOARD
 // ================================
-const { ipcRenderer } = require('electron');
 
 document.querySelectorAll('.sb-input, .sb-dropdown').forEach(el => {
   el.addEventListener('input', updateVisual);

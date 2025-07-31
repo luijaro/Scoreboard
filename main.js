@@ -6,6 +6,8 @@ const fs = require('fs'); // Importa el módulo 'fs' para operaciones de archivo
 const path = require('path'); // Importa el módulo 'path' para manipulación de rutas
 const fetch = require('node-fetch'); // Importa 'node-fetch' para realizar solicitudes HTTP
 const tmi = require('tmi.js'); // Importa 'tmi.js' para interactuar con el chat de Twitch
+const http = require('http'); // Servidor HTTP para Stream Deck
+const url = require('url'); // Para parsear URLs
 
 const userDataDir = path.join(app.getPath('documents'), 'js');
 if (!fs.existsSync(userDataDir)) {
@@ -17,6 +19,13 @@ let saveDir = null; // Variable para almacenar el directorio de guardado
 let userApiKey = null; // Variable para almacenar la API key del usuario
 let twitchBot = null; // Variable para almacenar el cliente de Twitch bot
 let twitchChannelActual = ''; // Variable para almacenar el canal actual de Twitch
+
+// =========================
+//   STREAM DECK HTTP SERVER
+// =========================
+let httpServer = null; // Servidor HTTP para Stream Deck
+let currentScoreboardData = {}; // Cache de datos actuales del scoreboard
+let mainWindow = null; // Referencia a la ventana principal
 
 // =========================
 //   UTILIDAD: CARPETA
@@ -58,7 +67,7 @@ let twitchChannelActual = ''; // Variable para almacenar el canal actual de Twit
 // =========================
 // Función para crear la ventana principal de la aplicación
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 750,  //Antes: 720
     resizable: false, // Evita que el usuario cambie el tamaño
@@ -68,11 +77,16 @@ function createWindow() {
       contextIsolation: false,
     }
   });
-  win.loadFile('index.html');
-  win.once('ready-to-show', () => {
-    // ensureSaveDir(win);
+  mainWindow.loadFile('index.html');
+  mainWindow.once('ready-to-show', () => {
+    // ensureSaveDir(mainWindow);
     // Abrir las herramientas de desarrollador para ver la consola
-    //win.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
+  });
+  
+  // Limpiar la referencia cuando se cierre la ventana
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 }
 
@@ -80,7 +94,279 @@ app.on('browser-window-created', (_, win) => { // Cuando se crea una ventana
   win.setMenu(null); // Elimina el menú de la ventana
 });
 
-app.whenReady().then(createWindow); // Cuando la aplicación está lista, crea la ventana
+app.whenReady().then(() => {
+  createWindow();
+  startStreamDeckServer();
+}); // Cuando la aplicación está lista, crea la ventana y inicia el servidor
+
+// =========================
+//   STREAM DECK HTTP SERVER
+// =========================
+
+function startStreamDeckServer() {
+  const PORT = 3001;
+  
+  httpServer = http.createServer((req, res) => {
+    // Configurar CORS para permitir cualquier origen
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+    const method = req.method;
+
+    console.log(`[Stream Deck] ${method} ${pathname}`);
+
+    try {
+      if (method === 'GET') {
+        handleStreamDeckRequest(pathname, res);
+      } else if (method === 'OPTIONS') {
+        // Responder a preflight requests
+        res.writeHead(200);
+        res.end();
+      } else {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Method not allowed' }));
+      }
+    } catch (error) {
+      console.error('[Stream Deck] Error:', error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error' }));
+    }
+  });
+
+  httpServer.listen(PORT, 'localhost', () => {
+    console.log(`[Stream Deck] Servidor HTTP iniciado en http://localhost:${PORT}`);
+  });
+
+  httpServer.on('error', (error) => {
+    console.error('[Stream Deck] Error del servidor:', error);
+  });
+}
+
+async function handleStreamDeckRequest(pathname, res) {
+  const parts = pathname.split('/').filter(p => p);
+  
+  if (parts.length === 0) {
+    // Endpoint de estado
+    res.writeHead(200);
+    res.end(JSON.stringify({ 
+      status: 'active', 
+      message: 'Stream Deck Server is running',
+      endpoints: [
+        'GET /score/player1/+1 - Increase player 1 score',
+        'GET /score/player1/-1 - Decrease player 1 score', 
+        'GET /score/player2/+1 - Increase player 2 score',
+        'GET /score/player2/-1 - Decrease player 2 score',
+        'GET /reset-scores - Reset both scores to 0',
+        'GET /timer/reset - Reset timer',
+        'GET /swap-players - Swap player positions'
+      ]
+    }));
+    return;
+  }
+
+  let success = false;
+  let message = 'Unknown command';
+
+  if (parts[0] === 'score' && parts.length === 3) {
+    // /score/player1/+1 o /score/player2/-1
+    const player = parts[1]; // 'player1' o 'player2'
+    const action = parts[2]; // '+1' o '-1'
+    
+    if ((player === 'player1' || player === 'player2') && (action === '+1' || action === '-1')) {
+      success = await changeScoreViaAPI(player, action);
+      message = success ? `Score changed for ${player} by ${action}` : 'Failed to change score';
+    }
+  } else if (parts[0] === 'reset-scores') {
+    success = await resetScoresViaAPI();
+    message = success ? 'Scores reset to 0-0' : 'Failed to reset scores';
+  } else if (parts[0] === 'timer' && parts[1] === 'reset') {
+    success = await resetTimerViaAPI();
+    message = success ? 'Timer reset' : 'Failed to reset timer';
+  } else if (parts[0] === 'swap-players') {
+    success = await swapPlayersViaAPI();
+    message = success ? 'Players swapped' : 'Failed to swap players';
+  }
+
+  res.writeHead(success ? 200 : 400);
+  res.end(JSON.stringify({ success, message }));
+}
+
+async function changeScoreViaAPI(player, action) {
+  try {
+    // Cargar datos actuales
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    const scoreField = player === 'player1' ? 'score1' : 'score2';
+    const delta = action === '+1' ? 1 : -1;
+    
+    // Cambiar el score
+    data[scoreField] = Math.max(0, (data[scoreField] || 0) + delta);
+    
+    // Guardar en archivo
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-score-change', {
+        player: player,
+        action: action,
+        newScore: data[scoreField]
+      });
+    }
+    
+    console.log(`[Stream Deck] Score changed: ${player} ${action} -> ${data[scoreField]}`);
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error changing score:', error);
+    return false;
+  }
+}
+
+async function resetScoresViaAPI() {
+  try {
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    data.score1 = 0;
+    data.score2 = 0;
+    
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-reset-scores');
+    }
+    
+    console.log('[Stream Deck] Scores reset to 0-0');
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error resetting scores:', error);
+    return false;
+  }
+}
+
+async function resetTimerViaAPI() {
+  try {
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    data.timerEndTimestamp = null;
+    
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-reset-timer');
+    }
+    
+    console.log('[Stream Deck] Timer reset');
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error resetting timer:', error);
+    return false;
+  }
+}
+
+async function swapPlayersViaAPI() {
+  try {
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    
+    // Intercambiar todos los datos de jugadores
+    const temp = {
+      player: data.player1,
+      score: data.score1,
+      tag: data.tag1,
+      char: data.char1,
+      country: data.country1
+    };
+    
+    data.player1 = data.player2;
+    data.score1 = data.score2;
+    data.tag1 = data.tag2;
+    data.char1 = data.char2;
+    data.country1 = data.country2;
+    
+    data.player2 = temp.player;
+    data.score2 = temp.score;
+    data.tag2 = temp.tag;
+    data.char2 = temp.char;
+    data.country2 = temp.country;
+    
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-swap-players');
+    }
+    
+    console.log('[Stream Deck] Players swapped');
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error swapping players:', error);
+    return false;
+  }
+}
+
+// Funciones auxiliares para cargar/guardar datos
+async function loadScoreboardData() {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  let file;
+  if (rutas.scoreboard) {
+    file = rutas.scoreboard;
+  } else {
+    file = path.join(userDataDir, 'scoreboard.json');
+  }
+  
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      return { ok: true, data, file };
+    } catch (error) {
+      return { ok: false, error: error.message };
+    }
+  }
+  return { ok: false, error: 'File not found' };
+}
+
+async function saveScoreboardData(data) {
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+  }
+  const rutas = config.rutas || {};
+  let file;
+  if (rutas.scoreboard) {
+    file = rutas.scoreboard;
+  } else {
+    file = path.join(userDataDir, 'scoreboard.json');
+  }
+  
+  try {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    return { ok: true, file };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}
 
 // =========================
 //     IPC HANDLERS
@@ -1251,5 +1537,24 @@ ipcMain.handle('startgg-get-phase-name', async (event, phaseIds) => {
     return { ok: true, phaseNames };
   } catch (e) {
     return { error: e.message };
+  }
+});
+
+// =========================
+//     APP LIFECYCLE
+// =========================
+
+app.on('window-all-closed', () => {
+  if (httpServer) {
+    httpServer.close(() => {
+      console.log('[Stream Deck] Servidor HTTP cerrado');
+    });
+  }
+  if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('before-quit', () => {
+  if (httpServer) {
+    httpServer.close();
   }
 });
