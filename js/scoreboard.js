@@ -108,6 +108,20 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     if (typeof updateVisual === "function") updateVisual();
     // Mostrar comentaristas en Scoreboard si existen
     if (d.comentaristas) mostrarComentaristasEnScoreboard(d.comentaristas);
+    
+    // RESETEAR TIMER AL ABRIR LA APP
+    timerEndTimestamp = null;
+    // Detener cualquier interval que pueda estar corriendo
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    // Mostrar 00:00 en el display
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (timerDisplay) timerDisplay.textContent = '00:00';
+    
+    // Guardar el JSON sin timerEndTimestamp (null se omite del JSON)
+    await ipcRenderer.invoke('save-json', { ...d, timerEndTimestamp: null }, 'scoreboard');
   }
 })();
 
@@ -395,11 +409,6 @@ async function guardarScoreboard() {
   } else {
     mostrarNotificacion('❌ Error al guardar', 'error');
   }
-}
-
-async function guardarScoreboardSilencioso() {
-  const data = getScoreboardData();
-  await ipcRenderer.invoke('save-json', data, 'scoreboard');
 }
 
 async function abrirOutput() {
@@ -1505,22 +1514,41 @@ function fijarTimer() {
   guardarTimerEnScoreboard(timerEndTimestamp);
 }
 
+function resetearTimer() {
+  // Detener cualquier timer en curso
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  
+  // Resetear variables globales
+  timerEndTimestamp = null;
+  
+  // Mostrar 00:00 en pantalla
+  mostrarTimer(0);
+  
+  // Limpiar el input
+  document.getElementById('timerInput').value = '';
+  
+  // Guardar el estado reseteado en el JSON
+  guardarTimerEnScoreboard(null);
+  
+  // Mostrar mensaje de confirmación
+  document.getElementById('msgTimer').textContent = '🔄 Timer reseteado';
+  setTimeout(() => document.getElementById('msgTimer').textContent = '', 2000);
+}
+
 function mostrarTimer(msRestante) {
   const el = document.getElementById('timerDisplay');
   if (!el) return;
   if (msRestante <= 0) {
     el.textContent = '00:00';
-    // Guardar automáticamente cuando el timer llega a 00:00
-    guardarScoreboardSilencioso();
     return;
   }
   const totalSec = Math.floor(msRestante / 1000);
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   el.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-  
-  // Guardar automáticamente el nuevo valor del temporizador
-  guardarScoreboardSilencioso();
 }
 
 async function guardarTimerEnScoreboard(timestamp) {
@@ -1533,33 +1561,13 @@ async function guardarTimerEnScoreboard(timestamp) {
 
 // Al cargar la pestaña comentaristas, mostrar el timer si existe
 async function cargarTimerAlAbrir() {
-  const res = await ipcRenderer.invoke('load-json');
-  if (res.ok && res.data && res.data.timerEndTimestamp) {
-    const restante = res.data.timerEndTimestamp - Date.now();
-    if (restante > 0) {
-      timerEndTimestamp = res.data.timerEndTimestamp;
-      mostrarTimer(restante);
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        const r = timerEndTimestamp - Date.now();
-        if (r <= 0) {
-          mostrarTimer(0);
-          clearInterval(timerInterval);
-          document.getElementById('msgTimer').textContent = '⏰ ¡Tiempo finalizado!';
-          setTimeout(() => document.getElementById('msgTimer').textContent = '', 3000);
-        } else {
-          mostrarTimer(r);
-        }
-      }, 1000);
-    } else {
-      mostrarTimer(0);
-    }
-  } else {
-    mostrarTimer(0);
+  // Siempre resetear el timer al cargar - no importa lo que diga el JSON
+  mostrarTimer(0);
+  timerEndTimestamp = null;
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
   }
-  
-  // Guardar el JSON silenciosamente para asegurar que el temporizador aparezca
-  guardarScoreboardSilencioso();
 }
 
 
