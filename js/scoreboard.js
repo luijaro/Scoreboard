@@ -362,6 +362,11 @@ function getScoreboardData() {
       { nombre: document.getElementById('com2Name')?.value || '', twitter: document.getElementById('com2Twitter')?.value || '' }
     ];
   }
+  
+  // Obtener el valor actual del temporizador
+  const timerDisplay = document.getElementById('timerDisplay');
+  const temporizador = timerDisplay ? timerDisplay.textContent || '00:00' : '00:00';
+  
   return {
     player1: document.getElementById('p1NameInput').value,
     player2: document.getElementById('p2NameInput').value,
@@ -376,6 +381,7 @@ function getScoreboardData() {
     round: document.getElementById('sbRound').value,
     country1: document.getElementById('p1Flag').value,
     country2: document.getElementById('p2Flag').value,
+    temporizador: temporizador,
     comentaristas: comentaristas
   };
 }
@@ -389,6 +395,11 @@ async function guardarScoreboard() {
   } else {
     mostrarNotificacion('❌ Error al guardar', 'error');
   }
+}
+
+async function guardarScoreboardSilencioso() {
+  const data = getScoreboardData();
+  await ipcRenderer.invoke('save-json', data, 'scoreboard');
 }
 
 async function abrirOutput() {
@@ -1499,12 +1510,17 @@ function mostrarTimer(msRestante) {
   if (!el) return;
   if (msRestante <= 0) {
     el.textContent = '00:00';
+    // Guardar automáticamente cuando el timer llega a 00:00
+    guardarScoreboardSilencioso();
     return;
   }
   const totalSec = Math.floor(msRestante / 1000);
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   el.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  
+  // Guardar automáticamente el nuevo valor del temporizador
+  guardarScoreboardSilencioso();
 }
 
 async function guardarTimerEnScoreboard(timestamp) {
@@ -1541,6 +1557,9 @@ async function cargarTimerAlAbrir() {
   } else {
     mostrarTimer(0);
   }
+  
+  // Guardar el JSON silenciosamente para asegurar que el temporizador aparezca
+  guardarScoreboardSilencioso();
 }
 
 
