@@ -1,4 +1,11 @@
-# 🎮 Stream Deck Integration
+# 🎮 Stream Deck In### **Acciones Especiales**
+- `GET http://localhost:3001/reset-scores` - Resetear ambos scores a 0-0
+- `GET http://localhost:3001/timer/reset` - Resetear el timer
+- `GET http://localhost:3001/timer/5` - Establecer timer a 5 minutos
+- `GET http://localhost:3001/timer/10` - Establecer timer a 10 minutos
+- `GET http://localhost:3001/timer/15` - Establecer timer a 15 minutos
+- `GET http://localhost:3001/timer/20` - Establecer timer a 20 minutos
+- `GET http://localhost:3001/swap-players` - Intercambiar posiciones de jugadoresation
 
 Tu aplicación ahora incluye un servidor HTTP interno que permite controlar el scoreboard desde el Stream Deck de Elgato.
 
@@ -19,7 +26,7 @@ http://localhost:3001
 
 ### **Acciones Especiales**
 - `GET http://localhost:3001/reset-scores` - Resetear ambos scores a 0-0
-- `GET http://localhost:3001/timer/reset` - Resetear el timer
+- `GEThttp://localhost:3001/timer/reset ` - Resetear el timer
 - `GET http://localhost:3001/swap-players` - Intercambiar posiciones de jugadores
 
 ### **Control de la Aplicación**
@@ -49,6 +56,11 @@ http://localhost:3001
 - Botón "P2 -1": `http://localhost:3001/score/player2/-1`
 - Botón "Reset": `http://localhost:3001/reset-scores`
 - Botón "Swap": `http://localhost:3001/swap-players`
+- Botón "Timer 5min": `http://localhost:3001/timer/5`
+- Botón "Timer 10min": `http://localhost:3001/timer/10`
+- Botón "Timer 15min": `http://localhost:3001/timer/15`
+- Botón "Timer 20min": `http://localhost:3001/timer/20`
+- Botón "Timer Reset": `http://localhost:3001/timer/reset`
 
 ### **Opción 2: System Action (Alternativa)**
 
@@ -110,16 +122,16 @@ Si el puerto 3001 está ocupado, la aplicación mostrará un error. Cierra otras
 ## 🎯 Ejemplo de Layout Recomendado
 
 ```
-┌─────────┬─────────┬─────────┬─────────┐
-│  START  │  P1 +1  │  P2 +1  │  RESET  │
-│   APP   │         │         │ SCORES  │
-├─────────┼─────────┼─────────┼─────────┤
-│  CLOSE  │  P1 -1  │  P2 -1  │  SWAP   │
-│   APP   │         │         │ PLAYERS │
-├─────────┼─────────┼─────────┼─────────┤
-│ RESTART │ TIMER   │  SAVE   │   OBS   │
-│   APP   │ RESET   │ MATCH   │ SCENE   │
-└─────────┴─────────┴─────────┴─────────┘
+┌─────────┬─────────┬─────────┬─────────┬─────────┐
+│  START  │  P1 +1  │  P2 +1  │  RESET  │ TIMER   │
+│   APP   │         │         │ SCORES  │ 5 MIN   │
+├─────────┼─────────┼─────────┼─────────┼─────────┤
+│  CLOSE  │  P1 -1  │  P2 -1  │  SWAP   │ TIMER   │
+│   APP   │         │         │ PLAYERS │ 10 MIN  │
+├─────────┼─────────┼─────────┼─────────┼─────────┤
+│ RESTART │ TIMER   │ TIMER   │ TIMER   │   OBS   │
+│   APP   │ 15 MIN  │ 20 MIN  │ RESET   │ SCENE   │
+└─────────┴─────────┴─────────┴─────────┴─────────┘
 ```
 
 ## 📝 Notas Importantes

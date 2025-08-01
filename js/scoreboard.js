@@ -55,6 +55,50 @@ ipcRenderer.on('stream-deck-reset-timer', (event) => {
   }
 });
 
+ipcRenderer.on('stream-deck-set-timer', (event, data) => {
+  console.log('[Stream Deck] Set timer received:', data);
+  
+  // Establecer el timestamp global
+  timerEndTimestamp = data.endTimestamp;
+  
+  // Limpiar cualquier timer anterior
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  
+  // Actualizar el input de minutos en la UI
+  const timerInput = document.getElementById('timerInput');
+  if (timerInput) {
+    timerInput.value = data.minutes;
+  }
+  
+  // Iniciar el countdown
+  timerInterval = setInterval(() => {
+    const restante = timerEndTimestamp - Date.now();
+    if (restante <= 0) {
+      mostrarTimer(0);
+      clearInterval(timerInterval);
+      const msgTimer = document.getElementById('msgTimer');
+      if (msgTimer) {
+        msgTimer.textContent = '⏰ ¡Tiempo finalizado!';
+        setTimeout(() => msgTimer.textContent = '', 3000);
+      }
+    } else {
+      mostrarTimer(restante);
+    }
+  }, 1000);
+  
+  // Mostrar inmediatamente el tiempo restante
+  mostrarTimer(timerEndTimestamp - Date.now());
+  
+  // Mostrar mensaje de confirmación
+  const msgTimer = document.getElementById('msgTimer');
+  if (msgTimer) {
+    msgTimer.textContent = `⏱️ Timer fijado a ${data.minutes} minutos`;
+    setTimeout(() => msgTimer.textContent = '', 2000);
+  }
+});
+
 // ================================
 //      MOSTRAR COMENTARISTAS EN SCOREBOARD
 // ================================

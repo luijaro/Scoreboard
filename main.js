@@ -162,6 +162,10 @@ async function handleStreamDeckRequest(pathname, res) {
         'GET /score/player2/-1 - Decrease player 2 score',
         'GET /reset-scores - Reset both scores to 0',
         'GET /timer/reset - Reset timer',
+        'GET /timer/5 - Set timer to 5 minutes',
+        'GET /timer/10 - Set timer to 10 minutes',
+        'GET /timer/15 - Set timer to 15 minutes',
+        'GET /timer/20 - Set timer to 20 minutes',
         'GET /swap-players - Swap player positions'
       ]
     }));
@@ -186,6 +190,15 @@ async function handleStreamDeckRequest(pathname, res) {
   } else if (parts[0] === 'timer' && parts[1] === 'reset') {
     success = await resetTimerViaAPI();
     message = success ? 'Timer reset' : 'Failed to reset timer';
+  } else if (parts[0] === 'timer' && parts.length === 2) {
+    // /timer/5, /timer/10, /timer/15, /timer/20
+    const minutes = parseInt(parts[1]);
+    if ([5, 10, 15, 20].includes(minutes)) {
+      success = await setTimerViaAPI(minutes);
+      message = success ? `Timer set to ${minutes} minutes` : 'Failed to set timer';
+    } else {
+      message = 'Invalid timer value. Use 5, 10, 15, or 20 minutes.';
+    }
   } else if (parts[0] === 'swap-players') {
     success = await swapPlayersViaAPI();
     message = success ? 'Players swapped' : 'Failed to swap players';
@@ -274,6 +287,36 @@ async function resetTimerViaAPI() {
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error resetting timer:', error);
+    return false;
+  }
+}
+
+async function setTimerViaAPI(minutes) {
+  try {
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    
+    // Calcular timestamp de finalización (ahora + minutos)
+    const now = Date.now();
+    data.timerEndTimestamp = now + (minutes * 60 * 1000);
+    
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-set-timer', { 
+        minutes: minutes, 
+        endTimestamp: data.timerEndTimestamp 
+      });
+    }
+    
+    console.log(`[Stream Deck] Timer set to ${minutes} minutes`);
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error setting timer:', error);
     return false;
   }
 }
