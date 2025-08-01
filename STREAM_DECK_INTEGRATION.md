@@ -22,6 +22,11 @@ http://localhost:3001
 - `GET http://localhost:3001/timer/reset` - Resetear el timer
 - `GET http://localhost:3001/swap-players` - Intercambiar posiciones de jugadores
 
+### **Control de la Aplicación**
+- **Iniciar App:** Usar archivos `start_app.bat` o `start_app.ps1`
+- **Cerrar App:** Usar archivo `close_app.bat`
+- **Reiniciar App:** Multi Action combinando cerrar + esperar + iniciar
+
 ### **Estado del Servidor**
 - `GET http://localhost:3001/` - Ver estado y lista de comandos disponibles
 
@@ -36,6 +41,8 @@ http://localhost:3001
 5. **Icono:** Agrega un "+" o el nombre del jugador
 
 **Repetir para cada acción:**
+- Botón "START APP": System > Open → `start_app.bat`
+- Botón "CLOSE APP": System > Open → `close_app.bat`
 - Botón "P1 +1": `http://localhost:3001/score/player1/+1`
 - Botón "P1 -1": `http://localhost:3001/score/player1/-1`
 - Botón "P2 +1": `http://localhost:3001/score/player2/+1`
@@ -103,14 +110,16 @@ Si el puerto 3001 está ocupado, la aplicación mostrará un error. Cierra otras
 ## 🎯 Ejemplo de Layout Recomendado
 
 ```
-┌─────────┬─────────┬─────────┐
-│  P1 +1  │  P2 +1  │  RESET  │
-├─────────┼─────────┼─────────┤
-│  P1 -1  │  P2 -1  │  SWAP   │
-├─────────┼─────────┼─────────┤
-│ TIMER   │  SAVE   │  OBS    │
-│ RESET   │ MATCH   │ SCENE   │
-└─────────┴─────────┴─────────┘
+┌─────────┬─────────┬─────────┬─────────┐
+│  START  │  P1 +1  │  P2 +1  │  RESET  │
+│   APP   │         │         │ SCORES  │
+├─────────┼─────────┼─────────┼─────────┤
+│  CLOSE  │  P1 -1  │  P2 -1  │  SWAP   │
+│   APP   │         │         │ PLAYERS │
+├─────────┼─────────┼─────────┼─────────┤
+│ RESTART │ TIMER   │  SAVE   │   OBS   │
+│   APP   │ RESET   │ MATCH   │ SCENE   │
+└─────────┴─────────┴─────────┴─────────┘
 ```
 
 ## 📝 Notas Importantes
