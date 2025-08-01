@@ -486,6 +486,7 @@ function getScoreboardData() {
     game: document.getElementById('gameSel').value,
     event: document.getElementById('sbEvent').textContent,
     round: document.getElementById('sbRound').value,
+    fase_original: window.currentFaseOriginal || '',
     country1: document.getElementById('p1Flag').value,
     country2: document.getElementById('p2Flag').value,
     temporizador: temporizador,

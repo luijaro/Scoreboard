@@ -619,6 +619,19 @@ function mostrarMatchesDeBracket(eventId, eventName) {
     const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
     const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
     const round = set.fullRoundText || '';
+    const faseOriginal = set.fase || '';
+    
+    // Determinar si se debe agregar " - Pools" al texto del round
+    let roundDisplay = round;
+    if (faseOriginal) {
+      const faseOriginalLower = faseOriginal.toLowerCase();
+      // Si la fase original es Round 1, Round 2, Bracket, etc. (no Top 8, Top 16, etc.)
+      if (faseOriginalLower.includes('round') || 
+          faseOriginalLower.includes('bracket') ||
+          (faseOriginalLower.includes('pool') && !faseOriginalLower.includes('top'))) {
+        roundDisplay = round + ' - Pools';
+      }
+    }
     
     html += `
       <button class="sb-btn match-item" data-index="${index}" data-players="${p1.toLowerCase()} ${p2.toLowerCase()}" style='
@@ -628,7 +641,7 @@ function mostrarMatchesDeBracket(eventId, eventName) {
         font-size:0.85em; font-family:Montserrat,sans-serif; font-weight:500;
         transition:background .18s,box-shadow .18s; cursor:pointer; text-align:center;
       '
-      onclick="enviarMatchAlScoreboard('${escapeQuotes(p1)}','${escapeQuotes(p2)}','${s1}','${s2}','${escapeQuotes(round)}')"
+      onclick="enviarMatchAlScoreboard('${escapeQuotes(p1)}','${escapeQuotes(p2)}','${s1}','${s2}','${escapeQuotes(roundDisplay)}','${escapeQuotes(faseOriginal)}')"
       onmouseover="this.style.background='#2a2b42'" 
       onmouseout="this.style.background='#23243a'"
       title="Enviar al scoreboard">
@@ -636,7 +649,7 @@ function mostrarMatchesDeBracket(eventId, eventName) {
           ${p1} <span style='color:#27ae60;'>${s1}</span> vs <span style='color:#e67e22;'>${s2}</span> ${p2}
         </div>
         <div style='font-size:0.8em; color:#aaa; line-height:1.1;'>
-          ${round}
+          ${roundDisplay}
         </div>
       </button>
     `;
@@ -731,7 +744,7 @@ function escapeQuotes(str) {
   return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
-function enviarMatchAlScoreboard(p1, p2, s1, s2, round) {
+function enviarMatchAlScoreboard(p1, p2, s1, s2, round, fase) {
   showTab(0);
 
   // Extraer tag y nombre si existe el delimitador '|'
@@ -762,8 +775,9 @@ function enviarMatchAlScoreboard(p1, p2, s1, s2, round) {
   document.getElementById('p1Name').textContent = p1Data.name;
   document.getElementById('p2Name').textContent = p2Data.name;
 
-  // Guarda el round en la variable global para que el Scoreboard lo incluya
+  // Guarda el round y la fase en variables globales para que el Scoreboard los incluya
   window.currentRoundName = round;
+  window.currentFaseOriginal = fase || '';
 
   // Llama a la función global del Scoreboard para guardar todos los datos
   if (typeof guardarScoreboard === "function") guardarScoreboard();
