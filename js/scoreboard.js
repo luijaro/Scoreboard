@@ -99,6 +99,39 @@ ipcRenderer.on('stream-deck-set-timer', (event, data) => {
   }
 });
 
+ipcRenderer.on('stream-deck-change-game', (event, gameCode) => {
+  console.log('[Stream Deck] Change game received:', gameCode);
+  
+  // Actualizar el selector de juego en la UI
+  const gameSelect = document.getElementById('gameSel');
+  if (gameSelect) {
+    gameSelect.value = gameCode;
+    
+    // Simular el evento change para cargar personajes y actualizar la UI
+    const changeEvent = new Event('change', { bubbles: true });
+    gameSelect.dispatchEvent(changeEvent);
+  }
+  
+  // Mostrar mensaje de confirmación
+  const gameDisplay = document.getElementById('gameDisplay');
+  if (gameDisplay) {
+    gameDisplay.textContent = `🎮 Juego cambiado a ${gameCode}`;
+    setTimeout(() => {
+      if (gameDisplay.textContent.includes('🎮 Juego cambiado')) {
+        gameDisplay.textContent = '';
+      }
+    }, 3000);
+  } else {
+    // Si no hay gameDisplay, usar console para confirmar
+    console.log(`[Stream Deck] Game changed to ${gameCode}`);
+  }
+  
+  // Guardar el cambio
+  if (typeof guardarScoreboard === 'function') {
+    guardarScoreboard();
+  }
+});
+
 // ================================
 //      MOSTRAR COMENTARISTAS EN SCOREBOARD
 // ================================

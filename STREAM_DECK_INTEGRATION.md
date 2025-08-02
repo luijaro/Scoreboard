@@ -5,7 +5,23 @@
 - `GET http://localhost:3001/timer/10` - Establecer timer a 10 minutos
 - `GET http://localhost:3001/timer/15` - Establecer timer a 15 minutos
 - `GET http://localhost:3001/timer/20` - Establecer timer a 20 minutos
-- `GET http://localhost:3001/swap-players` - Intercambiar posiciones de jugadoresation
+- `GET http://localhost:3001/swap-players` - Intercambiar posiciones de jugadores
+
+### **Cambio de Juego**
+- `GET http://localhost:3001/game/GGST` - Cambiar a Guilty Gear Strive
+- `GET http://localhost:3001/game/SF6` - Cambiar a Street Fighter 6
+- `GET http://localhost:3001/game/T8` - Cambiar a Tekken 8
+- `GET http://localhost:3001/game/UNI2` - Cambiar a Under Night In-Birth 2
+- `GET http://localhost:3001/game/GBVSR` - Cambiar a Granblue Versus Rising
+- `GET http://localhost:3001/game/BBCF` - Cambiar a BlazBlue Central Fiction
+- `GET http://localhost:3001/game/MBTL` - Cambiar a Melty Blood Type Lumina
+- `GET http://localhost:3001/game/COTW` - Cambiar a City of the Wolves
+- `GET http://localhost:3001/game/GVSR` - Cambiar a Granblue Versus (Original)
+- `GET http://localhost:3001/game/HFTF` - Cambiar a Heritage for the Future
+- `GET http://localhost:3001/game/MBAACC` - Cambiar a Melty Blood Actress Again
+- `GET http://localhost:3001/game/SCON4` - Cambiar a Soul Calibur VI
+- `GET http://localhost:3001/game/SF3` - Cambiar a Street Fighter 3rd Strike
+- `GET http://localhost:3001/game/VSAV` - Cambiar a Vampire Savior
 
 Tu aplicación ahora incluye un servidor HTTP interno que permite controlar el scoreboard desde el Stream Deck de Elgato.
 
@@ -61,6 +77,20 @@ http://localhost:3001
 - Botón "Timer 15min": `http://localhost:3001/timer/15`
 - Botón "Timer 20min": `http://localhost:3001/timer/20`
 - Botón "Timer Reset": `http://localhost:3001/timer/reset`
+- Botón "GGST": `http://localhost:3001/game/GGST`
+- Botón "SF6": `http://localhost:3001/game/SF6`
+- Botón "T8": `http://localhost:3001/game/T8`
+- Botón "UNI2": `http://localhost:3001/game/UNI2`
+- Botón "GBVSR": `http://localhost:3001/game/GBVSR`
+- Botón "BBCF": `http://localhost:3001/game/BBCF`
+- Botón "MBTL": `http://localhost:3001/game/MBTL`
+- Botón "COTW": `http://localhost:3001/game/COTW`
+- Botón "GVSR": `http://localhost:3001/game/GVSR`
+- Botón "HFTF": `http://localhost:3001/game/HFTF`
+- Botón "MBAACC": `http://localhost:3001/game/MBAACC`
+- Botón "SCON4": `http://localhost:3001/game/SCON4`
+- Botón "SF3": `http://localhost:3001/game/SF3`
+- Botón "VSAV": `http://localhost:3001/game/VSAV`
 
 ### **Opción 2: System Action (Alternativa)**
 
@@ -129,9 +159,48 @@ Si el puerto 3001 está ocupado, la aplicación mostrará un error. Cierra otras
 │  CLOSE  │  P1 -1  │  P2 -1  │  SWAP   │ TIMER   │
 │   APP   │         │         │ PLAYERS │ 10 MIN  │
 ├─────────┼─────────┼─────────┼─────────┼─────────┤
-│ RESTART │ TIMER   │ TIMER   │ TIMER   │   OBS   │
-│   APP   │ 15 MIN  │ 20 MIN  │ RESET   │ SCENE   │
+│ RESTART │ TIMER   │ TIMER   │ TIMER   │  GGST   │
+│   APP   │ 15 MIN  │ 20 MIN  │ RESET   │  GAME   │
+├─────────┼─────────┼─────────┼─────────┼─────────┤
+│   SF6   │   T8    │  UNI2   │ GBVSR   │  BBCF   │
+│  GAME   │  GAME   │  GAME   │  GAME   │  GAME   │
 └─────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+### **Layout Alternativo para más juegos:**
+
+```
+┌─────────┬─────────┬─────────┬─────────┐
+│  P1 +1  │  P2 +1  │  RESET  │ TIMER   │
+│         │         │ SCORES  │ 5 MIN   │
+├─────────┼─────────┼─────────┼─────────┤
+│  P1 -1  │  P2 -1  │  SWAP   │ TIMER   │
+│         │         │ PLAYERS │ RESET   │
+├─────────┼─────────┼─────────┼─────────┤
+│  GGST   │   SF6   │   T8    │  UNI2   │
+├─────────┼─────────┼─────────┼─────────┤
+│ GBVSR   │  BBCF   │  MBTL   │  COTW   │
+├─────────┼─────────┼─────────┼─────────┤
+│  GVSR   │  HFTF   │ MBAACC  │ SCON4   │
+├─────────┼─────────┼─────────┼─────────┤
+│   SF3   │  VSAV   │ (Libre) │ (Libre) │
+└─────────┴─────────┴─────────┴─────────┘
+```
+
+### **Layout Compacto (Solo Juegos Principales):**
+
+```
+┌─────────┬─────────┬─────────┬─────────┐
+│  P1 +1  │  P2 +1  │  RESET  │ TIMER   │
+│         │         │ SCORES  │ 5 MIN   │
+├─────────┼─────────┼─────────┼─────────┤
+│  P1 -1  │  P2 -1  │  SWAP   │ TIMER   │
+│         │         │ PLAYERS │ RESET   │
+├─────────┼─────────┼─────────┼─────────┤
+│  GGST   │   SF6   │   T8    │  UNI2   │
+├─────────┼─────────┼─────────┼─────────┤
+│ GBVSR   │  BBCF   │  MBTL   │ (Libre) │
+└─────────┴─────────┴─────────┴─────────┘
 ```
 
 ## 📝 Notas Importantes
@@ -146,10 +215,128 @@ Si el puerto 3001 está ocupado, la aplicación mostrará un error. Cierra otras
 ## 🔄 Actualizaciones Futuras
 
 Se pueden agregar más endpoints según necesidades:
-- Cambiar personajes
+- Cambiar personajes específicos
 - Cambiar rounds/eventos
 - Control de timer con tiempos específicos
 - Integración con OBS
 - Comandos de Twitch
+- Más juegos disponibles
+
+### **Juegos Actualmente Soportados:**
+- ✅ **GGST** - Guilty Gear Strive
+- ✅ **SF6** - Street Fighter 6  
+- ✅ **T8** - Tekken 8
+- ✅ **UNI2** - Under Night In-Birth 2
+- ✅ **GBVSR** - Granblue Versus Rising
+- ✅ **BBCF** - BlazBlue Central Fiction
+- ✅ **MBTL** - Melty Blood Type Lumina
+- ✅ **COTW** - City of the Wolves
+- ✅ **GVSR** - Granblue Versus (Original)
+- ✅ **HFTF** - Heritage for the Future (JoJo's Bizarre Adventure)
+- ✅ **MBAACC** - Melty Blood Actress Again Current Code
+- ✅ **SCON4** - Soul Calibur VI
+- ✅ **SF3** - Street Fighter 3rd Strike
+- ✅ **VSAV** - Vampire Savior
+- ⚠️ **Otros juegos** - Revisar carpeta `personajes/` para más opciones
+
+### **Cómo agregar más juegos:**
+1. **Verifica que existe la carpeta del juego** en `personajes/[NOMBRE]/`
+2. **Usa el endpoint:** `GET http://localhost:3001/game/[NOMBRE]`
+3. **Ejemplo:** Para agregar KOF XV: `http://localhost:3001/game/KOFXV`
 
 ¡Disfruta controlando tu stream de forma profesional! 🎬
+
+---
+
+## 📱 Integración con Touch Portal
+
+Touch Portal puede usar los mismos endpoints HTTP. Configuración recomendada:
+
+### **Para Cambio de Juegos en Touch Portal:**
+
+**Botón GGST:**
+- **Action:** HTTP Request
+- **URL:** `http://localhost:3001/game/GGST`
+- **Method:** GET
+- **Text:** "🎮 GGST"
+- **Background:** Azul (#3498db)
+
+**Botón SF6:**
+- **URL:** `http://localhost:3001/game/SF6`
+- **Text:** "🥊 SF6"
+- **Background:** Rojo (#e74c3c)
+
+**Botón T8:**
+- **URL:** `http://localhost:3001/game/T8`
+- **Text:** "👊 T8"
+- **Background:** Naranja (#e67e22)
+
+**Botón UNI2:**
+- **URL:** `http://localhost:3001/game/UNI2`
+- **Text:** "🌙 UNI2"
+- **Background:** Púrpura (#9b59b6)
+
+**Botón COTW:**
+- **URL:** `http://localhost:3001/game/COTW`
+- **Text:** "🐺 COTW"
+- **Background:** Gris (#95a5a6)
+
+**Botón HFTF:**
+- **URL:** `http://localhost:3001/game/HFTF`
+- **Text:** "⭐ HFTF"
+- **Background:** Dorado (#f39c12)
+
+**Botón SF3:**
+- **URL:** `http://localhost:3001/game/SF3`
+- **Text:** "🥋 SF3"
+- **Background:** Azul Oscuro (#2c3e50)
+
+**Botón VSAV:**
+- **URL:** `http://localhost:3001/game/VSAV`
+- **Text:** "🧛 VSAV"
+- **Background:** Rojo Oscuro (#8e44ad)
+
+### **Layout Touch Portal Recomendado:**
+
+```
+┌────────────┬────────────┬────────────┐
+│    P1 +1   │    P2 +1   │   RESET    │
+│   (Verde)  │   (Verde)  │   SCORES   │
+├────────────┼────────────┼────────────┤
+│    P1 -1   │    P2 -1   │    SWAP    │
+│  (Naranja) │  (Naranja) │  PLAYERS   │
+├────────────┼────────────┼────────────┤
+│ 🎮 GGST   │ 🥊 SF6    │ 👊 T8     │
+├────────────┼────────────┼────────────┤
+│ 🌙 UNI2   │ ⚔️ GBVSR  │ ⏱️ TIMER  │
+│           │           │   5 MIN    │
+├────────────┼────────────┼────────────┤
+│ 🐺 COTW   │ ⭐ HFTF   │ 🥋 SF3    │
+├────────────┼────────────┼────────────┤
+│ 🧛 VSAV   │ 🔥 BBCF   │ 🩸 MBTL   │
+└────────────┴────────────┴────────────┘
+```
+
+### **Layout Compacto Touch Portal:**
+
+```
+┌────────────┬────────────┬────────────┐
+│    P1 +1   │    P2 +1   │   RESET    │
+│   (Verde)  │   (Verde)  │   SCORES   │
+├────────────┼────────────┼────────────┤
+│    P1 -1   │    P2 -1   │    SWAP    │
+│  (Naranja) │  (Naranja) │  PLAYERS   │
+├────────────┼────────────┼────────────┤
+│ 🎮 GGST   │ 🥊 SF6    │ 👊 T8     │
+├────────────┼────────────┼────────────┤
+│ 🌙 UNI2   │ ⚔️ GBVSR  │ ⏱️ TIMER  │
+│           │           │   5 MIN    │
+└────────────┴────────────┴────────────┘
+```
+
+### **Ventajas de Touch Portal:**
+- ✅ **Pantalla táctil más grande**
+- ✅ **Cambio rápido entre juegos**
+- ✅ **Iconos personalizables por juego**
+- ✅ **Feedback visual inmediato**
+- ✅ **Mismos endpoints que Stream Deck**

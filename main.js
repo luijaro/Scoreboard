@@ -166,7 +166,21 @@ async function handleStreamDeckRequest(pathname, res) {
         'GET /timer/10 - Set timer to 10 minutes',
         'GET /timer/15 - Set timer to 15 minutes',
         'GET /timer/20 - Set timer to 20 minutes',
-        'GET /swap-players - Swap player positions'
+        'GET /swap-players - Swap player positions',
+        'GET /game/GGST - Change to Guilty Gear Strive',
+        'GET /game/SF6 - Change to Street Fighter 6',
+        'GET /game/T8 - Change to Tekken 8',
+        'GET /game/UNI2 - Change to Under Night In-Birth 2',
+        'GET /game/GBVSR - Change to Granblue Versus Rising',
+        'GET /game/BBCF - Change to BlazBlue Central Fiction',
+        'GET /game/MBTL - Change to Melty Blood Type Lumina',
+        'GET /game/COTW - Change to City of the Wolves',
+        'GET /game/GVSR - Change to Granblue Versus (Original)',
+        'GET /game/HFTF - Change to Heritage for the Future',
+        'GET /game/MBAACC - Change to Melty Blood Actress Again',
+        'GET /game/SCON4 - Change to Soul Calibur VI',
+        'GET /game/SF3 - Change to Street Fighter 3rd Strike',
+        'GET /game/VSAV - Change to Vampire Savior'
       ]
     }));
     return;
@@ -202,6 +216,17 @@ async function handleStreamDeckRequest(pathname, res) {
   } else if (parts[0] === 'swap-players') {
     success = await swapPlayersViaAPI();
     message = success ? 'Players swapped' : 'Failed to swap players';
+  } else if (parts[0] === 'game' && parts.length === 2) {
+    // /game/GGST, /game/SF6, etc.
+    const gameCode = parts[1].toUpperCase();
+    const validGames = ['GGST', 'SF6', 'T8', 'UNI2', 'GBVSR', 'BBCF', 'MBTL', 'COTW', 'GVSR', 'HFTF', 'MBAACC', 'SCON4', 'SF3', 'VSAV'];
+    
+    if (validGames.includes(gameCode)) {
+      success = await changeGameViaAPI(gameCode);
+      message = success ? `Game changed to ${gameCode}` : 'Failed to change game';
+    } else {
+      message = `Invalid game code. Valid games: ${validGames.join(', ')}`;
+    }
   }
 
   res.writeHead(success ? 200 : 400);
@@ -361,6 +386,32 @@ async function swapPlayersViaAPI() {
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error swapping players:', error);
+    return false;
+  }
+}
+
+async function changeGameViaAPI(gameCode) {
+  try {
+    const loadResult = await loadScoreboardData();
+    if (!loadResult.ok) return false;
+    
+    const data = loadResult.data;
+    
+    // Cambiar el juego actual
+    data.game = gameCode;
+    
+    const saveResult = await saveScoreboardData(data);
+    
+    // Enviar comando a la ventana para actualizar la UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('stream-deck-change-game', gameCode);
+    }
+    
+    console.log(`[Stream Deck] Game changed to ${gameCode}`);
+    
+    return saveResult.ok;
+  } catch (error) {
+    console.error('[Stream Deck] Error changing game:', error);
     return false;
   }
 }
