@@ -745,6 +745,24 @@ function escapeQuotes(str) {
 }
 
 function enviarMatchAlScoreboard(p1, p2, s1, s2, round, fase) {
+  // Hacer esta función síncrona pero usar async internamente
+  (async () => {
+    // Leer comentaristas existentes antes de actualizar
+    let comentaristasExistentes = [];
+    try {
+      const resLoad = await window.ipcRenderer.invoke('load-json', 'scoreboard');
+      if (resLoad.ok && resLoad.data && resLoad.data.comentaristas) {
+        comentaristasExistentes = resLoad.data.comentaristas;
+      }
+    } catch (e) {
+      console.warn('No se pudieron cargar comentaristas existentes:', e);
+    }
+
+    // Preservar comentaristas en variable global ANTES de cambiar la UI
+    window.comentaristasPreservados = comentaristasExistentes;
+    console.log('[StartGG] Comentaristas preservados:', comentaristasExistentes);
+  })();
+
   showTab(0);
 
   // Extraer tag y nombre si existe el delimitador '|'
@@ -779,8 +797,12 @@ function enviarMatchAlScoreboard(p1, p2, s1, s2, round, fase) {
   window.currentRoundName = round;
   window.currentFaseOriginal = fase || '';
 
-  // Llama a la función global del Scoreboard para guardar todos los datos
-  if (typeof guardarScoreboard === "function") guardarScoreboard();
+  // Esperar un poco antes de guardar para asegurar que la variable global esté lista
+  setTimeout(() => {
+    if (typeof guardarScoreboard === "function") {
+      guardarScoreboard();
+    }
+  }, 100);
 }
 
 // === GUARDAR BRACKET BUTTON ===

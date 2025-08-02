@@ -491,16 +491,27 @@ function resetScores() {
 }
 
 function getScoreboardData() {
-  // Cargar los comentaristas actuales del JSON antes de guardar
+  // Cargar los comentaristas - priorizar los preservados de Start.gg
   let comentaristas = [];
-  if (window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
+  
+  console.log('[Scoreboard] Verificando comentaristas preservados:', window.comentaristasPreservados);
+  
+  if (window.comentaristasPreservados && window.comentaristasPreservados.length > 0) {
+    // Usar comentaristas preservados de Start.gg
+    comentaristas = [...window.comentaristasPreservados]; // Clonar array
+    console.log('[Scoreboard] Usando comentaristas preservados:', comentaristas);
+    // Limpiar la variable después de usarla
+    window.comentaristasPreservados = null;
+  } else if (window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
     comentaristas = window.ultimoScoreboardData.comentaristas;
+    console.log('[Scoreboard] Usando comentaristas del último scoreboard:', comentaristas);
   } else {
     // Si no hay, intenta leer de los inputs
     comentaristas = [
       { nombre: document.getElementById('com1Name')?.value || '', twitter: document.getElementById('com1Twitter')?.value || '' },
       { nombre: document.getElementById('com2Name')?.value || '', twitter: document.getElementById('com2Twitter')?.value || '' }
     ];
+    console.log('[Scoreboard] Usando comentaristas de inputs:', comentaristas);
   }
   
   // Obtener el valor actual del temporizador
