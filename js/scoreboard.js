@@ -503,15 +503,31 @@ function getScoreboardData() {
     // Limpiar la variable después de usarla
     window.comentaristasPreservados = null;
   } else if (window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
+    // Si no hay preservados, usar los del último scoreboard cargado
     comentaristas = window.ultimoScoreboardData.comentaristas;
     console.log('[Scoreboard] Usando comentaristas del último scoreboard:', comentaristas);
   } else {
-    // Si no hay, intenta leer de los inputs
-    comentaristas = [
-      { nombre: document.getElementById('com1Name')?.value || '', twitter: document.getElementById('com1Twitter')?.value || '' },
-      { nombre: document.getElementById('com2Name')?.value || '', twitter: document.getElementById('com2Twitter')?.value || '' }
-    ];
-    console.log('[Scoreboard] Usando comentaristas de inputs:', comentaristas);
+    // Solo como último recurso, leer de los inputs (cuando realmente se quiere cambiar)
+    const com1Name = document.getElementById('com1Name')?.value || '';
+    const com1Twitter = document.getElementById('com1Twitter')?.value || '';
+    const com2Name = document.getElementById('com2Name')?.value || '';
+    const com2Twitter = document.getElementById('com2Twitter')?.value || '';
+    
+    // Solo usar inputs si realmente hay datos en ellos
+    if (com1Name || com1Twitter || com2Name || com2Twitter) {
+      comentaristas = [
+        { nombre: com1Name, twitter: com1Twitter },
+        { nombre: com2Name, twitter: com2Twitter }
+      ];
+      console.log('[Scoreboard] Usando comentaristas de inputs (hay datos):', comentaristas);
+    } else {
+      // Si no hay datos en inputs, intentar mantener comentaristas vacíos pero válidos
+      comentaristas = [
+        { nombre: '', twitter: '' },
+        { nombre: '', twitter: '' }
+      ];
+      console.log('[Scoreboard] Usando comentaristas vacíos por defecto');
+    }
   }
   
   // Obtener el valor actual del temporizador
@@ -540,9 +556,22 @@ function getScoreboardData() {
 
 
 async function guardarScoreboard() {
+  console.log('[GuardarScoreboard] Iniciando guardado manual...');
+  console.log('[GuardarScoreboard] Comentaristas actuales en window.ultimoScoreboardData:', window.ultimoScoreboardData?.comentaristas);
+  
+  // Si no hay comentaristas preservados de Start.gg y hay datos previos, preservarlos
+  if (!window.comentaristasPreservados && window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
+    console.log('[GuardarScoreboard] Preservando comentaristas existentes para el guardado manual');
+    window.comentaristasPreservados = [...window.ultimoScoreboardData.comentaristas];
+  }
+  
   const data = getScoreboardData();
+  console.log('[GuardarScoreboard] Datos a guardar:', data);
+  
   const res = await ipcRenderer.invoke('save-json', data, 'scoreboard');
   if (res.ok) {
+    // Actualizar los datos después del guardado exitoso
+    window.ultimoScoreboardData = data;
     mostrarNotificacion('✅ ¡Guardado!', 'success');
   } else {
     mostrarNotificacion('❌ Error al guardar', 'error');
