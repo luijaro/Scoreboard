@@ -36,19 +36,28 @@ async function buscarStartGG() {
       return;
     }
     let html = `<b style="font-size:1.2em; color:#ffe8b2;">Eventos de ${torneo}:</b><br><div class='sgg-eventos-list' style='display:flex; flex-wrap:wrap; gap:2em; margin-top:1em;'>`;
-    // Consultar el estado de cada evento
-    // Usar Promise.all para obtener el estado antes de renderizar
+    // Optimización: Usar el estado que ya viene en la respuesta principal si existe
     const eventosConEstado = await Promise.all(eventos.map(async ev => {
       let estadoEv = '';
-      try {
-        const evRes = await window.ipcRenderer.invoke('startgg-get-event-state', ev.id);
-        const evState = evRes?.state || evRes?.event?.state || evRes?.status || '';
-        if (evState === 'ACTIVE') estadoEv = '<span style="color:#27ae60;font-weight:bold;">En progreso</span>';
-        else if (evState === 'COMPLETED') estadoEv = '<span style="color:#e67e22;font-weight:bold;">Terminado</span>';
-        else if (!evState || evState === '?' || evState === 'null' || evState === 'undefined') estadoEv = '<span style="color:#aaa;">Desconocido</span>';
-        else estadoEv = `<span style="color:#aaa;">${evState}</span>`;
-      } catch (e) {
-        estadoEv = '<span style="color:#aaa;">Desconocido</span>';
+      // Usar el estado si viene en el objeto del evento
+      const evState = ev.state || ev.status || '';
+      if (evState === 'ACTIVE') estadoEv = '<span style="color:#27ae60;font-weight:bold;">En progreso</span>';
+      else if (evState === 'COMPLETED') estadoEv = '<span style="color:#e67e22;font-weight:bold;">Terminado</span>';
+      else if (!evState || evState === '?' || evState === 'null' || evState === 'undefined') estadoEv = '<span style="color:#aaa;">Desconocido</span>';
+      else estadoEv = `<span style="color:#aaa;">${evState}</span>`;
+
+      // Si no viene el estado, solo entonces consulta por evento
+      if (!evState) {
+        try {
+          const evRes = await window.ipcRenderer.invoke('startgg-get-event-state', ev.id);
+          const evState2 = evRes?.state || evRes?.event?.state || evRes?.status || '';
+          if (evState2 === 'ACTIVE') estadoEv = '<span style="color:#27ae60;font-weight:bold;">En progreso</span>';
+          else if (evState2 === 'COMPLETED') estadoEv = '<span style="color:#e67e22;font-weight:bold;">Terminado</span>';
+          else if (!evState2 || evState2 === '?' || evState2 === 'null' || evState2 === 'undefined') estadoEv = '<span style="color:#aaa;">Desconocido</span>';
+          else estadoEv = `<span style="color:#aaa;">${evState2}</span>`;
+        } catch (e) {
+          estadoEv = '<span style="color:#aaa;">Desconocido</span>';
+        }
       }
       return `
       <div class='sgg-event-card' style='
@@ -95,26 +104,92 @@ async function buscarStartGG() {
 
 // Guardar el bracket directamente al hacer clic en el botón Bracket
 async function guardarBracketStartGG(eventId, eventName) {
-  const resultsDiv = document.getElementById('startggResults');
-  resultsDiv.textContent = `Guardando bracket de ${eventName}...`;
+  // Buscar el botón específico que fue clickeado
+  const btn = document.querySelector(`button[onclick*="guardarBracketStartGG(${eventId},"]`);
+  if (!btn) return;
+
+  // Inyectar CSS para la animación
+  addStyle(`
+    .loading-btn {
+      position: relative;
+      overflow: hidden;
+      pointer-events: none !important;
+    }
+    .loading-btn .loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #e74c3c, #c0392b);
+      width: 0%;
+      transition: width 2s ease-in-out;
+      z-index: 1;
+    }
+    .loading-btn .btn-content {
+      position: relative;
+      z-index: 2;
+      color: white !important;
+      font-weight: bold;
+    }
+  `);
+
+  // Guardar estado original del botón
+  const originalHTML = btn.innerHTML;
+  const originalStyle = btn.style.cssText;
+  const originalClass = btn.className;
+
+  // Preparar botón para loading
+  btn.disabled = true;
+  btn.className = originalClass + ' loading-btn';
+  btn.innerHTML = '<span class="loading-bar"></span><span class="btn-content">Guardando...</span>';
+
   try {
+    // Iniciar animación de carga
+    setTimeout(() => {
+      const loadingBar = btn.querySelector('.loading-bar');
+      if (loadingBar) {
+        loadingBar.style.width = '100%';
+      }
+    }, 50);
+
+    // Obtener matches del evento
     const res = await window.ipcRenderer.invoke('startgg-get-matches', eventId);
     if (res.error) {
-      resultsDiv.textContent = '❌ ' + res.error;
-      return;
+      throw new Error(res.error);
     }
     if (!res.sets || res.sets.length === 0) {
-      resultsDiv.textContent = `No se encontraron matches para guardar.`;
-      return;
+      throw new Error('No se encontraron matches para guardar.');
     }
-    // Usa el nombre del torneo actual y la fecha actual
+
+    // Guardar bracket
     const torneo = eventName || '';
     const fecha = new Date().toLocaleDateString('es-CL');
-    await guardarBracketEnJson(torneo, fecha, res.sets);
-    resultsDiv.textContent = `✅ Bracket guardado correctamente en bracket.json`;
+    const saveResult = await guardarBracketEnJson(torneo, fecha, res.sets);
+
+    if (!saveResult.ok) {
+      throw new Error(saveResult.error || 'Error desconocido al guardar');
+    }
+
+    // Mostrar éxito
+    btn.innerHTML = '<span class="btn-content"><i class="fa fa-check"></i> ¡Guardado!</span>';
+    btn.style.background = '#27ae60';
+    btn.style.border = '2px solid #2ecc71';
+
   } catch (e) {
-    resultsDiv.textContent = `❌ Error: ${e.message}`;
+    // Mostrar error
+    btn.innerHTML = '<span class="btn-content"><i class="fa fa-exclamation-triangle"></i> Error</span>';
+    btn.style.background = '#e74c3c';
+    btn.style.border = '2px solid #c0392b';
+    console.error('Error guardando bracket:', e);
   }
+
+  // Restaurar botón después de 3 segundos
+  setTimeout(() => {
+    btn.innerHTML = originalHTML;
+    btn.style.cssText = originalStyle;
+    btn.className = originalClass;
+    btn.disabled = false;
+  }, 3000);
 }
 
 // Función para consultar la API con el slug seleccionado
@@ -421,14 +496,15 @@ async function consultarMatchesStartGG(eventId, eventName) {
       const matchesEnProgreso = res.sets.filter(set => {
         const p1 = set.slots[0]?.entrant?.name || 'TBD';
         const p2 = set.slots[1]?.entrant?.name || 'TBD';
-        const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
-        const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
-        
+        const s1 = set.slots[0]?.standing?.stats?.score?.value;
+        const s2 = set.slots[1]?.standing?.stats?.score?.value;
+
         const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
         const sinGanador = !set.winnerId && !set.winner_id;
-        const scoresIncompletos = s1 === '' || s2 === '' || s1 === null || s2 === null;
-        
-        return tieneDosLuchadores && (sinGanador || scoresIncompletos);
+        // Considerar en progreso solo si no hay ganador Y los scores son nulos, undefined o 0.
+        const scoresEnCero = (s1 === null || s1 === undefined || s1 === 0) && (s2 === null || s2 === undefined || s2 === 0);
+
+        return tieneDosLuchadores && sinGanador && scoresEnCero;
       });
       
       if (matchesEnProgreso.length === 0) {
@@ -510,6 +586,17 @@ async function consultarMatchesStartGG(eventId, eventName) {
           📋 Fases con matches en progreso (${matchesEnProgreso.length} total):
         </div>
         <div style='margin-bottom:1em;'>
+          <input type='text' id='globalMatchSearchInput' placeholder='🔍 Buscar jugador en todas las rondas...' 
+            style='
+              width:100%; max-width:400px; padding:0.7em 1em; border-radius:8px; 
+              border:1px solid #8e44ad; background:#23243a; color:#ffe8b2;
+              font-size:0.95em; font-family:Montserrat,sans-serif; margin-bottom:0.7em;
+            '
+            oninput='filtrarMatchesGlobal()'
+          />
+        </div>
+        <div id='globalMatchesResults'></div>
+        <div style='margin-bottom:1em;'>
           <select id='bracketSelector' style='
             background:#23243a; color:#ffe8b2; border:1px solid #8e44ad; border-radius:6px;
             padding:0.5em 1em; font-size:1em; width:100%; max-width:400px;
@@ -544,6 +631,13 @@ async function consultarMatchesStartGG(eventId, eventName) {
       
       // Guardar los sets en una variable global para acceso posterior
       window.currentEventSets = res.sets;
+
+      // --- Buscador global de matches por nick ---
+      window.globalMatchesEnProgreso = matchesEnProgreso;
+      window.eventIdActual = eventId;
+      window.eventNameActual = eventName;
+      // Inicializar resultados vacíos
+      filtrarMatchesGlobal();
       
     } else {
       resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em;'>No se encontraron matches en este evento.</div>`;
@@ -554,6 +648,68 @@ async function consultarMatchesStartGG(eventId, eventName) {
   }
 }
 
+// Buscador global de matches por nick en todas las rondas
+function filtrarMatchesGlobal() {
+  const input = document.getElementById('globalMatchSearchInput');
+  const resultsDiv = document.getElementById('globalMatchesResults');
+  if (!input || !resultsDiv || !window.globalMatchesEnProgreso) return;
+  const searchTerm = input.value.toLowerCase().trim();
+  let filtered = [];
+  if (searchTerm === '') {
+    resultsDiv.innerHTML = '';
+    return;
+  }
+  filtered = window.globalMatchesEnProgreso.filter(set => {
+    const p1 = set.slots[0]?.entrant?.name?.toLowerCase() || '';
+    const p2 = set.slots[1]?.entrant?.name?.toLowerCase() || '';
+    return p1.includes(searchTerm) || p2.includes(searchTerm);
+  });
+  if (filtered.length === 0) {
+    resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em; margin-bottom:0.7em;'>No se encontraron matches con ese nick.</div>`;
+    return;
+  }
+  let html = `<div style='color:#ffe8b2; font-size:1em; margin-bottom:0.5em; font-weight:bold;'>🥊 Matches encontrados (${filtered.length}):</div>`;
+  html += `<div style='display:grid; grid-template-columns:repeat(3, 1fr); gap:0.8em;'>`;
+  filtered.forEach((set, index) => {
+    const p1 = set.slots[0]?.entrant?.name || 'TBD';
+    const p2 = set.slots[1]?.entrant?.name || 'TBD';
+    const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
+    const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
+    const round = set.fullRoundText || '';
+    const faseOriginal = set.fase || '';
+    let roundDisplay = round;
+    if (faseOriginal) {
+      const faseOriginalLower = faseOriginal.toLowerCase();
+      if (faseOriginalLower.includes('round') || 
+          faseOriginalLower.includes('bracket') ||
+          (faseOriginalLower.includes('pool') && !faseOriginalLower.includes('top'))) {
+        roundDisplay = round + ' - Pools';
+      }
+    }
+    html += `
+      <button class="sb-btn match-item" data-index="${index}" data-players="${p1.toLowerCase()} ${p2.toLowerCase()}" style='
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        background:#23243a; color:#ffe8b2; border-radius:8px; border:1px solid #8e44ad;
+        box-shadow:0 1px 4px #0003; padding:0.8em 0.6em; height:auto; min-height:80px;
+        font-size:0.85em; font-family:Montserrat,sans-serif; font-weight:500;
+        transition:background .18s,box-shadow .18s; cursor:pointer; text-align:center;
+      '
+      onclick="enviarMatchAlScoreboard('${escapeQuotes(p1)}','${escapeQuotes(p2)}','${s1}','${s2}','${escapeQuotes(roundDisplay)}','${escapeQuotes(faseOriginal)}')"
+      onmouseover="this.style.background='#2a2b42'" 
+      onmouseout="this.style.background='#23243a'"
+      title="Enviar al scoreboard">
+        <div style='font-weight:bold; margin-bottom:0.4em; font-size:0.95em; line-height:1.2;'>
+          ${p1} <span style='color:#27ae60;'>${s1}</span> vs <span style='color:#e67e22;'>${s2}</span> ${p2}
+        </div>
+        <div style='font-size:0.8em; color:#aaa; line-height:1.1;'>
+          ${roundDisplay}
+        </div>
+      </button>
+    `;
+  });
+  html += '</div>';
+  resultsDiv.innerHTML = html;
+}
 // Nueva función para mostrar matches de un bracket específico
 function mostrarMatchesDeBracket(eventId, eventName) {
   const selector = document.getElementById('bracketSelector');
@@ -575,14 +731,11 @@ function mostrarMatchesDeBracket(eventId, eventName) {
   const matchesEnProgreso = setsDelBracket.filter(set => {
     const p1 = set.slots[0]?.entrant?.name || 'TBD';
     const p2 = set.slots[1]?.entrant?.name || 'TBD';
-    const s1 = set.slots[0]?.standing?.stats?.score?.value ?? '';
-    const s2 = set.slots[1]?.standing?.stats?.score?.value ?? '';
     
     const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
     const sinGanador = !set.winnerId && !set.winner_id;
-    const scoresIncompletos = s1 === '' || s2 === '' || s1 === null || s2 === null;
     
-    return tieneDosLuchadores && (sinGanador || scoresIncompletos);
+    return tieneDosLuchadores && sinGanador;
   });
   
   const bracketMatchesDiv = document.getElementById('bracketMatches');
@@ -767,15 +920,25 @@ function enviarMatchAlScoreboard(p1, p2, s1, s2, round, fase) {
 
   // Extraer tag y nombre si existe el delimitador '|'
   function splitTagName(str) {
-    if (!str) return { tag: '', name: str };
+    console.log('[splitTagName] Input recibido:', str, 'Tipo:', typeof str);
+    if (!str || str === undefined || str === null || str === '') {
+      console.log('[splitTagName] String vacío/nulo, retornando tag y name vacíos');
+      return { tag: '', name: '' };
+    }
     const parts = str.split('|');
     if (parts.length === 2) {
-      return { tag: parts[0].trim(), name: parts[1].trim() };
+      const result = { tag: parts[0].trim(), name: parts[1].trim() };
+      console.log('[splitTagName] Split con |, resultado:', result);
+      return result;
     }
-    return { tag: '', name: str.trim() };
+    const result = { tag: '', name: str.trim() };
+    console.log('[splitTagName] Sin split, resultado:', result);
+    return result;
   }
   const p1Data = splitTagName(p1);
   const p2Data = splitTagName(p2);
+  
+  console.log('[enviarMatchAlScoreboard] p1Data:', p1Data, 'p2Data:', p2Data);
 
   document.getElementById('p1NameInput').value = p1Data.name;
   document.getElementById('p2NameInput').value = p2Data.name;
@@ -894,9 +1057,26 @@ async function guardarBracketEnJson(torneo, fecha, sets) {
   });
   const bracketData = { torneo, fecha, matches, participantes };
   const res = await window.ipcRenderer.invoke('save-bracket-json', bracketData);
-  if (res.ok) {
-    alert('Bracket guardado correctamente en bracket.json');
-  } else {
-    alert('Error al guardar bracket: ' + res.error);
-  }
+  return res;
 }
+// Helper para inyectar CSS una sola vez
+function addStyle(styles) {
+    const styleId = 'sgg-dynamic-styles';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.innerHTML = styles;
+    document.head.appendChild(style);
+}
+
+
+// Helper para inyectar CSS una sola vez
+function addStyle(styles) {
+    const styleId = 'sgg-dynamic-styles';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.innerHTML = styles;
+    document.head.appendChild(style);
+}
+
