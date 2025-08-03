@@ -1322,16 +1322,21 @@ function cargarMatchStartggEnScoreboard() {
   const s1 = matchData.slots?.[0]?.standing?.stats?.score?.value ?? '';
   const s2 = matchData.slots?.[1]?.standing?.stats?.score?.value ?? '';
   const round = matchData.fullRoundText || matchData.fase || '';
-  const fase = matchData.fase || '';
+  const faseOriginal = matchData.fase || '';
   
-  // Determinar el texto de la ronda
+  // Aplicar la misma lógica que en las tarjetas para determinar si agregar " - Pools"
   let roundDisplay = round;
-  if (fase && fase.toLowerCase().includes('pool') && !fase.toLowerCase().includes('top')) {
-    roundDisplay = round + ' - Pools';
+  if (faseOriginal) {
+    const faseOriginalLower = faseOriginal.toLowerCase();
+    if (faseOriginalLower.includes('round') || 
+        faseOriginalLower.includes('bracket') ||
+        (faseOriginalLower.includes('pool') && !faseOriginalLower.includes('top'))) {
+      roundDisplay = round + ' - Pools';
+    }
   }
   
   // Usar la función existente para enviar al scoreboard
-  enviarMatchAlScoreboard(p1, p2, s1, s2, roundDisplay, fase);
+  enviarMatchAlScoreboard(p1, p2, s1, s2, roundDisplay, faseOriginal);
 }
 
 // Actualizar matches desde Start.gg en el scoreboard
