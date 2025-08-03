@@ -1273,13 +1273,19 @@ function poblarSelectorMatchesEnWidget(matches) {
     const p1 = match.slots?.[0]?.entrant?.name || 'TBD';
     const p2 = match.slots?.[1]?.entrant?.name || 'TBD';
     const round = match.fullRoundText || match.fase || 'Sin ronda';
-    const fase = match.fase || '';
+    const faseOriginal = match.fase || '';
     
     // Solo mostrar matches con dos jugadores
     if (p1 !== 'TBD' && p2 !== 'TBD') {
+      // Aplicar la misma lógica que en las tarjetas para determinar si agregar " - Pools"
       let roundDisplay = round;
-      if (fase && fase.toLowerCase().includes('pool') && !fase.toLowerCase().includes('top')) {
-        roundDisplay = round + ' - Pools';
+      if (faseOriginal) {
+        const faseOriginalLower = faseOriginal.toLowerCase();
+        if (faseOriginalLower.includes('round') || 
+            faseOriginalLower.includes('bracket') ||
+            (faseOriginalLower.includes('pool') && !faseOriginalLower.includes('top'))) {
+          roundDisplay = round + ' - Pools';
+        }
       }
       
       const option = document.createElement('option');
