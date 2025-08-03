@@ -1443,57 +1443,87 @@ async function guardarBracketStartggDesdeWidget() {
     return;
   }
 
-  const originalText = bracketBtn.innerHTML;
+  // Inyectar CSS para la animación (reutilizar el mismo estilo)
+  addStyle(`
+    .loading-btn {
+      position: relative;
+      overflow: hidden;
+      pointer-events: none !important;
+    }
+    .loading-btn .loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #e74c3c, #c0392b);
+      width: 0%;
+      transition: width 2s ease-in-out;
+      z-index: 1;
+    }
+    .loading-btn .btn-content {
+      position: relative;
+      z-index: 2;
+      color: white !important;
+      font-weight: bold;
+    }
+  `);
+
+  // Guardar estado original del botón
+  const originalHTML = bracketBtn.innerHTML;
   const originalStyle = bracketBtn.style.cssText;
+  const originalClass = bracketBtn.className;
 
   // Preparar botón para loading
   bracketBtn.disabled = true;
-  bracketBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Guardando...';
-  bracketBtn.style.background = '#6c757d';
+  bracketBtn.className = originalClass + ' loading-btn';
+  bracketBtn.innerHTML = '<span class="loading-bar"></span><span class="btn-content">Guardando...</span>';
 
   try {
-    // Obtener matches del evento usando los datos almacenados globalmente
-    const eventId = window.eventIdActual;
-    const eventName = window.eventNameActual;
-    
-    // Si no tenemos datos actuales, hacer la consulta
-    let sets = window.currentEventSets;
-    if (!sets || sets.length === 0) {
-      const res = await window.ipcRenderer.invoke('startgg-get-matches', eventId);
-      if (res.error) {
-        throw new Error(res.error);
+    // Iniciar animación de carga
+    setTimeout(() => {
+      const loadingBar = bracketBtn.querySelector('.loading-bar');
+      if (loadingBar) {
+        loadingBar.style.width = '100%';
       }
-      if (!res.sets || res.sets.length === 0) {
-        throw new Error('No se encontraron matches para guardar.');
-      }
-      sets = res.sets;
+    }, 50);
+
+    // Obtener matches del evento - SIEMPRE hacer la consulta para datos frescos
+    const res = await window.ipcRenderer.invoke('startgg-get-matches', window.eventIdActual);
+    if (res.error) {
+      throw new Error(res.error);
+    }
+    if (!res.sets || res.sets.length === 0) {
+      throw new Error('No se encontraron matches para guardar.');
     }
 
     // Guardar bracket usando la función existente
-    const torneo = eventName || '';
+    const torneo = window.eventNameActual || '';
     const fecha = new Date().toLocaleDateString('es-CL');
-    const saveResult = await guardarBracketEnJson(torneo, fecha, sets);
+    const saveResult = await guardarBracketEnJson(torneo, fecha, res.sets);
 
     if (!saveResult.ok) {
       throw new Error(saveResult.error || 'Error desconocido al guardar');
     }
 
     // Mostrar éxito
-    bracketBtn.innerHTML = '<i class="fa fa-check"></i> ¡Guardado!';
+    bracketBtn.innerHTML = '<span class="btn-content"><i class="fa fa-check"></i> ¡Guardado!</span>';
     bracketBtn.style.background = '#27ae60';
+    bracketBtn.style.border = '2px solid #2ecc71';
 
   } catch (e) {
     // Mostrar error
-    bracketBtn.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Error';
+    bracketBtn.innerHTML = '<span class="btn-content"><i class="fa fa-exclamation-triangle"></i> Error</span>';
     bracketBtn.style.background = '#e74c3c';
+    bracketBtn.style.border = '2px solid #c0392b';
     console.error('Error guardando bracket desde widget:', e);
     alert('Error: ' + e.message);
   }
 
   // Restaurar botón después de 3 segundos
   setTimeout(() => {
-    bracketBtn.innerHTML = originalText;
+    bracketBtn.innerHTML = originalHTML;
     bracketBtn.style.cssText = originalStyle;
+    bracketBtn.className = originalClass;
     bracketBtn.disabled = false;
   }, 3000);
 }
