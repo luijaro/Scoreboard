@@ -488,6 +488,54 @@
   <script src="js/startgg.js"></script>
   <!-- Contenedor global de notificaciones -->
 <div id="notificaciones-app"></div>
+
+<!-- Widget flotante para matches de Start.gg -->
+<div id="startggMatchesFloatingWidget" style="display:none;">
+  <div class="floating-widget-header">
+    <div class="widget-title">
+      <i class="fa fa-gamepad"></i> Start.gg Matches
+    </div>
+    <button class="widget-toggle-btn" onclick="toggleStartggWidget()" title="Minimizar/Expandir">
+      <i class="fa fa-chevron-up" id="widgetToggleIcon"></i>
+    </button>
+    <button class="widget-close-btn" onclick="cerrarStartggWidget()" title="Cerrar">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="floating-widget-content" id="startggWidgetContent">
+    <div class="widget-selector-row">
+      <select id="startggTournamentSelector" class="widget-select" onchange="cargarEventosDelTorneo()">
+        <option value="">Selecciona un torneo...</option>
+      </select>
+    </div>
+    <div class="widget-selector-row">
+      <select id="startggEventSelector" class="widget-select" onchange="cargarMatchesDelEvento()" style="display:none;">
+        <option value="">Selecciona un evento...</option>
+      </select>
+    </div>
+    <div class="widget-selector-row">
+      <select id="startggMatchSelector" class="widget-select" style="display:none;">
+        <option value="">Selecciona un match...</option>
+      </select>
+      <div id="matchLoadingBar" class="widget-loading-bar" style="display:none;">
+        <div class="loading-bar-fill"></div>
+        <span class="loading-text">Cargando matches...</span>
+      </div>
+    </div>
+    <div class="widget-buttons-row">
+      <button class="widget-btn load-btn" onclick="cargarMatchStartggEnScoreboard()" title="Cargar match en scoreboard">
+        <i class="fa fa-upload"></i> Cargar
+      </button>
+      <button class="widget-btn update-btn" onclick="actualizarMatchesStartggEnScoreboard()" title="Actualizar matches">
+        <i class="fa fa-refresh"></i> Actualizar
+      </button>
+      <button class="widget-btn bracket-btn" onclick="guardarBracketStartggDesdeWidget()" title="Guardar bracket completo">
+        <i class="fa fa-sitemap"></i> Bracket
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 

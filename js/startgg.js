@@ -96,6 +96,9 @@ async function buscarStartGG() {
         });
       });
     }, 100);
+
+    // Agregar torneo al selector del widget flotante
+    agregarTorneoAlWidget(torneo, slug, eventos);
   } catch (e) {
     resultsDiv.textContent = "❌ Error: " + e.message;
   }
@@ -639,6 +642,9 @@ async function consultarMatchesStartGG(eventId, eventName) {
       // Inicializar resultados vacíos
       filtrarMatchesGlobal();
       
+      // Poblar selector en scoreboard (ya no es necesario, se maneja desde el widget)
+      // poblarSelectorMatchesEnScoreboard(matchesEnProgreso);
+      
     } else {
       resultsDiv.innerHTML = `<div style='color:#e67e22; font-size:0.95em;'>No se encontraron matches en este evento.</div>`;
     }
@@ -1059,6 +1065,7 @@ async function guardarBracketEnJson(torneo, fecha, sets) {
   const res = await window.ipcRenderer.invoke('save-bracket-json', bracketData);
   return res;
 }
+
 // Helper para inyectar CSS una sola vez
 function addStyle(styles) {
     const styleId = 'sgg-dynamic-styles';
@@ -1069,14 +1076,414 @@ function addStyle(styles) {
     document.head.appendChild(style);
 }
 
+// ========================================
+// FUNCIONES PARA SELECTOR DE MATCHES EN SCOREBOARD
+// ========================================
 
-// Helper para inyectar CSS una sola vez
-function addStyle(styles) {
-    const styleId = 'sgg-dynamic-styles';
-    if (document.getElementById(styleId)) return;
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.innerHTML = styles;
-    document.head.appendChild(style);
+// Mostrar/ocultar el selector de matches en el scoreboard
+function mostrarSelectorMatchesEnScoreboard(mostrar = true) {
+  const widget = document.getElementById('startggMatchesFloatingWidget');
+  if (widget) {
+    widget.style.display = mostrar ? 'block' : 'none';
+  }
+}
+
+// Cerrar el widget flotante
+function cerrarStartggWidget() {
+  const widget = document.getElementById('startggMatchesFloatingWidget');
+  if (widget) {
+    widget.style.display = 'none';
+  }
+}
+
+// Toggle del widget flotante (minimizar/expandir)
+function toggleStartggWidget() {
+  const content = document.getElementById('startggWidgetContent');
+  const icon = document.getElementById('widgetToggleIcon');
+  
+  if (content && icon) {
+    const isMinimized = content.classList.contains('minimized');
+    
+    if (isMinimized) {
+      // Expandir
+      content.classList.remove('minimized');
+      icon.classList.remove('fa-chevron-down');
+      icon.classList.add('fa-chevron-up');
+    } else {
+      // Minimizar
+      content.classList.add('minimized');
+      icon.classList.remove('fa-chevron-up');
+      icon.classList.add('fa-chevron-down');
+    }
+  }
+}
+
+// Agregar torneo al selector del widget
+function agregarTorneoAlWidget(torneoNombre, slug, eventos) {
+  const tournamentSelector = document.getElementById('startggTournamentSelector');
+  if (!tournamentSelector) return;
+
+  // Verificar si ya existe este torneo
+  const existingOption = Array.from(tournamentSelector.options).find(option => option.value === slug);
+  if (existingOption) {
+    // Si ya existe, solo seleccionarlo
+    tournamentSelector.value = slug;
+  } else {
+    // Agregar nueva opción
+    const option = document.createElement('option');
+    option.value = slug;
+    option.textContent = torneoNombre;
+    option.dataset.eventos = JSON.stringify(eventos);
+    tournamentSelector.appendChild(option);
+    
+    // Seleccionar automáticamente
+    tournamentSelector.value = slug;
+  }
+
+  // Cargar eventos automáticamente
+  cargarEventosDelTorneo();
+  
+  // Mostrar el widget
+  mostrarSelectorMatchesEnScoreboard(true);
+}
+
+// Cargar eventos del torneo seleccionado
+function cargarEventosDelTorneo() {
+  const tournamentSelector = document.getElementById('startggTournamentSelector');
+  const eventSelector = document.getElementById('startggEventSelector');
+  const matchSelector = document.getElementById('startggMatchSelector');
+  
+  if (!tournamentSelector || !eventSelector || !matchSelector) return;
+
+  const selectedTournament = tournamentSelector.value;
+  
+  if (!selectedTournament) {
+    // Ocultar selectores de evento y match
+    eventSelector.style.display = 'none';
+    matchSelector.style.display = 'none';
+    return;
+  }
+
+  // Obtener eventos del torneo seleccionado
+  const selectedOption = tournamentSelector.options[tournamentSelector.selectedIndex];
+  const eventos = JSON.parse(selectedOption.dataset.eventos || '[]');
+
+  // Limpiar y poblar selector de eventos
+  eventSelector.innerHTML = '<option value="">Selecciona un evento...</option>';
+  
+  eventos.forEach(evento => {
+    const option = document.createElement('option');
+    option.value = evento.id;
+    option.textContent = evento.name;
+    option.dataset.eventName = evento.name;
+    eventSelector.appendChild(option);
+  });
+
+  // Mostrar selector de eventos
+  eventSelector.style.display = 'block';
+  
+  // Ocultar selector de matches hasta que se seleccione un evento
+  matchSelector.style.display = 'none';
+  matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
+}
+
+// Cargar matches del evento seleccionado
+async function cargarMatchesDelEvento() {
+  const eventSelector = document.getElementById('startggEventSelector');
+  const matchSelector = document.getElementById('startggMatchSelector');
+  const loadingBar = document.getElementById('matchLoadingBar');
+  
+  if (!eventSelector || !matchSelector || !loadingBar) return;
+
+  const selectedEventId = eventSelector.value;
+  
+  if (!selectedEventId) {
+    matchSelector.style.display = 'none';
+    loadingBar.style.display = 'none';
+    matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
+    return;
+  }
+
+  const selectedOption = eventSelector.options[eventSelector.selectedIndex];
+  const eventName = selectedOption.dataset.eventName;
+
+  // Guardar datos del evento actual
+  window.eventIdActual = selectedEventId;
+  window.eventNameActual = eventName;
+
+  // Mostrar barra de loading
+  matchSelector.style.display = 'none';
+  loadingBar.style.display = 'block';
+
+  try {
+    // Consultar matches del evento
+    const res = await window.ipcRenderer.invoke('startgg-get-matches', selectedEventId);
+    if (res.error) {
+      throw new Error(res.error);
+    }
+
+    if (res.sets && res.sets.length > 0) {
+      // Guardar sets para uso posterior
+      window.currentEventSets = res.sets;
+
+      // Filtrar matches en progreso
+      const matchesEnProgreso = res.sets.filter(set => {
+        const p1 = set.slots[0]?.entrant?.name || 'TBD';
+        const p2 = set.slots[1]?.entrant?.name || 'TBD';
+        const s1 = set.slots[0]?.standing?.stats?.score?.value;
+        const s2 = set.slots[1]?.standing?.stats?.score?.value;
+
+        const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
+        const sinGanador = !set.winnerId && !set.winner_id;
+        const scoresEnCero = (s1 === null || s1 === undefined || s1 === 0) && (s2 === null || s2 === undefined || s2 === 0);
+
+        return tieneDosLuchadores && sinGanador && scoresEnCero;
+      });
+
+      // Ocultar loading y poblar selector de matches
+      loadingBar.style.display = 'none';
+      poblarSelectorMatchesEnWidget(matchesEnProgreso);
+    }
+  } catch (error) {
+    console.error('Error cargando matches del evento:', error);
+    
+    // Ocultar loading y mostrar error
+    loadingBar.style.display = 'none';
+    matchSelector.innerHTML = '<option value="">Error cargando matches</option>';
+    matchSelector.style.display = 'block';
+  }
+}
+
+// Poblar el selector de matches en el widget
+function poblarSelectorMatchesEnWidget(matches) {
+  const matchSelector = document.getElementById('startggMatchSelector');
+  if (!matchSelector) return;
+  
+  // Limpiar opciones existentes
+  matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
+  
+  if (!matches || matches.length === 0) {
+    matchSelector.innerHTML = '<option value="">No hay matches disponibles</option>';
+    matchSelector.style.display = 'none';
+    return;
+  }
+  
+  // Agregar matches al selector
+  matches.forEach((match, index) => {
+    const p1 = match.slots?.[0]?.entrant?.name || 'TBD';
+    const p2 = match.slots?.[1]?.entrant?.name || 'TBD';
+    const round = match.fullRoundText || match.fase || 'Sin ronda';
+    const fase = match.fase || '';
+    
+    // Solo mostrar matches con dos jugadores
+    if (p1 !== 'TBD' && p2 !== 'TBD') {
+      let roundDisplay = round;
+      if (fase && fase.toLowerCase().includes('pool') && !fase.toLowerCase().includes('top')) {
+        roundDisplay = round + ' - Pools';
+      }
+      
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = `${p1} vs ${p2} (${roundDisplay})`;
+      option.dataset.match = JSON.stringify(match);
+      matchSelector.appendChild(option);
+    }
+  });
+  
+  // Mostrar el selector si hay matches
+  matchSelector.style.display = matches.length > 0 ? 'block' : 'none';
+}
+
+// Poblar el selector de matches en el scoreboard (función original, mantenida para compatibilidad)
+function poblarSelectorMatchesEnScoreboard(matches) {
+  // Usar la nueva función del widget
+  poblarSelectorMatchesEnWidget(matches);
+}
+
+// Cargar match seleccionado en el scoreboard
+function cargarMatchStartggEnScoreboard() {
+  const selector = document.getElementById('startggMatchSelector');
+  if (!selector || !selector.value) {
+    alert('Por favor selecciona un match primero.');
+    return;
+  }
+  
+  const selectedOption = selector.options[selector.selectedIndex];
+  const matchData = JSON.parse(selectedOption.dataset.match);
+  
+  const p1 = matchData.slots?.[0]?.entrant?.name || 'TBD';
+  const p2 = matchData.slots?.[1]?.entrant?.name || 'TBD';
+  const s1 = matchData.slots?.[0]?.standing?.stats?.score?.value ?? '';
+  const s2 = matchData.slots?.[1]?.standing?.stats?.score?.value ?? '';
+  const round = matchData.fullRoundText || matchData.fase || '';
+  const fase = matchData.fase || '';
+  
+  // Determinar el texto de la ronda
+  let roundDisplay = round;
+  if (fase && fase.toLowerCase().includes('pool') && !fase.toLowerCase().includes('top')) {
+    roundDisplay = round + ' - Pools';
+  }
+  
+  // Usar la función existente para enviar al scoreboard
+  enviarMatchAlScoreboard(p1, p2, s1, s2, roundDisplay, fase);
+}
+
+// Actualizar matches desde Start.gg en el scoreboard
+async function actualizarMatchesStartggEnScoreboard() {
+  const updateBtn = document.querySelector('button[onclick="actualizarMatchesStartggEnScoreboard()"]');
+  const matchSelector = document.getElementById('startggMatchSelector');
+  const loadingBar = document.getElementById('matchLoadingBar');
+  
+  if (!updateBtn) return;
+  
+  // Si no hay un evento actual cargado, mostrar mensaje
+  if (!window.eventIdActual || !window.eventNameActual) {
+    alert('No hay un evento de Start.gg cargado. Busca matches desde la pestaña Start.gg primero.');
+    return;
+  }
+  
+  const originalText = updateBtn.innerHTML;
+  
+  // Mostrar estado de carga en el botón
+  updateBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Actualizando...';
+  updateBtn.disabled = true;
+  updateBtn.style.background = '#6c757d';
+  
+  // Mostrar barra de loading y ocultar selector
+  if (matchSelector && loadingBar) {
+    matchSelector.style.display = 'none';
+    loadingBar.style.display = 'block';
+    loadingBar.querySelector('.loading-text').textContent = 'Actualizando matches...';
+  }
+  
+  try {
+    // Consultar matches actualizados
+    const res = await window.ipcRenderer.invoke('startgg-get-matches', window.eventIdActual);
+    if (res.error) {
+      throw new Error(res.error);
+    }
+    
+    if (res.sets && res.sets.length > 0) {
+      // Filtrar matches en progreso
+      const matchesEnProgreso = res.sets.filter(set => {
+        const p1 = set.slots[0]?.entrant?.name || 'TBD';
+        const p2 = set.slots[1]?.entrant?.name || 'TBD';
+        const s1 = set.slots[0]?.standing?.stats?.score?.value;
+        const s2 = set.slots[1]?.standing?.stats?.score?.value;
+
+        const tieneDosLuchadores = p1 !== 'TBD' && p2 !== 'TBD';
+        const sinGanador = !set.winnerId && !set.winner_id;
+        const scoresEnCero = (s1 === null || s1 === undefined || s1 === 0) && (s2 === null || s2 === undefined || s2 === 0);
+
+        return tieneDosLuchadores && sinGanador && scoresEnCero;
+      });
+      
+      // Ocultar loading y actualizar el selector
+      if (loadingBar) {
+        loadingBar.style.display = 'none';
+      }
+      poblarSelectorMatchesEnWidget(matchesEnProgreso);
+      
+      // Mostrar mensaje de éxito temporal
+      updateBtn.innerHTML = '<i class="fa fa-check"></i> Actualizado';
+      updateBtn.style.background = '#27ae60';
+    } else {
+      throw new Error('No se encontraron matches');
+    }
+    
+  } catch (error) {
+    console.error('Error actualizando matches en scoreboard:', error);
+    
+    // Ocultar loading en caso de error
+    if (loadingBar) {
+      loadingBar.style.display = 'none';
+    }
+    if (matchSelector) {
+      matchSelector.innerHTML = '<option value="">Error actualizando matches</option>';
+      matchSelector.style.display = 'block';
+    }
+    
+    // Mostrar error temporal
+    updateBtn.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Error';
+    updateBtn.style.background = '#e74c3c';
+  }
+  
+  // Restaurar botón después de 2 segundos
+  setTimeout(() => {
+    updateBtn.innerHTML = originalText;
+    updateBtn.style.background = '#8e44ad';
+    updateBtn.disabled = false;
+    
+    // Restaurar texto de loading
+    if (loadingBar) {
+      loadingBar.querySelector('.loading-text').textContent = 'Cargando matches...';
+    }
+  }, 2000);
+}
+
+// Guardar bracket desde el widget flotante
+async function guardarBracketStartggDesdeWidget() {
+  const bracketBtn = document.querySelector('button[onclick="guardarBracketStartggDesdeWidget()"]');
+  if (!bracketBtn) return;
+
+  // Si no hay un evento actual cargado, mostrar mensaje
+  if (!window.eventIdActual || !window.eventNameActual) {
+    alert('No hay un evento de Start.gg cargado. Busca matches desde la pestaña Start.gg primero.');
+    return;
+  }
+
+  const originalText = bracketBtn.innerHTML;
+  const originalStyle = bracketBtn.style.cssText;
+
+  // Preparar botón para loading
+  bracketBtn.disabled = true;
+  bracketBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Guardando...';
+  bracketBtn.style.background = '#6c757d';
+
+  try {
+    // Obtener matches del evento usando los datos almacenados globalmente
+    const eventId = window.eventIdActual;
+    const eventName = window.eventNameActual;
+    
+    // Si no tenemos datos actuales, hacer la consulta
+    let sets = window.currentEventSets;
+    if (!sets || sets.length === 0) {
+      const res = await window.ipcRenderer.invoke('startgg-get-matches', eventId);
+      if (res.error) {
+        throw new Error(res.error);
+      }
+      if (!res.sets || res.sets.length === 0) {
+        throw new Error('No se encontraron matches para guardar.');
+      }
+      sets = res.sets;
+    }
+
+    // Guardar bracket usando la función existente
+    const torneo = eventName || '';
+    const fecha = new Date().toLocaleDateString('es-CL');
+    const saveResult = await guardarBracketEnJson(torneo, fecha, sets);
+
+    if (!saveResult.ok) {
+      throw new Error(saveResult.error || 'Error desconocido al guardar');
+    }
+
+    // Mostrar éxito
+    bracketBtn.innerHTML = '<i class="fa fa-check"></i> ¡Guardado!';
+    bracketBtn.style.background = '#27ae60';
+
+  } catch (e) {
+    // Mostrar error
+    bracketBtn.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Error';
+    bracketBtn.style.background = '#e74c3c';
+    console.error('Error guardando bracket desde widget:', e);
+    alert('Error: ' + e.message);
+  }
+
+  // Restaurar botón después de 3 segundos
+  setTimeout(() => {
+    bracketBtn.innerHTML = originalText;
+    bracketBtn.style.cssText = originalStyle;
+    bracketBtn.disabled = false;
+  }, 3000);
 }
 
