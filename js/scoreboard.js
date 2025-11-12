@@ -1,3 +1,220 @@
+// ================================
+// Guardar manualmente el token de Nightbot desde el input
+function guardarNightbotTokenManual() {
+  const token = document.getElementById('nightbotToken').value.trim();
+  if (!token) {
+    mostrarNotificacion('❌ Ingresa un token para guardar', 'error');
+    return;
+  }
+  
+  // También obtener client ID y secret si están presentes
+  const clientId = document.getElementById('nbClientId') ? document.getElementById('nbClientId').value.trim() : '';
+  const clientSecret = document.getElementById('nbClientSecret') ? document.getElementById('nbClientSecret').value.trim() : '';
+  const redirectUri = document.getElementById('nbRedirectUri') ? document.getElementById('nbRedirectUri').value.trim() : 'http://localhost';
+  
+  // Guardar el token y credentials en apikey.json usando ipcRenderer
+  if (window && window.ipcRenderer) {
+    const dataToSave = { nightbotToken: token };
+    if (clientId) dataToSave.nightbotClientId = clientId;
+    if (clientSecret) dataToSave.nightbotClientSecret = clientSecret;
+    if (redirectUri) dataToSave.nightbotRedirectUri = redirectUri;
+    
+    window.ipcRenderer.invoke('save-api-key', dataToSave)
+      .then(() => {
+        mostrarNotificacion('✅ Token guardado en apikey.json', 'success');
+      })
+      .catch(() => {
+        mostrarNotificacion('❌ Error al guardar el token', 'error');
+      });
+  } else {
+    mostrarNotificacion('No se puede guardar el token (ipcRenderer no disponible)', 'error');
+  }
+}
+//   Nightbot OAuth2: Generación de código (URL/curl)
+// ================================
+function generarNightbotAuthUrl() {
+  const clientId = document.getElementById('nbClientId').value.trim();
+  const redirectUri = document.getElementById('nbRedirectUri').value.trim();
+  const div = document.getElementById('nbAuthUrl');
+  if (!clientId || !redirectUri) {
+  div.innerHTML = '<span class="text-error">Faltan datos</span>';
+    return;
+  }
+  const url = `https://api.nightbot.tv/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=commands`;
+  div.innerHTML = `<b>URL de autorización:</b> <a href="${url}" target="_blank">${url}</a>`;
+}
+
+function generarNightbotCurl() {
+  const clientId = document.getElementById('nbClientId').value.trim();
+  const clientSecret = document.getElementById('nbClientSecret').value.trim();
+  const code = document.getElementById('nbAuthCode').value.trim();
+  const redirectUri = document.getElementById('nbRedirectUri').value.trim();
+  if (!clientId || !clientSecret || !code || !redirectUri) {
+  document.getElementById('nbCurl').innerHTML = '<span class="text-error">Faltan datos</span>';
+    return;
+  }
+  const curl = `curl -X POST https://api.nightbot.tv/oauth2/token \\\n  -d "client_id=${clientId}" \\\n  -d "client_secret=${clientSecret}" \\\n  -d "grant_type=authorization_code" \\\n  -d "code=${code}" \\\n  -d "redirect_uri=${redirectUri}"`;
+  document.getElementById('nbCurl').innerHTML = `<b>Comando curl:</b><br><pre style="white-space:pre-wrap;">${curl}</pre>`;
+}
+
+// ================================
+//   Nightbot OAuth2: Solicitud y manejo de token
+// ================================
+async function obtenerYGuardarNightbotToken() {
+  const clientId = document.getElementById('nbClientId').value.trim();
+  const clientSecret = document.getElementById('nbClientSecret').value.trim();
+  const code = document.getElementById('nbAuthCode').value.trim();
+  const redirectUri = document.getElementById('nbRedirectUri').value.trim();
+  const msg = document.getElementById('nbJsonMsg');
+  msg.textContent = '';
+  if (!clientId || !clientSecret || !code || !redirectUri) {
+    msg.textContent = 'Completa todos los campos.';
+    msg.className = 'sb-message error';
+    return;
+  }
+  msg.textContent = 'Solicitando token...';
+  msg.className = 'sb-message';
+  try {
+    const params = new URLSearchParams();
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    params.append('grant_type', 'authorization_code');
+    params.append('code', code);
+    params.append('redirect_uri', redirectUri);
+    const res = await fetch('https://api.nightbot.tv/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    const json = await res.json();
+    const nbJsonPaste = document.getElementById('nbJsonPaste');
+    if (nbJsonPaste) nbJsonPaste.value = JSON.stringify(json, null, 2);
+    if (json.access_token) {
+      const nightbotTokenInput = document.getElementById('nightbotToken');
+      if (nightbotTokenInput) nightbotTokenInput.value = json.access_token;
+      // Guardar en apikey.json usando la función global para asegurar consistencia
+      if (typeof guardarApiKey === 'function') {
+        await guardarApiKey();
+      } else if (window.electronAPI && window.electronAPI.guardarApiKey) {
+        await window.electronAPI.guardarApiKey({ nightbotToken: json.access_token });
+      } else if (window.ipcRenderer) {
+        window.ipcRenderer.invoke('save-api-key', { nightbotToken: json.access_token });
+      }
+      msg.textContent = '¡Token guardado en apikey.json!';
+      msg.className = 'sb-message success';
+    } else {
+      msg.textContent = 'Respuesta recibida, pero no se encontró access_token.';
+      msg.className = 'sb-message error';
+    }
+  } catch (e) {
+    msg.textContent = 'Error al solicitar el token: ' + e.message;
+    msg.className = 'sb-message error';
+  }
+}
+
+function extraerNightbotToken() {
+  const txt = document.getElementById('nbJsonPaste').value.trim();
+  const msg = document.getElementById('nbJsonMsg');
+  msg.textContent = '';
+  if (!txt) {
+    msg.textContent = 'Pega el JSON de respuesta.';
+    msg.className = 'sb-message error';
+    return;
+  }
+  let obj;
+  try {
+    obj = JSON.parse(txt);
+  } catch (e) {
+    msg.textContent = 'JSON inválido.';
+    msg.className = 'sb-message error';
+    return;
+  }
+  if (!obj.access_token) {
+    msg.textContent = 'No se encontró access_token.';
+    msg.className = 'sb-message error';
+    return;
+  }
+  document.getElementById('nightbotToken').value = obj.access_token;
+  msg.textContent = '¡Token pegado abajo!';
+  msg.className = 'sb-message success';
+}
+// ================================
+//   NIGHTBOT: Setear comando custom
+// ================================
+async function setNightbotCommand() {
+  const command = document.getElementById('nightbotCommand').value.trim();
+  const response = document.getElementById('nightbotResponse').value.trim();
+  const token = document.getElementById('nightbotToken').value.trim();
+  const msg = document.getElementById('msgNightbot');
+  if (!command || !response || !token) {
+    msg.textContent = '❌ Faltan datos';
+    return;
+  }
+  msg.textContent = 'Enviando...';
+  try {
+    // Intentar crear el comando
+    let res = await fetch('https://api.nightbot.tv/1/commands', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: command,
+        message: response,
+        userLevel: 'everyone'
+      })
+    });
+    let data = await res.json();
+    if (res.ok) {
+      msg.textContent = '✅ Comando creado en Nightbot';
+      return;
+    }
+    // Si el error es que el comando ya existe, buscar el ID y reemplazarlo
+    if (data.message && data.message.includes('already exists')) {
+      msg.textContent = 'Comando ya existe, reemplazando...';
+      // Buscar el comando existente
+      const listRes = await fetch('https://api.nightbot.tv/1/commands', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const listData = await listRes.json();
+      const found = (listData.commands || []).find(cmd => cmd.name.toLowerCase() === command.toLowerCase());
+      if (found) {
+        // Editar el comando existente
+        const editRes = await fetch(`https://api.nightbot.tv/1/commands/${found._id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: response,
+            userLevel: 'everyone'
+          })
+        });
+        const editData = await editRes.json();
+        if (editRes.ok) {
+          msg.textContent = '✅ Comando reemplazado en Nightbot';
+        } else {
+          msg.textContent = '❌ ' + (editData.message || 'Error al reemplazar el comando');
+        }
+      } else {
+        msg.textContent = '❌ No se encontró el comando para reemplazar.';
+      }
+    } else {
+      msg.textContent = '❌ ' + (data.message || 'Error al crear el comando');
+    }
+  } catch (e) {
+    msg.textContent = '❌ Error: ' + e.message;
+  }
+}
+// ================================
+//   SUB-TABS TWITCH (internos)
+// ================================
+function showTwitchSubTab(n) {
+  document.querySelectorAll('.twitch-subtab-btn').forEach((btn, i) => btn.classList.toggle('active', i === n));
+  document.querySelectorAll('.twitch-subtab-panel').forEach((panel, i) => panel.classList.toggle('active', i === n));
+}
 let timerInterval = null;
 let timerEndTimestamp = null;
 
@@ -139,12 +356,12 @@ function mostrarComentaristasEnScoreboard(coms) {
   const el1 = document.getElementById('comm1');
   const el2 = document.getElementById('comm2');
   if (el1 && coms && coms[0]) {
-    el1.innerHTML = `<i class='fa fa-microphone'></i> ${coms[0].nombre || ''}${coms[0].twitter ? ` <span style='color:#8e44ad;'>@${coms[0].twitter}</span>` : ''}`;
+  el1.innerHTML = `<i class='fa fa-microphone'></i> ${coms[0].nombre || ''}${coms[0].twitter ? ` <span class='text-accent'>@${coms[0].twitter}</span>` : ''}`;
   } else if (el1) {
     el1.innerHTML = `<i class='fa fa-microphone'></i> Commentator #1`;
   }
   if (el2 && coms && coms[1]) {
-    el2.innerHTML = `<i class='fa fa-microphone'></i> ${coms[1].nombre || ''}${coms[1].twitter ? ` <span style='color:#8e44ad;'>@${coms[1].twitter}</span>` : ''}`;
+  el2.innerHTML = `<i class='fa fa-microphone'></i> ${coms[1].nombre || ''}${coms[1].twitter ? ` <span class='text-accent'>@${coms[1].twitter}</span>` : ''}`;
   } else if (el2) {
     el2.innerHTML = `<i class='fa fa-microphone'></i> Commentator #2`;
   }
@@ -325,6 +542,14 @@ function showTab(n) {
   if (n === 4) {
     if (typeof cargarStartggToken === 'function') cargarStartggToken();
   }
+  
+  // Tab 5: Configurar rutas
+  if (n === 5) {
+    console.log('[showTab] Entrando a pestaña de rutas, cargando rutas...');
+    if (typeof cargarRutas === 'function') {
+      setTimeout(cargarRutas, 100); // Pequeño delay para asegurar que la pestaña esté visible
+    }
+  }
 }
 
 // ================================
@@ -428,8 +653,13 @@ async function enviarComandoBot(cmd) {
 //          SCOREBOARD
 // ================================
 
-document.querySelectorAll('.sb-input, .sb-dropdown').forEach(el => {
-  el.addEventListener('input', updateVisual);
+// Listeners para los campos integrados en el marcador principal
+['p1NameInput','p1TagInput','p2NameInput','p2TagInput','p1CharSelect','p2CharSelect'].forEach(id => {
+  const el = document.getElementById(id) || document.getElementById(id.replace('Select',''));
+  if (el) {
+    el.addEventListener('input', updateVisual);
+    el.addEventListener('change', updateVisual);
+  }
 });
 
 // Agregar listener de auto-guardado para el campo round
@@ -448,14 +678,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateVisual() {
-  document.getElementById('p1Name').textContent = document.getElementById('p1NameInput').value;
-  document.getElementById('p1Tag').textContent = document.getElementById('p1TagInput').value;
-  document.getElementById('p2Name').textContent = document.getElementById('p2NameInput').value;
-  document.getElementById('p2Tag').textContent = document.getElementById('p2TagInput').value;
-  const p1Char = document.getElementById('p1Char').value;
-  const p2Char = document.getElementById('p2Char').value;
-  document.querySelector('.sb-side .sb-player-img').src = imgPersonajes[p1Char] || '';
-  document.querySelector('.sb-side.right .sb-player-img').src = imgPersonajes[p2Char] || '';
+  // Actualizar tag debajo del score
+  document.getElementById('p1TagDisplay').textContent = document.getElementById('p1TagInput').value;
+  document.getElementById('p2TagDisplay').textContent = document.getElementById('p2TagInput').value;
+
+  // Actualizar fila de tags y nombres debajo del score
+  const tag1 = document.getElementById('p1TagInput').value;
+  const tag2 = document.getElementById('p2TagInput').value;
+  const name1 = document.getElementById('p1NameInput').value;
+  const name2 = document.getElementById('p2NameInput').value;
+  if (document.getElementById('sbTagName1')) document.getElementById('sbTagName1').textContent = tag1 || 'TAG1';
+  if (document.getElementById('sbTagName2')) document.getElementById('sbTagName2').textContent = tag2 || 'TAG2';
+  if (document.getElementById('sbPlayerName1')) document.getElementById('sbPlayerName1').textContent = name1 || 'Player1';
+  if (document.getElementById('sbPlayerName2')) document.getElementById('sbPlayerName2').textContent = name2 || 'Player2';
+  // Banderas removidas del UI; no actualizar
+  // Actualizar personaje visual
+  const p1Char = document.getElementById('p1CharSelect') ? document.getElementById('p1CharSelect').value : '';
+  const p2Char = document.getElementById('p2CharSelect') ? document.getElementById('p2CharSelect').value : '';
+  if (window.imgPersonajes) {
+    if (document.getElementById('p1CharImg')) document.getElementById('p1CharImg').src = imgPersonajes[p1Char] || '';
+    if (document.getElementById('p2CharImg')) document.getElementById('p2CharImg').src = imgPersonajes[p2Char] || '';
+  }
 }
 
 function changeScore(player, delta) {
@@ -472,16 +715,20 @@ function swap() {
   let p2Tag = document.getElementById('p2TagInput').value;
   let p1Score = document.getElementById('p1Score').textContent;
   let p2Score = document.getElementById('p2Score').textContent;
-  let p1Char = document.getElementById('p1Char').value;
-  let p2Char = document.getElementById('p2Char').value;
+  let p1Char = document.getElementById('p1CharSelect') ? document.getElementById('p1CharSelect').value : '';
+  let p2Char = document.getElementById('p2CharSelect') ? document.getElementById('p2CharSelect').value : '';
+  // Banderas removidas
   document.getElementById('p1NameInput').value = p2Name;
   document.getElementById('p2NameInput').value = p1Name;
   document.getElementById('p1TagInput').value = p2Tag;
   document.getElementById('p2TagInput').value = p1Tag;
   document.getElementById('p1Score').textContent = p2Score;
   document.getElementById('p2Score').textContent = p1Score;
-  document.getElementById('p1Char').value = p2Char;
-  document.getElementById('p2Char').value = p1Char;
+  if (document.getElementById('p1CharSelect') && document.getElementById('p2CharSelect')) {
+    document.getElementById('p1CharSelect').value = p2Char;
+    document.getElementById('p2CharSelect').value = p1Char;
+  }
+  // Banderas removidas
   updateVisual();
 }
 
@@ -541,14 +788,14 @@ function getScoreboardData() {
     score2: Number(document.getElementById('p2Score').textContent),
     tag1: document.getElementById('p1TagInput').value,
     tag2: document.getElementById('p2TagInput').value,
-    char1: document.getElementById('p1Char').value,
-    char2: document.getElementById('p2Char').value,
+    char1: document.getElementById('p1CharSelect')?.value || '',
+    char2: document.getElementById('p2CharSelect')?.value || '',
     game: document.getElementById('gameSel').value,
     event: document.getElementById('sbEvent').textContent,
     round: document.getElementById('sbRound').value,
     fase_original: window.currentFaseOriginal || '',
-    country1: document.getElementById('p1Flag').value,
-    country2: document.getElementById('p2Flag').value,
+  country1: '',
+  country2: '',
     temporizador: temporizador,
     comentaristas: comentaristas
   };
@@ -725,7 +972,11 @@ async function guardarApiKey() {
     mostrarNotificacion("API Key vacía", "error");
     return;
   }
-  await ipcRenderer.invoke('save-api-key', { apiKey, twitchOAuth, twitchUser, twitchChannel });
+  const nightbotToken = document.getElementById('nightbotToken') ? document.getElementById('nightbotToken').value.trim() : '';
+  const nightbotClientId = document.getElementById('nbClientId') ? document.getElementById('nbClientId').value.trim() : '';
+  const nightbotClientSecret = document.getElementById('nbClientSecret') ? document.getElementById('nbClientSecret').value.trim() : '';
+  const nightbotRedirectUri = document.getElementById('nbRedirectUri') ? document.getElementById('nbRedirectUri').value.trim() : 'http://localhost';
+  await ipcRenderer.invoke('save-api-key', { apiKey, twitchOAuth, twitchUser, twitchChannel, nightbotToken, nightbotClientId, nightbotClientSecret, nightbotRedirectUri });
   mostrarNotificacion("Datos guardados.", "success");
 }
 
@@ -739,6 +990,14 @@ async function guardarApiKey() {
       document.getElementById('twitchUser').value = res.twitchUser;
     if ('twitchChannel' in res && document.getElementById('twitchChannel'))
       document.getElementById('twitchChannel').value = res.twitchChannel;
+    if ('nightbotToken' in res && document.getElementById('nightbotToken'))
+      document.getElementById('nightbotToken').value = res.nightbotToken;
+    if ('nightbotClientId' in res && document.getElementById('nbClientId'))
+      document.getElementById('nbClientId').value = res.nightbotClientId;
+    if ('nightbotClientSecret' in res && document.getElementById('nbClientSecret'))
+      document.getElementById('nbClientSecret').value = res.nightbotClientSecret;
+    if ('nightbotRedirectUri' in res && document.getElementById('nbRedirectUri'))
+      document.getElementById('nbRedirectUri').value = res.nightbotRedirectUri;
   }
 })();
 
@@ -1184,8 +1443,8 @@ async function conectarOBS() {
   const password = document.getElementById('obsPassword').value.trim() || "";
   const res = await window.ipcRenderer.invoke('conectar-obs', { host, port, password });
   document.getElementById('msgOBS').innerHTML = res.ok
-    ? '<span style="color:#8fff9f">&#x2705; OBS conectado</span>'
-    : '<span style="color:#ffb3b3">&#x274C; ' + (res.error || "No se pudo conectar") + '</span>';
+    ? '<span class="text-success">&#x2705; OBS conectado</span>'
+    : '<span class="text-error">&#x274C; ' + (res.error || "No se pudo conectar") + '</span>';
 
   if (res.ok) {
     // Espera 400ms antes de cargar escenas para asegurar conexión establecida
@@ -1210,15 +1469,15 @@ async function cargarEscenasOBS() {
       contenedor.appendChild(btn);
     });
   } else {
-    contenedor.innerHTML = "<span style='color:#ffb3b3'>No se pudieron cargar las escenas.</span>";
+  contenedor.innerHTML = "<span class='text-error'>No se pudieron cargar las escenas.</span>";
   }
 }
 
 async function cambiarEscenaOBS(scene) {
   const res = await window.ipcRenderer.invoke('cambiar-escena-obs', scene);
   document.getElementById('msgOBS').innerHTML = res.ok
-    ? `<span style="color:#8fff9f">&#x2705; Cambiado a "${scene}"</span>`
-    : `<span style="color:#ffb3b3">&#x274C; ${res.error || "No se pudo cambiar"}</span>`;
+    ? `<span class="text-success">&#x2705; Cambiado a "${scene}"</span>`
+    : `<span class="text-error">&#x274C; ${res.error || "No se pudo cambiar"}</span>`;
 }
 async function capturarEscenaOBS() {
   const res = await window.ipcRenderer.invoke('capturar-escena-obs');
@@ -1401,7 +1660,7 @@ async function buscarTorneosMatches() {
     return;
   }
 
-  msg.textContent = "Buscando torneos in progress...";
+  msg.textContent = "Cargando torneos...";
   try {
     const res = await window.ipcRenderer.invoke('get-tournaments');
     if (!res.ok) throw new Error(res.error || "Error al obtener los torneos.");
@@ -1409,23 +1668,23 @@ async function buscarTorneosMatches() {
     const todosTorneos = res.tournaments;
     console.log("Torneos recibidos:", todosTorneos);
     
-    const torneosInProgress = todosTorneos.filter(t =>
-      t.state && (
-        t.state.toLowerCase() === "underway" ||
-        t.state.toLowerCase() === "group_stages_underway"
-      )
-    );
+    // Cargar todos los torneos ordenados de más nuevo a más antiguo
+    const torneosOrdenados = todosTorneos
+      .filter(t => t.created_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    tournamentList.innerHTML = '<option value="">Selecciona un torneo in progress...</option>';
-    torneosInProgress.forEach(t => {
+    tournamentList.innerHTML = '<option value="">Selecciona un torneo...</option>';
+    torneosOrdenados.forEach(t => {
       const option = document.createElement('option');
       option.value = t.url;
-      option.textContent = t.name;
+      // Mostrar estado del torneo junto al nombre
+      const estado = t.state ? ` (${t.state})` : '';
+      option.textContent = t.name + estado;
       tournamentList.appendChild(option);
     });
 
     // Restaurar el último torneo seleccionado si existe
-    if (ultimoTorneoMatches && torneosInProgress.some(t => t.url === ultimoTorneoMatches)) {
+    if (ultimoTorneoMatches && torneosOrdenados.some(t => t.url === ultimoTorneoMatches)) {
       tournamentList.value = ultimoTorneoMatches;
       // Quitar la llamada automática a cargarMatches()
       // cargarMatches(); // <-- ELIMINA o comenta esta línea
@@ -1437,9 +1696,9 @@ async function buscarTorneosMatches() {
       // Ya no se llama cargarMatches() aquí
     };
 
-    msg.textContent = torneosInProgress.length > 0
+    msg.textContent = torneosOrdenados.length > 0
       ? "✅ Torneos cargados."
-      : "⚠️ No se encontraron torneos in progress.";
+      : "⚠️ No se encontraron torneos.";
   } catch (error) {
     msg.textContent = `❌ ${error.message}`;
   }
@@ -1490,19 +1749,38 @@ async function guardarTodasLasRutas() {
     const inp = document.getElementById(rutaId(t));
     rutas[t] = inp ? inp.value : '';
   }
-  console.log('Rutas a guardar:', rutas);
-  await ipcRenderer.invoke('guardar-rutas', rutas);
-  alert('¡Rutas guardadas!');
+  console.log('[guardarTodasLasRutas] Rutas a guardar:', rutas);
+  const resultado = await ipcRenderer.invoke('guardar-rutas', rutas);
+  console.log('[guardarTodasLasRutas] Resultado del guardado:', resultado);
+  
+  if (resultado.ok) {
+    alert('¡Rutas guardadas correctamente!');
+  } else {
+    alert('Error al guardar las rutas');
+  }
 }
 
 async function cargarRutas() {
+  console.log('[cargarRutas] Iniciando carga de rutas...');
   const res = await ipcRenderer.invoke('cargar-rutas');
+  console.log('[cargarRutas] Respuesta del servidor:', res);
+  
   if (res.ok && res.rutas) {
+    console.log('[cargarRutas] Rutas encontradas:', res.rutas);
     for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
-      if (res.rutas[tipo] !== undefined) {
-        document.getElementById(rutaId(tipo)).value = res.rutas[tipo];
+      const inputId = rutaId(tipo);
+      const input = document.getElementById(inputId);
+      console.log(`[cargarRutas] Procesando ${tipo} -> input ID: ${inputId}, input existe: ${!!input}`);
+      
+      if (res.rutas[tipo] !== undefined && input) {
+        input.value = res.rutas[tipo];
+        console.log(`[cargarRutas] Asignado ${tipo}: "${res.rutas[tipo]}" al input ${inputId}`);
+      } else if (!input) {
+        console.warn(`[cargarRutas] Input ${inputId} no encontrado en el DOM`);
       }
     }
+  } else {
+    console.warn('[cargarRutas] No se pudieron cargar las rutas:', res);
   }
 }
 
@@ -1634,6 +1912,8 @@ window.addEventListener('DOMContentLoaded', function() {
     const styleSel = document.getElementById('styleSel');
     if (styleSel) styleSel.value = 'light';
   }
+
+  // No cargar rutas automáticamente - se cargan al ir a la pestaña de rutas
   
   // Initialize Challonge sub-tabs to show first one by default
   showChallongeSubTab(0);
@@ -1653,6 +1933,77 @@ if (activeLink) activeLink.disabled = false;
 // ================================
 
 
+// ================================
+//  CARGAR MATCH CHALLONGE EN SCOREBOARD (desde widget flotante)
+// ================================
+function cargarMatchChallongeEnScoreboard() {
+  // Selector de match en el widget flotante
+  const matchSelector = document.getElementById('challongeMatchSelector');
+  if (!matchSelector || matchSelector.style.display === 'none') {
+    mostrarNotificacion('Selecciona un match válido en el widget.', 'error');
+    return;
+  }
+  const selectedOption = matchSelector.options[matchSelector.selectedIndex];
+  if (!selectedOption || !selectedOption.dataset.match) {
+    mostrarNotificacion('Selecciona un match válido.', 'error');
+    return;
+  }
+  let match;
+  try {
+    match = JSON.parse(selectedOption.dataset.match);
+  } catch (e) {
+    mostrarNotificacion('Error al leer datos del match.', 'error');
+    return;
+  }
+
+  // Separar tag y nombre si corresponde
+  function splitTagAndName(fullName) {
+    if (typeof fullName === 'string' && fullName.includes(' | ')) {
+      const [tag, ...rest] = fullName.split(' | ');
+      return { tag: tag.trim(), name: rest.join(' | ').trim() };
+    }
+    return { tag: '', name: fullName };
+  }
+
+  // Jugador 1
+  const p1 = splitTagAndName(match.player1_name);
+  document.getElementById('p1NameInput').value = p1.name;
+  document.getElementById('p1TagInput').value = p1.tag;
+
+  // Jugador 2
+  const p2 = splitTagAndName(match.player2_name);
+  document.getElementById('p2NameInput').value = p2.name;
+  document.getElementById('p2TagInput').value = p2.tag;
+
+  // Ronda
+  let roundName = '';
+  if (match.round !== undefined && match.round !== null) {
+    roundName = `Ronda ${match.round}`;
+  } else {
+    roundName = `Match #${match.id}`;
+  }
+
+  // Actualizar tanto el campo de evento (sbEvent) como el campo editable de ronda (sbRound)
+  document.getElementById('sbEvent').value = roundName;
+  document.getElementById('sbEvent').textContent = roundName;
+  document.getElementById('sbRound').value = roundName;
+  window.currentRoundName = roundName;
+
+  // Scores
+  if (match.scores_csv) {
+    const parts = match.scores_csv.split('-');
+    if (parts.length === 2) {
+      document.getElementById('p1Score').textContent = parts[0].trim();
+      document.getElementById('p2Score').textContent = parts[1].trim();
+    }
+  } else {
+    document.getElementById('p1Score').textContent = '0';
+    document.getElementById('p2Score').textContent = '0';
+  }
+
+  if (typeof updateVisual === 'function') updateVisual();
+  mostrarNotificacion('Match cargado en el scoreboard.', 'success');
+}
 function fijarTimer() {
   const minutos = parseInt(document.getElementById('timerInput').value, 10);
   if (isNaN(minutos) || minutos <= 0) {

@@ -35,14 +35,14 @@ async function renderBracketVisual() {
     rondas[ronda].push(m);
   });
 
-  // Detecta Grand Final y Reset
+  // Detecta Grand Final y Reset siguiendo lógica de Start.gg
   const grandFinalMatches = (rondas[maxWinnerRound] || []).filter(m => {
     if (!m.scores_csv) return false;
     const [s1, s2] = m.scores_csv.split('-').map(s => Number(s.trim() || '0'));
     return s1 > 0 || s2 > 0;
   });
 
-  // Asigna round_name a TODOS los matches
+  // Asigna round_name siguiendo el esquema de Start.gg (Winners/Losers structure)
   const losersRounds = Object.keys(rondas).map(Number).filter(r => r < 0).sort((a, b) => a - b);
   const matchesAll = res.matches.map(m => {
     let p1sc = "0", p2sc = "0";
@@ -50,7 +50,10 @@ async function renderBracketVisual() {
       [p1sc, p2sc] = m.scores_csv.split('-').map(s => s.trim());
     }
     let round_name = "";
+    
+    // Lógica de nombres siguiendo el esquema de Start.gg
     if (m.round === maxWinnerRound) {
+      // Grand Final o Grand Final Reset
       if (grandFinalMatches.length === 2) {
         const idx = rondas[maxWinnerRound].findIndex(x => x.id === m.id);
         round_name = idx === 0 ? "Grand Final" : "Grand Final Reset";
@@ -61,21 +64,27 @@ async function renderBracketVisual() {
       round_name = "Winners Final";
     } else if (m.round === maxWinnerRound - 2) {
       round_name = "Winners Semis";
+    } else if (m.round > 0) {
+      // Otras rondas de Winners
+      round_name = `Winners Round ${m.round}`;
     } else if (m.round < 0) {
-      // Losers: ordena de menos a más negativo (más antiguo a más reciente)
+      // Losers Bracket - seguir esquema de Start.gg
       const sortedLosers = losersRounds.slice().sort((a, b) => a - b);
       const idx = sortedLosers.indexOf(m.round);
       const losersNames = [
         "Losers Finals",
-        "Losers Semis",
+        "Losers Semis", 
         "Losers Quarters",
         "Losers Top 8"
       ];
       // El más negativo (idx 0) es "Losers Finals", el más cercano a 0 es "Losers Top 8"
-      round_name = losersNames[idx] || `Losers Ronda ${Math.abs(m.round)}`;
+      round_name = losersNames[idx] || `Losers Round ${Math.abs(m.round)}`;
+    } else if (m.round === 0) {
+      round_name = "Grand Final";
     } else {
-      round_name = `Ronda ${m.round}`;
+      round_name = `Round ${m.round}`;
     }
+    
     return {
       ...m,
       player1_sc: p1sc,
@@ -84,10 +93,10 @@ async function renderBracketVisual() {
     };
   });
 
-  // Agrupa matches por round_name
+  // Agrupa matches por round_name siguiendo estructura de Start.gg
   const bloquesTop8 = [
     "Winners Semis",
-    "Winners Final",
+    "Winners Final", 
     "Grand Final",
     "Grand Final Reset",
     "Losers Top 8",
@@ -103,10 +112,10 @@ async function renderBracketVisual() {
     }
   });
 
-  // Render visual solo con los bloques definidos y en orden
+  // Render visual siguiendo el esquema visual de Start.gg
   let html = `<div class="bracket-visual-rows">`;
 
-  // Winners row
+  // Winners row (estructura superior como Start.gg)
   html += `<div class="bracket-row bracket-row-winners">`;
   ["Winners Semis", "Winners Final", "Grand Final", "Grand Final Reset"].forEach(key => {
     if (matchesByRoundName[key].length > 0) {
@@ -115,7 +124,7 @@ async function renderBracketVisual() {
   });
   html += `</div>`;
 
-  // Losers row
+  // Losers row (estructura inferior como Start.gg)
   html += `<div class="bracket-row bracket-row-losers">`;
   ["Losers Top 8", "Losers Quarters", "Losers Semis", "Losers Finals"].forEach(key => {
     if (matchesByRoundName[key].length > 0) {
@@ -129,9 +138,9 @@ async function renderBracketVisual() {
 
   await guardarBracketJSON(slug, matchesAll, participantes);
 
-  // Después de await guardarBracketJSON(...)
+  // Notificación de éxito siguiendo el estilo de Start.gg
   if (window.mostrarNotificacion) {
-    mostrarNotificacion('✅ Bracket guardado.', 'success');
+    mostrarNotificacion('✅ Bracket visual generado siguiendo el esquema de Start.gg', 'success');
   }
 }
 

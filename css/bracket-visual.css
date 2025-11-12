@@ -9,9 +9,9 @@
   min-height: 520px;
   max-width: 1400px;
   margin: 2.5em auto 2.5em auto;
-  background: #191b22;
-  border-radius: 18px;
-  box-shadow: 0 0 40px #000a;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 40px rgba(0,0,0,0.65);
   padding: 2.5em 2em 2.5em 2em;
 }
 .bracket-visual-card {
@@ -45,13 +45,13 @@
   margin-top: 1.5em;
 }
 .bracket-round {
-  background: #23232b;
+  background: var(--bg-tertiary);
   border-radius: 10px;
   padding: 1em 1.5em;
   min-width: 0;
   flex: 1 1 0;
   max-width: 260px;
-  box-shadow: 0 2px 12px #0005;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -59,7 +59,7 @@
 }
 .bracket-round-title {
   font-weight: bold;
-  color: #ffe8b2;
+  color: var(--text-primary);
   margin-bottom: 1em;
   text-align: center;
   font-size: 1.1em;
@@ -72,20 +72,20 @@
   width: 100%;
 }
 .bracket-match {
-  background: #191921;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 0.7em 1em;
   display: flex;
   flex-direction: column;
   gap: 0.5em;
-  box-shadow: 0 1px 6px #0003;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.2);
 }
 .bracket-player {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 1em;
-  color: #fff;
+  color: var(--text-primary);
 }
 .bracket-player-name {
   font-weight: 500;
@@ -95,8 +95,8 @@
   white-space: nowrap;
 }
 .bracket-score {
-  background: #8e44ad;
-  color: #fff;
+  background: var(--secondary-color);
+  color: var(--text-primary);
   font-weight: bold;
   border-radius: 6px;
   padding: 0.2em 0.8em;
@@ -105,67 +105,28 @@
   text-align: center;
 }
 .bracket-score.loser {
-  background: #a51414 !important;
+  background: var(--error-color) !important;
   color: #ffffff !important;
   border-radius: 8px;
   transition: background 0.2s;
 }
 .bracket-player.loser {
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
   opacity: 0.85;
 }
 
 /* Light mode para Bracket Visual */
+/* Light mapping to tokens, so themes control the palette */
 body.light-mode .bracket-card-center,
-body.light-mode .bracket-visual-card {
-  background: #fffbe8;
-  box-shadow: 0 0 40px #bbb6;
-}
-
-body.light-mode .bracket-visual-rows {
-  background: none;
-}
-
-
-body.light-mode .bracket-round {
-  background: #fff;
-  color: #23232b;
-  box-shadow: 0 2px 12px #bbb5;
-}
-
-body.light-mode .bracket-round-title {
-  color: #7a5c00;
-  background: #fffbe8;
-}
-
-body.light-mode .bracket-match {
-  background: #f6f6f9;
-  box-shadow: 0 1px 6px #bbb3;
-}
-
-body.light-mode .bracket-player {
-  color: #23232b;
-}
-
-body.light-mode .bracket-player-name {
-  color: #23232b;
-}
-
-body.light-mode .bracket-score {
-  background: #ffe8b2;
-  color: #23232b;
-  border-color: #ffb347;
-}
-
-body.light-mode .bracket-score.loser {
-  background: #f2bcbc !important;
-  color: #b71c1c !important;
-}
-
-body.light-mode .bracket-player.loser {
-  color: #b71c1c !important;
-  opacity: 0.85;
-}
+body.light-mode .bracket-visual-card { background: var(--bg-secondary); box-shadow: 0 0 40px rgba(0,0,0,0.15); }
+body.light-mode .bracket-round { background: var(--bg-tertiary); color: var(--text-primary); box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+body.light-mode .bracket-round-title { color: var(--text-primary); }
+body.light-mode .bracket-match { background: var(--bg-secondary); box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+body.light-mode .bracket-player { color: var(--text-primary); }
+body.light-mode .bracket-player-name { color: var(--text-primary); }
+body.light-mode .bracket-score { background: var(--secondary-color); color: var(--text-primary); border-color: transparent; }
+body.light-mode .bracket-score.loser { background: var(--error-color) !important; color: #fff !important; }
+body.light-mode .bracket-player.loser { color: var(--text-primary) !important; opacity: 0.85; }
 
 /* Responsive */
 @media (max-width: 900px) {

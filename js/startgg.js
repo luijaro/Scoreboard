@@ -1,12 +1,13 @@
 // Nueva función para buscar y mostrar eventos de un torneo Start.gg
-async function buscarStartGG() {
+async function buscarStartGG(busquedaTexto = null) {
   const slugInput = document.getElementById('startggSlug');
   // Asegura que el input esté habilitado y editable
   if (slugInput) {
     slugInput.removeAttribute('readonly');
     slugInput.removeAttribute('disabled');
   }
-  const texto = slugInput ? slugInput.value.trim() : '';
+  // Usar el parámetro si se proporciona, o el valor del input
+  const texto = busquedaTexto || (slugInput ? slugInput.value.trim() : '');
   // Guardar el slug en localStorage
   if (texto) {
     localStorage.setItem('ultimoStartggSlug', texto);
@@ -35,67 +36,45 @@ async function buscarStartGG() {
       resultsDiv.innerHTML = `<b>Eventos de ${torneo}:</b><br>No se encontraron eventos para este torneo.`;
       return;
     }
-    let html = `<b style="font-size:1.2em; color:#ffe8b2;">Eventos de ${torneo}:</b><br><div class='sgg-eventos-list' style='display:flex; flex-wrap:wrap; gap:2em; margin-top:1em;'>`;
+  let html = `<b class="sgg-title">Eventos de ${torneo}:</b><br><div class='sgg-eventos-list'>`;
     // Optimización: Usar el estado que ya viene en la respuesta principal si existe
     const eventosConEstado = await Promise.all(eventos.map(async ev => {
       let estadoEv = '';
       // Usar el estado si viene en el objeto del evento
       const evState = ev.state || ev.status || '';
-      if (evState === 'ACTIVE') estadoEv = '<span style="color:#27ae60;font-weight:bold;">En progreso</span>';
-      else if (evState === 'COMPLETED') estadoEv = '<span style="color:#e67e22;font-weight:bold;">Terminado</span>';
-      else if (!evState || evState === '?' || evState === 'null' || evState === 'undefined') estadoEv = '<span style="color:#aaa;">Desconocido</span>';
-      else estadoEv = `<span style="color:#aaa;">${evState}</span>`;
+  if (evState === 'ACTIVE') estadoEv = '<span class="status-badge success">En progreso</span>';
+  else if (evState === 'COMPLETED') estadoEv = '<span class="status-badge warning">Terminado</span>';
+  else if (!evState || evState === '?' || evState === 'null' || evState === 'undefined') estadoEv = '<span class="status-badge muted">Desconocido</span>';
+  else estadoEv = `<span class="status-badge muted">${evState}</span>`;
 
       // Si no viene el estado, solo entonces consulta por evento
       if (!evState) {
         try {
           const evRes = await window.ipcRenderer.invoke('startgg-get-event-state', ev.id);
           const evState2 = evRes?.state || evRes?.event?.state || evRes?.status || '';
-          if (evState2 === 'ACTIVE') estadoEv = '<span style="color:#27ae60;font-weight:bold;">En progreso</span>';
-          else if (evState2 === 'COMPLETED') estadoEv = '<span style="color:#e67e22;font-weight:bold;">Terminado</span>';
-          else if (!evState2 || evState2 === '?' || evState2 === 'null' || evState2 === 'undefined') estadoEv = '<span style="color:#aaa;">Desconocido</span>';
-          else estadoEv = `<span style="color:#aaa;">${evState2}</span>`;
+          if (evState2 === 'ACTIVE') estadoEv = '<span class="status-badge success">En progreso</span>';
+          else if (evState2 === 'COMPLETED') estadoEv = '<span class="status-badge warning">Terminado</span>';
+          else if (!evState2 || evState2 === '?' || evState2 === 'null' || evState2 === 'undefined') estadoEv = '<span class="status-badge muted">Desconocido</span>';
+          else estadoEv = `<span class="status-badge muted">${evState2}</span>`;
         } catch (e) {
-          estadoEv = '<span style="color:#aaa;">Desconocido</span>';
+          estadoEv = '<span class="status-badge muted">Desconocido</span>';
         }
       }
       return `
-      <div class='sgg-event-card' style='
-        background:#23243a;
-        border:2px solid #8e44ad;
-        border-radius:14px;
-        box-shadow:0 2px 12px #0006;
-        padding:1.2em 1.5em;
-        min-width:260px;
-        max-width:340px;
-        margin-bottom:1em;
-        transition:box-shadow .2s,transform .2s;
-        position:relative;'>
-        <div style='font-weight:700; font-size:1.18em; color:#ffe8b2; margin-bottom:0.3em;'>${ev.name}</div>
-        <div style='font-size:0.98em; margin-bottom:0.7em;'>Estado: ${estadoEv}</div>
-        <div style='display:flex; gap:0.7em; margin-bottom:0.2em;'>
-          <button class='sb-btn sgg-btn' style='background:#27ae60; color:#fff; font-weight:600; border-radius:7px; box-shadow:0 1px 4px #0003;' title='Top 8' onclick='generarTop8StartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-trophy"></i> Top 8</button>
-          <button class='sb-btn sgg-btn' style='background:#2980b9; color:#fff; font-weight:600; border-radius:7px; box-shadow:0 1px 4px #0003;' title='Bracket' onclick='guardarBracketStartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-sitemap"></i> Bracket</button>
-          <button class='sb-btn sgg-btn' style='background:#e67e22; color:#fff; font-weight:600; border-radius:7px; box-shadow:0 1px 4px #0003;' title='Matches' onclick='consultarMatchesStartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-gamepad"></i> Matches</button>
+      <div class='sgg-event-card'>
+        <div class='sgg-event-name'>${ev.name}</div>
+        <div class='sgg-event-state'>Estado: ${estadoEv}</div>
+        <div class='sgg-event-actions'>
+          <button class='sb-btn sgg-btn btn-success' title='Top 8' onclick='generarTop8StartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-trophy"></i> Top 8</button>
+          <button class='sb-btn sgg-btn btn-info' title='Bracket' onclick='guardarBracketStartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-sitemap"></i> Bracket</button>
+          <button class='sb-btn sgg-btn btn-warning' title='Matches' onclick='consultarMatchesStartGG(${ev.id}, "${ev.name.replace(/'/g, "\\'")}")'><i class="fa fa-gamepad"></i> Matches</button>
         </div>
       </div>`;
     }));
     html += eventosConEstado.join('');
     html += `</div>`;
     resultsDiv.innerHTML = html;
-    // Agrega efecto hover a las tarjetas
-    setTimeout(() => {
-      document.querySelectorAll('.sgg-event-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-          card.style.boxShadow = '0 4px 24px #8e44ad99';
-          card.style.transform = 'scale(1.03)';
-        });
-        card.addEventListener('mouseleave', () => {
-          card.style.boxShadow = '0 2px 12px #0006';
-          card.style.transform = 'scale(1)';
-        });
-      });
-    }, 100);
+  // Hover handled by CSS
 
     // Agregar torneo al selector del widget flotante
     agregarTorneoAlWidget(torneo, slug, eventos);
@@ -123,7 +102,7 @@ async function guardarBracketStartGG(eventId, eventName) {
       top: 0;
       left: 0;
       height: 100%;
-      background: linear-gradient(90deg, #e74c3c, #c0392b);
+      background: linear-gradient(90deg, var(--error-color), var(--warning-color));
       width: 0%;
       transition: width 2s ease-in-out;
       z-index: 1;

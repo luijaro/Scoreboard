@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>Configurar rutas</title>
-  <link rel="stylesheet" href="scoreboard.css">
+  <link rel="stylesheet" href="css/scoreboard.css">
   <style>
-    body { background: #23232b; margin: 0; font-family: 'Montserrat', Arial, sans-serif; }
+    body { background: var(--bg-primary); margin: 0; font-family: 'Montserrat', Arial, sans-serif; }
     .rutas-panel {
       margin-top: 2em;
     }
     fieldset {
-      border: 2px solid #ffb347 !important;
-      border-radius: 12px;
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--border-radius);
       padding: 2em 2.5em 1.5em 2.5em;
       max-width: 600px;
       margin: 2em auto 2.5em auto;
-      background: #292940 !important;
-      box-shadow: 0 4px 24px #0004;
+      background: var(--bg-secondary) !important;
+      box-shadow: none;
     }
     legend {
       font-size: 1.3em;
       font-weight: bold;
-      color: #ffb347 !important;
+      color: var(--text-primary) !important;
       padding: 0 0.7em;
       letter-spacing: 1px;
     }
@@ -32,29 +32,29 @@
       margin-bottom: 1.2em;
     }
     .sb-input {
-      background: #181828;
-      color: #ffe8b2;
-      border: 1px solid #444;
-      border-radius: 6px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
       padding: 0.4em 0.8em;
       font-size: 1em;
       width: 320px;
     }
     .sb-btn {
-      background: #ffb347;
-      color: #23232b;
+      background: var(--primary-color);
+      color: #fff;
       font-weight: bold;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--border-radius);
       padding: 0.4em 1.2em;
       cursor: pointer;
       transition: background 0.2s;
     }
     .sb-btn:hover {
-      background: #ffe8b2;
+      filter: brightness(1.08);
     }
     .footer-msg {
-      color: #ffe8b2;
+      color: var(--text-secondary);
       text-align: center;
       margin-top: 2em;
       font-size: 0.95em;
@@ -62,51 +62,60 @@
     }
   </style>
 </head>
-<body>
-  <section class="rutas-panel">
-    <fieldset>
-      <legend>Configurar rutas de archivos</legend>
-      <div style="margin-bottom:1.5em; color:#ccc; font-size:1em;">
-        Selecciona la ubicación de cada archivo JSON que utiliza la aplicación.<br>
-        Puedes dejar una ruta vacía para usar la ubicación por defecto.
-      </div>
-      <div class="form-row">
-        <label for="rutaScoreboard" style="min-width:160px;">Scoreboard JSON:</label>
-        <input id="rutaScoreboard" class="sb-input" readonly>
-        <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
-      </div>
-      <div class="form-row">
-        <label for="rutaBracket" style="min-width:160px;">Bracket JSON:</label>
-        <input id="rutaBracket" class="sb-input" readonly>
-        <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
-      </div>
-      <div class="form-row">
-        <label for="rutaTop8" style="min-width:160px;">Top8 JSON:</label>
-        <input id="rutaTop8" class="sb-input" readonly>
-        <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.7em;">
-        <label for="rutaApiKey" style="min-width:160px;">API Key JSON:</label>
-        <input id="rutaApiKey" class="sb-input" readonly>
-        <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
-        <label for="rutaUsuarios" style="min-width:160px;">Usuarios TXT:</label>
-        <input id="rutaUsuarios" class="sb-input" style="width:320px;" readonly>
-        <button class="sb-btn" onclick="elegirRuta('usuarios')">Elegir...</button>
-      </div>
-      <div class="form-row" style="justify-content: flex-end;">
-        <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
-      </div>
-    </fieldset>
-  </section>  <script>
-    const { ipcRenderer } = require('electron');
+<body style="background:transparent; margin:0;">
+  <div id="tab-rutas" style="padding:2em 1em 1em 1em; max-width:600px; margin:0 auto;">
+    <h2 style="font-size:1.3em; margin-bottom:1.2em; text-align:center;" class="text-accent">Configurar rutas de archivos</h2>
+    <div style="margin-bottom:1.5em; font-size:1em; text-align:center;" class="text-muted">
+      <span class="text-warning" style="font-weight:bold;">¡Importante!</span> Selecciona la ubicación de cada archivo principal.<br>
+      <span class="text-accent">Puedes dejar una ruta vacía para usar la ubicación por defecto.</span>
+    </div>
+  </div>
+    <div class="form-row principal" style="background:var(--bg-secondary); border-left:4px solid var(--primary-color); border-radius:6px; padding:0.5em 0.5em; margin-bottom:1.2em;">
+      <label for="rutaScoreboard" style="min-width:160px; font-weight:bold;" class="text-muted">Scoreboard JSON:</label>
+      <input id="rutaScoreboard" class="sb-input principal" readonly>
+      <button class="sb-btn btn-secondary principal" id="btnScoreboard">Elegir...</button>
+    </div>
+    <div class="form-row principal" style="background:var(--bg-secondary); border-left:4px solid var(--primary-color); border-radius:6px; padding:0.5em 0.5em; margin-bottom:1.2em;">
+      <label for="rutaBracket" style="min-width:160px; font-weight:bold;" class="text-muted">Bracket JSON:</label>
+      <input id="rutaBracket" class="sb-input principal" readonly>
+      <button class="sb-btn btn-secondary principal" id="btnBracket">Elegir...</button>
+    </div>
+    <div class="form-row principal" style="background:var(--bg-secondary); border-left:4px solid var(--primary-color); border-radius:6px; padding:0.5em 0.5em; margin-bottom:1.2em;">
+      <label for="rutaTop8" style="min-width:160px; font-weight:bold;" class="text-muted">Top8 JSON:</label>
+      <input id="rutaTop8" class="sb-input principal" readonly>
+      <button class="sb-btn btn-secondary principal" id="btnTop8">Elegir...</button>
+    </div>
+    <div class="form-row" style="margin-bottom:1.7em;">
+      <label for="rutaApiKey" style="min-width:160px;" class="text-muted">API Key JSON:</label>
+      <input id="rutaApiKey" class="sb-input" readonly>
+      <button class="sb-btn btn-secondary" id="btnApiKey">Elegir...</button>
+    </div>
+    <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+      <label for="rutaUsuarios" style="min-width:160px;" class="text-muted">Usuarios TXT:</label>
+      <input id="rutaUsuarios" class="sb-input" style="width:320px;" readonly>
+      <button class="sb-btn btn-secondary" id="btnUsuarios">Elegir...</button>
+    </div>
+    <div class="form-row" style="justify-content: flex-end;">
+      <button class="sb-btn btn-success guardar" id="btnGuardarRutas" onclick="guardarTodasLasRutas()">Guardar todo</button>
+    </div>
+    <div id="msgFeedback" class="footer-msg" style="display:none;"></div>
+  </div>
+  <script>
+    const ipcRenderer = window.ipcRenderer;
     function rutaId(tipo) {
       if (tipo === 'apikey') return 'rutaApiKey';
       return 'ruta' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
     }
-    async function elegirRuta(tipo) {
+    async function elegirRuta(tipo, btn) {
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '...';
+      }
       const res = await ipcRenderer.invoke('elegir-ruta', tipo);
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Elegir...';
+      }
       if (res.ok && res.ruta) {
         document.getElementById(rutaId(tipo)).value = res.ruta;
         // Guarda todas las rutas actuales
@@ -115,18 +124,32 @@
           rutas[t] = document.getElementById(rutaId(t)).value;
         }
         await ipcRenderer.invoke('guardar-rutas', rutas);
+        mostrarFeedback('Ruta guardada para ' + tipo, true);
+      } else if (res.ok === false) {
+        mostrarFeedback('No se seleccionó ninguna ruta.', false);
       }
     }
     async function guardarTodasLasRutas() {
+      const btn = document.getElementById('btnGuardarRutas');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
       const rutas = {};
       for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
         rutas[t] = document.getElementById(rutaId(t)).value;
       }
       await ipcRenderer.invoke('guardar-rutas', rutas);
-      alert('¡Rutas guardadas!');
-      window.close();
+      mostrarFeedback('¡Rutas guardadas!', true);
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'Guardar todo'; }, 900);
     }
-    // Cargar rutas al abrir la ventana
+    function mostrarFeedback(msg, ok) {
+      const el = document.getElementById('msgFeedback');
+      el.textContent = msg;
+      el.style.display = 'block';
+  el.style.color = ok ? 'var(--success-color)' : 'var(--error-color)';
+      el.style.fontWeight = ok ? 'bold' : 'normal';
+      setTimeout(() => { el.style.display = 'none'; }, 1800);
+    }
+    // Cargar rutas al abrir la pestaña y asignar listeners
     window.addEventListener('DOMContentLoaded', async () => {
       const res = await ipcRenderer.invoke('cargar-rutas');
       if (res.ok && res.rutas) {
@@ -136,6 +159,12 @@
           }
         }
       }
+      // Asignar listeners a los botones
+      document.getElementById('btnScoreboard').addEventListener('click', function(e) { elegirRuta('scoreboard', this); });
+      document.getElementById('btnBracket').addEventListener('click', function(e) { elegirRuta('bracket', this); });
+      document.getElementById('btnTop8').addEventListener('click', function(e) { elegirRuta('top8', this); });
+      document.getElementById('btnApiKey').addEventListener('click', function(e) { elegirRuta('apikey', this); });
+      document.getElementById('btnUsuarios').addEventListener('click', function(e) { elegirRuta('usuarios', this); });
     });
   </script>
 </body>

@@ -68,8 +68,8 @@ let mainWindow = null; // Referencia a la ventana principal
 // Función para crear la ventana principal de la aplicación
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 750,  //Antes: 720
+    width: 1240,
+    height: 810,
     resizable: false, // Evita que el usuario cambie el tamaño
     icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
@@ -718,7 +718,7 @@ ipcMain.handle('load-json', async (event, tipo = 'scoreboard') => {
 
 // -------- Guardar/Cargar API Key y Credenciales Twitch --------
 // Handler para guardar la API key y las credenciales de Twitch
-ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel, startgg }) => {
+ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel, startgg, nightbotToken, nightbotClientId, nightbotClientSecret, nightbotRedirectUri }) => {
   let config = {};
   if (fs.existsSync(configFile)) {
     try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
@@ -729,11 +729,16 @@ ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, 
   if (fs.existsSync(file)) {
     try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) {}
   }
-  if (apiKey) data.apiKey = apiKey;
-  if (twitchOAuth) data.twitchOAuth = twitchOAuth;
-  if (twitchUser) data.twitchUser = twitchUser;
-  if (twitchChannel) data.twitchChannel = twitchChannel;
-  if (startgg) data.startgg = startgg;
+  // Guardar SIEMPRE todos los campos, aunque estén vacíos
+  data.apiKey = typeof apiKey !== 'undefined' ? apiKey : (data.apiKey || '');
+  data.twitchOAuth = typeof twitchOAuth !== 'undefined' ? twitchOAuth : (data.twitchOAuth || '');
+  data.twitchUser = typeof twitchUser !== 'undefined' ? twitchUser : (data.twitchUser || '');
+  data.twitchChannel = typeof twitchChannel !== 'undefined' ? twitchChannel : (data.twitchChannel || '');
+  data.startgg = typeof startgg !== 'undefined' ? startgg : (data.startgg || '');
+  data.nightbotToken = typeof nightbotToken !== 'undefined' ? nightbotToken : (data.nightbotToken || '');
+  data.nightbotClientId = typeof nightbotClientId !== 'undefined' ? nightbotClientId : (data.nightbotClientId || '');
+  data.nightbotClientSecret = typeof nightbotClientSecret !== 'undefined' ? nightbotClientSecret : (data.nightbotClientSecret || '');
+  data.nightbotRedirectUri = typeof nightbotRedirectUri !== 'undefined' ? nightbotRedirectUri : (data.nightbotRedirectUri || 'http://localhost');
   fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
   return { ok: true };
 });
@@ -754,7 +759,11 @@ ipcMain.handle('load-api-key', async () => {
       twitchOAuth: data.twitchOAuth || '',
       twitchUser: data.twitchUser || '',
       twitchChannel: data.twitchChannel || '',
-      token: data.startgg || ''
+      token: data.startgg || '',
+      nightbotToken: data.nightbotToken || '',
+      nightbotClientId: data.nightbotClientId || '',
+      nightbotClientSecret: data.nightbotClientSecret || '',
+      nightbotRedirectUri: data.nightbotRedirectUri || 'http://localhost'
     };
   }
   return { ok: false, apiKey: '', twitchOAuth: '', twitchUser: '', twitchChannel: '' };
@@ -869,9 +878,10 @@ if (fs.existsSync(file)) {
         name: p.participant.name
       };
     });
-    // Solo matches sin ganador y sin "TBD"
+    // Solo matches en desarrollo (state: 'open'), sin ganador y sin "TBD"
     const matches = matchData
       .filter(m =>
+        m.match.state === 'open' &&
         !m.match.winner_id &&
         participantes[m.match.player1_id]?.name &&
         participantes[m.match.player2_id]?.name &&
@@ -886,7 +896,8 @@ if (fs.existsSync(file)) {
         player2_name: participantes[m.match.player2_id]?.name || 'TBD',
         round: m.match.round,
         scores_csv: m.match.scores_csv || '',
-        winner_id: m.match.winner_id
+        winner_id: m.match.winner_id,
+        state: m.match.state
       }));
     
     return { 
@@ -1283,13 +1294,17 @@ if (fs.existsSync(file)) {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Error consultando Challonge');
     const data = await res.json();
-    const tournaments = data.map(t => ({
-      id: t.tournament.id,
-      name: t.tournament.name,
-      url: t.tournament.url,
-      created_at: t.tournament.created_at,
-      state: t.tournament.state // <-- AGREGA ESTA LÍNEA
-    }));
+    // Cargar todos los torneos ordenados de más nuevo a más antiguo
+    const tournaments = data
+      .map(t => ({
+        id: t.tournament.id,
+        name: t.tournament.name,
+        url: t.tournament.url,
+        created_at: t.tournament.created_at,
+        state: t.tournament.state
+      }))
+      .filter(t => t.created_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     return { ok: true, tournaments };
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
