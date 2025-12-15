@@ -6,19 +6,19 @@ function guardarNightbotTokenManual() {
     mostrarNotificacion('❌ Ingresa un token para guardar', 'error');
     return;
   }
-  
+
   // También obtener client ID y secret si están presentes
   const clientId = document.getElementById('nbClientId') ? document.getElementById('nbClientId').value.trim() : '';
   const clientSecret = document.getElementById('nbClientSecret') ? document.getElementById('nbClientSecret').value.trim() : '';
   const redirectUri = document.getElementById('nbRedirectUri') ? document.getElementById('nbRedirectUri').value.trim() : 'http://localhost';
-  
+
   // Guardar el token y credentials en apikey.json usando ipcRenderer
   if (window && window.ipcRenderer) {
     const dataToSave = { nightbotToken: token };
     if (clientId) dataToSave.nightbotClientId = clientId;
     if (clientSecret) dataToSave.nightbotClientSecret = clientSecret;
     if (redirectUri) dataToSave.nightbotRedirectUri = redirectUri;
-    
+
     window.ipcRenderer.invoke('save-api-key', dataToSave)
       .then(() => {
         mostrarNotificacion('✅ Token guardado en apikey.json', 'success');
@@ -37,7 +37,7 @@ function generarNightbotAuthUrl() {
   const redirectUri = document.getElementById('nbRedirectUri').value.trim();
   const div = document.getElementById('nbAuthUrl');
   if (!clientId || !redirectUri) {
-  div.innerHTML = '<span class="text-error">Faltan datos</span>';
+    div.innerHTML = '<span class="text-error">Faltan datos</span>';
     return;
   }
   const url = `https://api.nightbot.tv/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=commands`;
@@ -50,7 +50,7 @@ function generarNightbotCurl() {
   const code = document.getElementById('nbAuthCode').value.trim();
   const redirectUri = document.getElementById('nbRedirectUri').value.trim();
   if (!clientId || !clientSecret || !code || !redirectUri) {
-  document.getElementById('nbCurl').innerHTML = '<span class="text-error">Faltan datos</span>';
+    document.getElementById('nbCurl').innerHTML = '<span class="text-error">Faltan datos</span>';
     return;
   }
   const curl = `curl -X POST https://api.nightbot.tv/oauth2/token \\\n  -d "client_id=${clientId}" \\\n  -d "client_secret=${clientSecret}" \\\n  -d "grant_type=authorization_code" \\\n  -d "code=${code}" \\\n  -d "redirect_uri=${redirectUri}"`;
@@ -274,21 +274,21 @@ ipcRenderer.on('stream-deck-reset-timer', (event) => {
 
 ipcRenderer.on('stream-deck-set-timer', (event, data) => {
   console.log('[Stream Deck] Set timer received:', data);
-  
+
   // Establecer el timestamp global
   timerEndTimestamp = data.endTimestamp;
-  
+
   // Limpiar cualquier timer anterior
   if (timerInterval) {
     clearInterval(timerInterval);
   }
-  
+
   // Actualizar el input de minutos en la UI
   const timerInput = document.getElementById('timerInput');
   if (timerInput) {
     timerInput.value = data.minutes;
   }
-  
+
   // Iniciar el countdown
   timerInterval = setInterval(() => {
     const restante = timerEndTimestamp - Date.now();
@@ -304,10 +304,10 @@ ipcRenderer.on('stream-deck-set-timer', (event, data) => {
       mostrarTimer(restante);
     }
   }, 1000);
-  
+
   // Mostrar inmediatamente el tiempo restante
   mostrarTimer(timerEndTimestamp - Date.now());
-  
+
   // Mostrar mensaje de confirmación
   const msgTimer = document.getElementById('msgTimer');
   if (msgTimer) {
@@ -318,17 +318,17 @@ ipcRenderer.on('stream-deck-set-timer', (event, data) => {
 
 ipcRenderer.on('stream-deck-change-game', (event, gameCode) => {
   console.log('[Stream Deck] Change game received:', gameCode);
-  
+
   // Actualizar el selector de juego en la UI
   const gameSelect = document.getElementById('gameSel');
   if (gameSelect) {
     gameSelect.value = gameCode;
-    
+
     // Simular el evento change para cargar personajes y actualizar la UI
     const changeEvent = new Event('change', { bubbles: true });
     gameSelect.dispatchEvent(changeEvent);
   }
-  
+
   // Mostrar mensaje de confirmación
   const gameDisplay = document.getElementById('gameDisplay');
   if (gameDisplay) {
@@ -342,7 +342,7 @@ ipcRenderer.on('stream-deck-change-game', (event, gameCode) => {
     // Si no hay gameDisplay, usar console para confirmar
     console.log(`[Stream Deck] Game changed to ${gameCode}`);
   }
-  
+
   // Guardar el cambio
   if (typeof guardarScoreboard === 'function') {
     guardarScoreboard();
@@ -356,12 +356,12 @@ function mostrarComentaristasEnScoreboard(coms) {
   const el1 = document.getElementById('comm1');
   const el2 = document.getElementById('comm2');
   if (el1 && coms && coms[0]) {
-  el1.innerHTML = `<i class='fa fa-microphone'></i> ${coms[0].nombre || ''}${coms[0].twitter ? ` <span class='text-accent'>@${coms[0].twitter}</span>` : ''}`;
+    el1.innerHTML = `<i class='fa fa-microphone'></i> ${coms[0].nombre || ''}${coms[0].twitter ? ` <span class='text-accent'>@${coms[0].twitter}</span>` : ''}`;
   } else if (el1) {
     el1.innerHTML = `<i class='fa fa-microphone'></i> Commentator #1`;
   }
   if (el2 && coms && coms[1]) {
-  el2.innerHTML = `<i class='fa fa-microphone'></i> ${coms[1].nombre || ''}${coms[1].twitter ? ` <span class='text-accent'>@${coms[1].twitter}</span>` : ''}`;
+    el2.innerHTML = `<i class='fa fa-microphone'></i> ${coms[1].nombre || ''}${coms[1].twitter ? ` <span class='text-accent'>@${coms[1].twitter}</span>` : ''}`;
   } else if (el2) {
     el2.innerHTML = `<i class='fa fa-microphone'></i> Commentator #2`;
   }
@@ -371,7 +371,7 @@ function mostrarComentaristasEnScoreboard(coms) {
 //      CARGAR COMENTARISTAS AL INICIAR
 // ================================
 async function cargarComentaristasAlAbrir() {
-  const res = await ipcRenderer.invoke('load-json');
+  const res = await ipcRenderer.invoke('load-json', 'casters');
   if (res.ok && res.data && res.data.comentaristas) {
     const coms = res.data.comentaristas;
     if (coms[0]) {
@@ -384,7 +384,14 @@ async function cargarComentaristasAlAbrir() {
     }
     mostrarComentaristasEnScoreboard(coms);
   } else {
-    mostrarComentaristasEnScoreboard([]);
+    // Si no hay datos, intentar cargar del scoreboard antiguo por si acaso (migración)
+    const resOld = await ipcRenderer.invoke('load-json', 'scoreboard');
+    if (resOld.ok && resOld.data && resOld.data.comentaristas) {
+      // Migración silenciosa: si existen en scoreboard pero no en casters, usarlos
+      mostrarComentaristasEnScoreboard(resOld.data.comentaristas);
+    } else {
+      mostrarComentaristasEnScoreboard([]);
+    }
   }
 }
 
@@ -411,17 +418,20 @@ async function guardarComentaristas() {
   const tw1 = document.getElementById('com1Twitter').value.trim();
   const com2 = document.getElementById('com2Name').value.trim();
   const tw2 = document.getElementById('com2Twitter').value.trim();
-  // Cargar scoreboard actual
-  const resLoad = await ipcRenderer.invoke('load-json');
+  // Cargar casters actual para preservar otros datos si los hubiera
+  const resLoad = await ipcRenderer.invoke('load-json', 'casters');
   let data = resLoad.ok && resLoad.data ? resLoad.data : {};
   // Guardar comentaristas y twitters
   data.comentaristas = [
     { nombre: com1, twitter: tw1 },
     { nombre: com2, twitter: tw2 }
   ];
-  // Guardar en scoreboard.json
-  const resSave = await ipcRenderer.invoke('save-json', data, 'scoreboard');
+  // Guardar en casters.json
+  const resSave = await ipcRenderer.invoke('save-json', data, 'casters');
+
+  // Actualizar también la vista en scoreboard
   mostrarComentaristasEnScoreboard(data.comentaristas);
+
   document.getElementById('msgComentaristas').textContent = resSave.ok ? 'Comentaristas guardados.' : 'Error al guardar.';
   setTimeout(() => document.getElementById('msgComentaristas').textContent = '', 2000);
 }
@@ -434,7 +444,7 @@ window.ipcRenderer = require('electron').ipcRenderer;
 let ultimoTorneoMatches = null; // <-- Declaración global
 
 (async function cargarScoreboardAlAbrir() {
-  const res = await ipcRenderer.invoke('load-json');
+  const res = await ipcRenderer.invoke('load-json', 'scoreboard'); // Carga explícita scoreboard
   if (res.ok && res.data) {
     window.ultimoScoreboardData = res.data;
     const d = res.data;
@@ -450,9 +460,16 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     if (d.event) document.getElementById('sbEvent').textContent = d.event;
     if (d.round) document.getElementById('sbRound').value = d.round;
     if (typeof updateVisual === "function") updateVisual();
-    // Mostrar comentaristas en Scoreboard si existen
-    if (d.comentaristas) mostrarComentaristasEnScoreboard(d.comentaristas);
-    
+
+    // Cargar comentaristas SEPARADO para mostrarlos en el scoreboard
+    const resCasters = await ipcRenderer.invoke('load-json', 'casters');
+    if (resCasters.ok && resCasters.data && resCasters.data.comentaristas) {
+      mostrarComentaristasEnScoreboard(resCasters.data.comentaristas);
+    } else if (d.comentaristas) {
+      // Fallback a scoreboard antiguo si existen
+      mostrarComentaristasEnScoreboard(d.comentaristas);
+    }
+
     // RESETEAR TIMER AL ABRIR LA APP
     timerEndTimestamp = null;
     // Detener cualquier interval que pueda estar corriendo
@@ -463,17 +480,17 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     // Mostrar 00:00 en el display
     const timerDisplay = document.getElementById('timerDisplay');
     if (timerDisplay) timerDisplay.textContent = '00:00';
-    
-    // Guardar el JSON sin timerEndTimestamp (null se omite del JSON)
-    await ipcRenderer.invoke('save-json', { ...d, timerEndTimestamp: null }, 'scoreboard');
+
+    // Guardar el JSON del timer reseteado
+    await ipcRenderer.invoke('save-json', { timerEndTimestamp: null }, 'timestamp');
   }
 })();
 
 // Inicializar sub-tabs cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   // Asegurar que el primer sub-tab de Main esté visible
   showMainSubTab(0);
-  
+
   // Asegurar que el primer sub-tab de Challonge esté preparado (cuando se acceda)
   // showChallongeSubTab(0); // No necesario hasta que se acceda a la pestaña
 });
@@ -486,17 +503,17 @@ window.addEventListener('DOMContentLoaded', cambiarJuego);
 function showTab(n) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === n));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === n));
-  
+
   // Tab 0: Scoreboard
   if (n === 0) {
     // Cargar comentaristas al entrar a Scoreboard
     cargarComentaristasAlAbrir();
     cargarTimerAlAbrir();
-    
+
     // Configurar listener de estilo si no está configurado
     const styleSel = document.getElementById('styleSel');
     if (styleSel && !styleSel.dataset.listener) {
-      styleSel.addEventListener('change', function() {
+      styleSel.addEventListener('change', function () {
         const val = this.value;
         if (val === 'light') {
           document.body.classList.add('light-mode');
@@ -518,13 +535,13 @@ function showTab(n) {
       if (styleSel) styleSel.value = 'dark';
     }
   }
-  
+
   // Tab 1: Comentaristas
   if (n === 1) {
     cargarComentaristasAlAbrir();
     cargarTimerAlAbrir();
   }
-  
+
   // Tab 2: Challonge (unified tab with sub-tabs)
   if (n === 2) {
     // Cargar funciones de Challonge al entrar
@@ -532,17 +549,17 @@ function showTab(n) {
     cargarTorneosBracket(); // Para bracket  
     cargarTorneosTop8(); // Para top8
   }
-  
+
   // Tab 3: Comandos y Escenas (Twitch + OBS)
   if (n === 3) {
     // No specific loading required for Twitch commands or OBS
   }
-  
+
   // Tab 4: Start.gg (was 5, now 4)
   if (n === 4) {
     if (typeof cargarStartggToken === 'function') cargarStartggToken();
   }
-  
+
   // Tab 5: Configurar rutas
   if (n === 5) {
     console.log('[showTab] Entrando a pestaña de rutas, cargando rutas...');
@@ -557,22 +574,22 @@ function showTab(n) {
 // ================================
 function showMainSubTab(n) {
   console.log('showMainSubTab called with:', n);
-  
+
   // Solo afectar los botones y paneles dentro de #tab-main
   const mainTab = document.getElementById('tab-main');
   if (!mainTab) {
     console.error('tab-main not found');
     return;
   }
-  
+
   const buttons = mainTab.querySelectorAll('.sub-tab-btn');
   const panels = mainTab.querySelectorAll('.sub-tab-panel');
-  
+
   console.log('Found buttons:', buttons.length, 'panels:', panels.length);
-  
+
   buttons.forEach((btn, i) => btn.classList.toggle('active', i === n));
   panels.forEach((p, i) => p.classList.toggle('active', i === n));
-  
+
   // Cargar datos específicos según el sub-tab
   if (n === 0) {
     // Scoreboard - ya se carga automáticamente
@@ -592,22 +609,22 @@ function showMainSubTab(n) {
 // ================================
 function showChallongeSubTab(n) {
   console.log('showChallongeSubTab called with:', n);
-  
+
   // Solo afectar los botones y paneles dentro de #tab-challonge
   const challongeTab = document.getElementById('tab-challonge');
   if (!challongeTab) {
     console.error('tab-challonge not found');
     return;
   }
-  
+
   const buttons = challongeTab.querySelectorAll('.sub-tab-btn');
   const panels = challongeTab.querySelectorAll('.sub-tab-panel');
-  
+
   console.log('Found buttons:', buttons.length, 'panels:', panels.length);
-  
+
   buttons.forEach((btn, i) => btn.classList.toggle('active', i === n));
   panels.forEach((p, i) => p.classList.toggle('active', i === n));
-  
+
   // Cargar datos específicos según el sub-tab
   if (n === 0) {
     // Credenciales - ya se carga automáticamente
@@ -654,8 +671,8 @@ async function enviarComandoBot(cmd) {
 // ================================
 
 // Listeners para los campos integrados en el marcador principal
-['p1NameInput','p1TagInput','p2NameInput','p2TagInput','p1CharSelect','p2CharSelect'].forEach(id => {
-  const el = document.getElementById(id) || document.getElementById(id.replace('Select',''));
+['p1NameInput', 'p1TagInput', 'p2NameInput', 'p2TagInput', 'p1CharSelect', 'p2CharSelect'].forEach(id => {
+  const el = document.getElementById(id) || document.getElementById(id.replace('Select', ''));
   if (el) {
     el.addEventListener('input', updateVisual);
     el.addEventListener('change', updateVisual);
@@ -663,10 +680,10 @@ async function enviarComandoBot(cmd) {
 });
 
 // Agregar listener de auto-guardado para el campo round
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const sbRoundElement = document.getElementById('sbRound');
   if (sbRoundElement) {
-    sbRoundElement.addEventListener('input', function() {
+    sbRoundElement.addEventListener('input', function () {
       // Auto-guardar datos después de un delay para evitar muchas escrituras
       clearTimeout(window.roundSaveTimeout);
       window.roundSaveTimeout = setTimeout(async () => {
@@ -738,49 +755,35 @@ function resetScores() {
 }
 
 function getScoreboardData() {
-  // Cargar los comentaristas - priorizar los preservados de Start.gg
-  let comentaristas = [];
+  // NOTA: Comentaristas y Temporizador se han movido a casters.json y timestamp.json
+  // Esta función ahora solo retorna datos del scoreboard puro.
+
+  const game = document.getElementById('gameSel').value;
+  const round = document.getElementById('sbRound').value;
   
-  console.log('[Scoreboard] Verificando comentaristas preservados:', window.comentaristasPreservados);
+  // Mapeo de códigos de juego a nombres completos
+  const gameNames = {
+    'UNI2': 'Under Night In-Birth II [Sys:Celes]',
+    'VSAV': 'Vampire Savior (Darkstalkers 3)',
+    'BBCF': 'BlazBlue: Central Fiction',
+    'COTW': 'Fatal Fury: City of the Wolves',
+    'GBVSR': 'Granblue Fantasy Versus: Rising',
+    'GGST': 'Guilty Gear -Strive-',
+    'HFTF': 'JoJo: Heritage for the Future',
+    'MBAACC': 'Melty Blood: Actress Again Current Code',
+    'MBTL': 'Melty Blood: Type Lumina',
+    'SCON4': 'Super Naruto: Clash of Ninja 4',
+    'SF3': 'Street Fighter III: 3rd Strike',
+    'SF6': 'Street Fighter 6',
+    'T8': 'Tekken 8'
+  };
   
-  if (window.comentaristasPreservados && window.comentaristasPreservados.length > 0) {
-    // Usar comentaristas preservados de Start.gg
-    comentaristas = [...window.comentaristasPreservados]; // Clonar array
-    console.log('[Scoreboard] Usando comentaristas preservados:', comentaristas);
-    // Limpiar la variable después de usarla
-    window.comentaristasPreservados = null;
-  } else if (window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
-    // Si no hay preservados, usar los del último scoreboard cargado
-    comentaristas = window.ultimoScoreboardData.comentaristas;
-    console.log('[Scoreboard] Usando comentaristas del último scoreboard:', comentaristas);
-  } else {
-    // Solo como último recurso, leer de los inputs (cuando realmente se quiere cambiar)
-    const com1Name = document.getElementById('com1Name')?.value || '';
-    const com1Twitter = document.getElementById('com1Twitter')?.value || '';
-    const com2Name = document.getElementById('com2Name')?.value || '';
-    const com2Twitter = document.getElementById('com2Twitter')?.value || '';
-    
-    // Solo usar inputs si realmente hay datos en ellos
-    if (com1Name || com1Twitter || com2Name || com2Twitter) {
-      comentaristas = [
-        { nombre: com1Name, twitter: com1Twitter },
-        { nombre: com2Name, twitter: com2Twitter }
-      ];
-      console.log('[Scoreboard] Usando comentaristas de inputs (hay datos):', comentaristas);
-    } else {
-      // Si no hay datos en inputs, intentar mantener comentaristas vacíos pero válidos
-      comentaristas = [
-        { nombre: '', twitter: '' },
-        { nombre: '', twitter: '' }
-      ];
-      console.log('[Scoreboard] Usando comentaristas vacíos por defecto');
-    }
-  }
+  // Obtener nombre completo del juego
+  const gameName = gameNames[game] || game;
   
-  // Obtener el valor actual del temporizador
-  const timerDisplay = document.getElementById('timerDisplay');
-  const temporizador = timerDisplay ? timerDisplay.textContent || '00:00' : '00:00';
-  
+  // Generar event como "nombre del juego - ronda"
+  const event = round ? `${gameName} - ${round}` : gameName;
+
   return {
     player1: document.getElementById('p1NameInput').value,
     player2: document.getElementById('p2NameInput').value,
@@ -790,14 +793,14 @@ function getScoreboardData() {
     tag2: document.getElementById('p2TagInput').value,
     char1: document.getElementById('p1CharSelect')?.value || '',
     char2: document.getElementById('p2CharSelect')?.value || '',
-    game: document.getElementById('gameSel').value,
-    event: document.getElementById('sbEvent').textContent,
-    round: document.getElementById('sbRound').value,
+    game: game,
+    event: event,
+    round: round,
     fase_original: window.currentFaseOriginal || '',
-  country1: '',
-  country2: '',
-    temporizador: temporizador,
-    comentaristas: comentaristas
+    country1: '',
+    country2: '',
+    // temporizador: temporizador, // Eliminado
+    // comentaristas: comentaristas // Eliminado
   };
 }
 
@@ -805,16 +808,16 @@ function getScoreboardData() {
 async function guardarScoreboard() {
   console.log('[GuardarScoreboard] Iniciando guardado manual...');
   console.log('[GuardarScoreboard] Comentaristas actuales en window.ultimoScoreboardData:', window.ultimoScoreboardData?.comentaristas);
-  
+
   // Si no hay comentaristas preservados de Start.gg y hay datos previos, preservarlos
   if (!window.comentaristasPreservados && window.ultimoScoreboardData && window.ultimoScoreboardData.comentaristas) {
     console.log('[GuardarScoreboard] Preservando comentaristas existentes para el guardado manual');
     window.comentaristasPreservados = [...window.ultimoScoreboardData.comentaristas];
   }
-  
+
   const data = getScoreboardData();
   console.log('[GuardarScoreboard] Datos a guardar:', data);
-  
+
   const res = await ipcRenderer.invoke('save-json', data, 'scoreboard');
   if (res.ok) {
     // Actualizar los datos después del guardado exitoso
@@ -947,7 +950,7 @@ async function guardarTop8() {
     const twitter = document.getElementById('top8twitter' + i).value; // <-- ahora es select
     top8Data.push({ nombre: jugador, personaje, juego, twitter });
   }
-  
+
   const res = await ipcRenderer.invoke('save-json', {
     evento: nombreTorneo,
     fecha: fecha,
@@ -1049,25 +1052,62 @@ function mostrarBracket() {
 //          MATCHES
 // ================================
 let matchesCargados = [];
+let tournamentParticipantsCount = 0;
+
+// Hacer accesible globalmente para el widget
+window.tournamentParticipantsCount = 0;
+
+// Calcular estructura teórica del torneo basada en número de participantes
+function calcularEstructuraTorneo(numParticipants) {
+  if (!numParticipants || numParticipants < 2) {
+    return { maxWinners: 1, minLosers: -1, maxLosers: -1 };
+  }
+
+  // En un torneo de doble eliminación:
+  // Winners: ceil(log2(N)) rondas - funciona para cualquier N (con byes si no es potencia de 2)
+  const winnersRounds = Math.ceil(Math.log2(numParticipants));
+  
+  // Losers: (2 × Winners) - 2 rondas
+  // Esta fórmula funciona para cualquier número de participantes
+  // Ejemplos con potencias de 2: 8p→3W,4L | 16p→4W,6L | 32p→5W,8L | 64p→6W,10L
+  // Ejemplos con otros números: 13p→4W,6L | 24p→5W,8L | 50p→6W,10L
+  const losersRounds = Math.max(1, (winnersRounds * 2) - 2);
+  
+  const result = {
+    maxWinners: winnersRounds,
+    minLosers: -losersRounds,
+    maxLosers: -1
+  };
+  
+  console.log(`📊 Estructura calculada para ${numParticipants} participantes:`);
+  console.log(`   Winners=${winnersRounds}, Losers=${losersRounds}`);
+  console.log(`   Objeto retornado:`, JSON.stringify(result));
+  
+  return result;
+}
 
 function nombreDeRonda(round, roundsInfo) {
   // roundsInfo: { maxWinners: N, minLosers: -N, maxLosers: -1 }
-  
+  console.log(`\n🔄 nombreDeRonda llamado con round=${round}, roundsInfo=`, JSON.stringify(roundsInfo));
+
   if (round > 0) {
     // Winners Bracket
     // Determinar cuántas rondas hay en total en el Winners Bracket
     const totalWinnersRounds = roundsInfo.maxWinners;
-    
+
     console.log(`🏆 Winners Bracket - Round ${round}:`);
     console.log(`  - Total rondas en Winners: ${totalWinnersRounds}`);
     console.log(`  - maxWinners: ${roundsInfo.maxWinners}`);
-    
+    console.log(`  - typeof maxWinners: ${typeof roundsInfo.maxWinners}`);
+    console.log(`  - totalWinnersRounds === 3? ${totalWinnersRounds === 3}`);
+    console.log(`  - totalWinnersRounds === 2? ${totalWinnersRounds === 2}`);
+
     // En torneos de doble eliminación, la lógica típica es:
     // - Si hay 1 ronda: debe ser Winners Final
     // - Si hay 2 rondas: ronda 2 = Winners Final, ronda 1 = Winners Semis  
     // - Si hay 3 rondas: ronda 3 = Winners Final, ronda 2 = Winners Semis, ronda 1 = Winners Quarters
     // - Si hay 4+ rondas: usar la lógica original
-    
+
     if (totalWinnersRounds === 1) {
       console.log(`  → Solo 1 ronda en Winners: Round ${round} = Winners Final`);
       return "Winners Final";
@@ -1077,38 +1117,78 @@ function nombreDeRonda(round, roundsInfo) {
       if (round === 1) return "Winners Semis";
     } else if (totalWinnersRounds === 3) {
       console.log(`  → 3 rondas en Winners: Round ${round} = ${round === 3 ? 'Winners Final' : round === 2 ? 'Winners Semis' : 'Winners Quarters'}`);
-      if (round === 3) return "Winners Final";
-      if (round === 2) return "Winners Semis";
-      if (round === 1) return "Winners Quarters";
+      if (round === 3) {
+        console.log(`✅ RETORNANDO: "Winners Final"`);
+        return "Winners Final";
+      }
+      if (round === 2) {
+        console.log(`✅ RETORNANDO: "Winners Semis"`);
+        return "Winners Semis";
+      }
+      if (round === 1) {
+        console.log(`✅ RETORNANDO: "Winners Quarters"`);
+        return "Winners Quarters";
+      }
     } else {
       console.log(`  → ${totalWinnersRounds} rondas en Winners, usando lógica original`);
       // Lógica original para torneos más grandes
-      if (round === roundsInfo.maxWinners) return "Winners Final";
-      if (round === roundsInfo.maxWinners - 1) return "Winners Semis";
-      if (round === roundsInfo.maxWinners - 2) return "Winners Quarters";
-      if (round === roundsInfo.maxWinners - 3) return "Winners Round 1";
-      if (round === 1) return "Winners Round 1";
+      if (round === roundsInfo.maxWinners) {
+        console.log(`✅ RETORNANDO: "Winners Final"`);
+        return "Winners Final";
+      }
+      if (round === roundsInfo.maxWinners - 1) {
+        console.log(`✅ RETORNANDO: "Winners Semis"`);
+        return "Winners Semis";
+      }
+      if (round === roundsInfo.maxWinners - 2) {
+        console.log(`✅ RETORNANDO: "Winners Quarters"`);
+        return "Winners Quarters";
+      }
+      if (round === roundsInfo.maxWinners - 3) {
+        console.log(`✅ RETORNANDO: "Winners Round 1"`);
+        return "Winners Round 1";
+      }
+      if (round === 1) {
+        console.log(`✅ RETORNANDO: "Winners Round 1"`);
+        return "Winners Round 1";
+      }
+      console.log(`✅ RETORNANDO: "Winners Round ${round}"`);
       return `Winners Round ${round}`;
     }
   }
-  
+
   if (round < 0) {
     // Losers Bracket - mientras más negativo, mejor ronda
     // Con la estructura completa del torneo, podemos usar la lógica correcta
-    console.log(`🎯 Calculando nombre para Losers Round ${round}`);
+    console.log(`🎯 Losers Bracket - Round ${round}:`);
     console.log(`  - minLosers: ${roundsInfo.minLosers}, maxLosers: ${roundsInfo.maxLosers}`);
-    
-    if (round === roundsInfo.minLosers) return "Losers Final";
-    if (round === roundsInfo.minLosers + 1) return "Losers Semis";
-    if (round === roundsInfo.minLosers + 2) return "Losers Quarters";
-    
+    console.log(`  - Comparaciones: round=${round}, minLosers=${roundsInfo.minLosers}, +1=${roundsInfo.minLosers + 1}, +2=${roundsInfo.minLosers + 2}`);
+
+    if (round === roundsInfo.minLosers) {
+      console.log(`✅ RETORNANDO: "Losers Final"`);
+      return "Losers Final";
+    }
+    if (round === roundsInfo.minLosers + 1) {
+      console.log(`✅ RETORNANDO: "Losers Semis"`);
+      return "Losers Semis";
+    }
+    if (round === roundsInfo.minLosers + 2) {
+      console.log(`✅ RETORNANDO: "Losers Quarters"`);
+      return "Losers Quarters";
+    }
+
     // Para rondas tempranas del losers bracket
     const roundsFromStart = Math.abs(round);
+    console.log(`✅ RETORNANDO: "Losers Round ${roundsFromStart}"`);
     return `Losers Round ${roundsFromStart}`;
   }
-  
-  if (round === 0) return "Grand Finals";
-  
+
+  if (round === 0) {
+    console.log(`✅ RETORNANDO: "Grand Finals"`);
+    return "Grand Finals";
+  }
+
+  console.log(`✅ RETORNANDO (fallback): "Round ${round}"`);
   return `Round ${round}`;
 }
 
@@ -1119,6 +1199,16 @@ async function cargarMatches() {
   const msg = document.getElementById('msgMatches');
   const selectMatch = document.getElementById('selectMatch');
 
+  if (!msg) {
+    console.error("❌ 'msgMatches' element not found!");
+    return;
+  }
+  if (!selectMatch) {
+    console.error("❌ 'selectMatch' element not found!");
+    msg.textContent = "Error interno: elemento selectMatch no encontrado.";
+    return;
+  }
+
   if (!apiKey || !tournamentSlug) {
     msg.textContent = "❌ Selecciona un torneo primero.";
     return;
@@ -1127,11 +1217,11 @@ async function cargarMatches() {
   msg.textContent = "Cargando matches...";
   try {
     console.log("🔍 Iniciando carga de matches para torneo:", tournamentSlug);
-    
+
     // Primero obtener TODOS los matches (incluyendo TBD vs TBD)
     const allMatchesRes = await window.ipcRenderer.invoke('get-all-matches-and-participants', tournamentSlug);
     console.log("📥 Respuesta de get-all-matches-and-participants:", allMatchesRes);
-    
+
     // Si esa función no existe, usar la función original como fallback
     let res;
     if (allMatchesRes && allMatchesRes.ok) {
@@ -1141,7 +1231,7 @@ async function cargarMatches() {
       console.log("⚠️ Función de matches completos no disponible, usando función original");
       res = await window.ipcRenderer.invoke('get-matches-and-participants', tournamentSlug);
     }
-    
+
     if (!res.ok) {
       console.error("❌ Error al obtener matches:", res.error);
       throw new Error(res.error || "Error al obtener los matches.");
@@ -1158,17 +1248,17 @@ async function cargarMatches() {
     let tipoMatches = "eliminatorias";
 
     // Si no hay matches de eliminatorias y es un torneo de grupos, intentar obtener matches de grupos
-    if ((!res.matches || res.matches.length === 0) && 
-        ((res.tournament_type && (res.tournament_type.toLowerCase().includes("group") || res.tournament_type.toLowerCase().includes("round robin"))) ||
-         (res.tournament_state && res.tournament_state.toLowerCase().includes("group")))) {
-      
+    if ((!res.matches || res.matches.length === 0) &&
+      ((res.tournament_type && (res.tournament_type.toLowerCase().includes("group") || res.tournament_type.toLowerCase().includes("round robin"))) ||
+        (res.tournament_state && res.tournament_state.toLowerCase().includes("group")))) {
+
       console.log("🔄 Intentando obtener matches de grupos...");
       msg.textContent = "Cargando matches de grupos...";
-      
+
       try {
         const groupRes = await window.ipcRenderer.invoke('get-group-matches', tournamentSlug);
         console.log("📥 Respuesta de get-group-matches:", groupRes);
-        
+
         if (groupRes.ok && groupRes.matches && groupRes.matches.length > 0) {
           allMatches = groupRes.matches;
           tipoMatches = "grupos";
@@ -1182,20 +1272,28 @@ async function cargarMatches() {
       }
     }
 
+    // Guardar número de participantes para cálculos de estructura
+    tournamentParticipantsCount = res.participantsCount || res.participantes?.length || 0;
+    window.tournamentParticipantsCount = tournamentParticipantsCount; // Sincronizar con global
+    console.log("👥 Número de participantes del torneo:", tournamentParticipantsCount);
+    console.log("📊 res.participantsCount:", res.participantsCount);
+    console.log("📊 res.participantes?.length:", res.participantes?.length);
+    console.log("📊 Estructura calculada:", calcularEstructuraTorneo(tournamentParticipantsCount));
+
     // Limpia el select y agrega los matches
     selectMatch.innerHTML = '';
     matchesCargados = allMatches;
 
     if (!allMatches || allMatches.length === 0) {
       let mensaje = "⚠️ No se encontraron matches.";
-      
+
       if ((res.tournament_type && (res.tournament_type.toLowerCase().includes("group") || res.tournament_type.toLowerCase().includes("round robin"))) ||
-          (res.tournament_state && res.tournament_state.toLowerCase().includes("group"))) {
+        (res.tournament_state && res.tournament_state.toLowerCase().includes("group"))) {
         mensaje = "⚠️ No se encontraron matches de eliminatorias ni de grupos. El torneo puede no haber comenzado aún.";
       } else {
         mensaje += " Esto puede ocurrir si el torneo aún no ha comenzado o si hay un problema con la configuración.";
       }
-      
+
       console.log("📝 Mensaje final:", mensaje);
       msg.textContent = mensaje;
       selectMatch.style.display = 'none';
@@ -1203,15 +1301,15 @@ async function cargarMatches() {
     }
 
     // Mostrar solo los matches que tienen jugadores asignados en el select
-    const matchesConJugadores = allMatches.filter(match => 
-      match.player1_name && match.player2_name && 
+    const matchesConJugadores = allMatches.filter(match =>
+      match.player1_name && match.player2_name &&
       !match.player1_name.includes('TBD') && !match.player2_name.includes('TBD')
     );
 
     matchesConJugadores.forEach(match => {
       const option = document.createElement('option');
       option.value = match.id;
-      
+
       // Mostrar información adicional según el tipo de match
       let matchInfo = "";
       if (tipoMatches === "grupos" && match.group_name) {
@@ -1219,7 +1317,7 @@ async function cargarMatches() {
       } else if (match.round && match.round !== 0) {
         matchInfo = ` (R${match.round})`;
       }
-      
+
       option.textContent = `Match #${match.id} - ${match.player1_name} vs ${match.player2_name}${matchInfo}`;
       selectMatch.appendChild(option);
     });
@@ -1229,7 +1327,7 @@ async function cargarMatches() {
     console.log(`🎉 Carga completada: ${allMatches.length} matches totales, ${matchesConJugadores.length} con jugadores`);
 
     // Asigna el evento para mostrar los datos del match seleccionado
-    selectMatch.onchange = function() {
+    selectMatch.onchange = function () {
       mostrarMatchEnScoreboard();
       mostrarPreviewMatch();
     };
@@ -1242,7 +1340,7 @@ async function cargarMatches() {
     }
   } catch (error) {
     console.error("💥 Error general en cargarMatches:", error);
-    msg.textContent = `❌ ${error.message}`;
+    if (msg) msg.textContent = `❌ ${error.message}`;
   }
 }
 
@@ -1254,43 +1352,45 @@ function mostrarMatchEnScoreboard() {
 
   // Determinar el nombre de la ronda/evento
   let roundName = "";
-  
+
   if (match.group_name) {
     // Es un match de grupos
     roundName = match.group_name;
   } else if (match.round !== undefined && match.round !== null) {
     // Es un match de eliminatorias con información de ronda
-    // Usar TODOS los matches del torneo (incluyendo TBD vs TBD) para calcular la estructura
-    const allWinnerRounds = matchesCargados
-      .filter(m => m.round !== undefined && m.round !== null && m.round > 0)
-      .map(m => m.round);
-    const allLoserRounds = matchesCargados
-      .filter(m => m.round !== undefined && m.round !== null && m.round < 0)
-      .map(m => m.round);
+    // Calcular estructura basada en participantes (más preciso que contar matches existentes)
+    let roundsInfo;
+    if (tournamentParticipantsCount > 0) {
+      roundsInfo = calcularEstructuraTorneo(tournamentParticipantsCount);
+      console.log(`🔍 Debug rondas para match ${match.id} (basado en ${tournamentParticipantsCount} participantes):`);
+    } else {
+      // Fallback: usar matches existentes si no hay info de participantes
+      const allWinnerRounds = matchesCargados
+        .filter(m => m.round !== undefined && m.round !== null && m.round > 0)
+        .map(m => m.round);
+      const allLoserRounds = matchesCargados
+        .filter(m => m.round !== undefined && m.round !== null && m.round < 0)
+        .map(m => m.round);
+
+      const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
+      const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
+      const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
+      
+      roundsInfo = { maxWinners, minLosers, maxLosers };
+      console.log(`🔍 Debug rondas para match ${match.id} (contando matches existentes):`);
+    }
     
-    // IMPORTANTE: Excluir la ronda 0 (Grand Final) del cálculo de Winners Bracket
-    // El Grand Final no es parte de la estructura del Winners Bracket
-    const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
-    const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
-    const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
-    
-    console.log(`🔍 Debug rondas para match ${match.id} (usando TODOS los matches):`);
     console.log(`  - Round actual: ${match.round}`);
-    console.log(`  - Total matches en el torneo: ${matchesCargados.length}`);
-    console.log(`  - Winners rounds encontradas (excluyendo Grand Final): [${allWinnerRounds.sort((a,b) => a-b).join(', ')}]`);
-    console.log(`  - Losers rounds encontradas: [${allLoserRounds.sort((a,b) => b-a).join(', ')}]`);
-    console.log(`  - Grand Finals detectados: ${matchesCargados.filter(m => m.round === 0).length} matches`);
-    console.log(`  - maxWinners: ${maxWinners}, minLosers: ${minLosers}, maxLosers: ${maxLosers}`);
-    
-    const roundsInfo = { maxWinners, minLosers, maxLosers };
+    console.log(`  - Participantes del torneo: ${tournamentParticipantsCount}`);
+    console.log(`  - Estructura calculada - maxWinners: ${roundsInfo.maxWinners}, minLosers: ${roundsInfo.minLosers}, maxLosers: ${roundsInfo.maxLosers}`);
     roundName = nombreDeRonda(match.round, roundsInfo);
-    
+
     console.log(`  - Nombre de ronda calculado: "${roundName}"`);
   } else {
     // Match sin información específica de ronda
     roundName = `Match #${match.id}`;
   }
-  
+
   document.getElementById('sbEvent').value = roundName;
   window.currentRoundName = roundName;
 
@@ -1333,19 +1433,28 @@ function mostrarMatchEnScoreboard() {
 async function reportarResultadoChallonge() {
   const select = document.getElementById('selectMatch');
   const matchId = select && select.value;
+  console.log('[REPORT] selectMatch value:', matchId);
+  console.log('[REPORT] matchesCargados:', matchesCargados);
+  
   if (!matchId || !matchesCargados.length) {
     mostrarNotificacion("Selecciona un match primero.", "error");
     return;
   }
   // CAMBIO: Usar el slug del select de torneos
   const slug = document.getElementById('tournamentList').value.trim();
+  console.log('[REPORT] slug:', slug);
+  
   if (!slug) {
     mostrarNotificacion("Falta slug del torneo.", "error");
     return;
   }
   const score1 = document.getElementById('p1Score').textContent.trim();
   const score2 = document.getElementById('p2Score').textContent.trim();
+  console.log('[REPORT] scores:', score1, '-', score2);
+  
   const match = matchesCargados.find(m => String(m.id) === String(matchId));
+  console.log('[REPORT] match found:', match);
+  
   if (!match) {
     mostrarNotificacion("Match no encontrado.", "error");
     return;
@@ -1358,13 +1467,19 @@ async function reportarResultadoChallonge() {
     mostrarNotificacion("Empate no permitido.", "error");
     return;
   }
+  
+  console.log('[REPORT] Sending to API:', { slug, matchId, scoreCsv, winnerId });
 
   document.getElementById('msgReportChallonge').textContent = "Enviando...";
   const res = await ipcRenderer.invoke('report-match-score', { slug, matchId, scoreCsv, winnerId });
+  console.log('[REPORT] Response:', res);
+  
   if (res.ok) {
     mostrarNotificacion("✅ Resultado reportado correctamente.", "success");
+    document.getElementById('msgReportChallonge').textContent = "";
   } else {
     mostrarNotificacion("❌ " + res.error, "error");
+    document.getElementById('msgReportChallonge').textContent = "";
   }
 }
 
@@ -1394,7 +1509,7 @@ function generarMensajeTop8(nombreTorneo, top8) {
     let twitter = twitterInput ? twitterInput.value.trim() : (p.twitter || "");
     let tag = twitter
       ? (twitter.startsWith('@') ? twitter : '@' + twitter)
-      : `@${p.name.replace(/\s/g,'_')}`;
+      : `@${p.name.replace(/\s/g, '_')}`;
     mensaje += `${rankNum}) ${tag}\n`;
   });
 
@@ -1469,7 +1584,7 @@ async function cargarEscenasOBS() {
       contenedor.appendChild(btn);
     });
   } else {
-  contenedor.innerHTML = "<span class='text-error'>No se pudieron cargar las escenas.</span>";
+    contenedor.innerHTML = "<span class='text-error'>No se pudieron cargar las escenas.</span>";
   }
 }
 
@@ -1527,11 +1642,11 @@ async function cargarTorneos() {
   try {
     const res = await window.ipcRenderer.invoke('get-tournaments');
     if (!res.ok) throw new Error(res.error || "Error al obtener los torneos.");
-    
+
     // Muestra todos los torneos sin filtrar
     const todosTorneos = res.tournaments;
     console.log("Torneos recibidos:", todosTorneos);
-    
+
     tournamentList.innerHTML = '<option value="">Selecciona un torneo...</option>';
     todosTorneos.forEach(tournament => {
       const option = document.createElement('option');
@@ -1572,12 +1687,12 @@ async function cargarTorneosTop8() {
       options += `<option value="${tournament.url}">${tournament.name}</option>`;
     });
     select.innerHTML = options;
-    
+
     // Si ya existe un torneo seleccionado para Top 8, restáuralo
     if (window.ultimoTorneoTop8) {
       select.value = window.ultimoTorneoTop8;
     }
-    
+
     // Actualiza la variable global cada vez que se cambia la selección
     select.onchange = () => {
       window.ultimoTorneoTop8 = select.value;
@@ -1612,12 +1727,12 @@ async function cargarTorneosBracket() {
       options += `<option value="${tournament.url}">${tournament.name}</option>`;
     });
     select.innerHTML = options;
-    
+
     // Si ya existe un torneo seleccionado en la sesión, restáuralo
     if (window.ultimoTorneoBracket) {
       select.value = window.ultimoTorneoBracket;
     }
-    
+
     // Actualiza la variable global cada vez que se cambia la selección
     select.onchange = async () => {
       window.ultimoTorneoBracket = select.value;
@@ -1632,7 +1747,7 @@ async function cargarTorneosBracket() {
 
         if (resMatches.ok && resMatches.matches && resTop8.top8) {
           const matchesFormateados = resMatches.matches.map((m, idx) => ({
-            id: m.identifier || m.id || `m${idx+1}`,
+            id: m.identifier || m.id || `m${idx + 1}`,
             p1: m.player1_name,
             p2: m.player2_name,
             p1s: Number((m.scores_csv || '').split('-')[0]) || 0,
@@ -1664,10 +1779,10 @@ async function buscarTorneosMatches() {
   try {
     const res = await window.ipcRenderer.invoke('get-tournaments');
     if (!res.ok) throw new Error(res.error || "Error al obtener los torneos.");
-    
+
     const todosTorneos = res.tournaments;
     console.log("Torneos recibidos:", todosTorneos);
-    
+
     // Cargar todos los torneos ordenados de más nuevo a más antiguo
     const torneosOrdenados = todosTorneos
       .filter(t => t.created_at)
@@ -1734,7 +1849,7 @@ async function elegirRuta(tipo) {
       input.value = res.ruta;
       // Guarda todas las rutas actuales, incluyendo 'usuarios'
       const rutas = {};
-      for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
+      for (const t of ['scoreboard', 'casters', 'timestamp', 'bracket', 'top8', 'apikey', 'usuarios']) {
         const inp = document.getElementById(rutaId(t));
         rutas[t] = inp ? inp.value : '';
       }
@@ -1745,14 +1860,14 @@ async function elegirRuta(tipo) {
 
 async function guardarTodasLasRutas() {
   const rutas = {};
-  for (const t of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
+  for (const t of ['scoreboard', 'casters', 'timestamp', 'bracket', 'top8', 'apikey', 'usuarios']) {
     const inp = document.getElementById(rutaId(t));
     rutas[t] = inp ? inp.value : '';
   }
   console.log('[guardarTodasLasRutas] Rutas a guardar:', rutas);
   const resultado = await ipcRenderer.invoke('guardar-rutas', rutas);
   console.log('[guardarTodasLasRutas] Resultado del guardado:', resultado);
-  
+
   if (resultado.ok) {
     alert('¡Rutas guardadas correctamente!');
   } else {
@@ -1764,14 +1879,14 @@ async function cargarRutas() {
   console.log('[cargarRutas] Iniciando carga de rutas...');
   const res = await ipcRenderer.invoke('cargar-rutas');
   console.log('[cargarRutas] Respuesta del servidor:', res);
-  
+
   if (res.ok && res.rutas) {
     console.log('[cargarRutas] Rutas encontradas:', res.rutas);
-    for (const tipo of ['scoreboard', 'bracket', 'top8', 'apikey', 'usuarios']) {
+    for (const tipo of ['scoreboard', 'casters', 'timestamp', 'bracket', 'top8', 'apikey', 'usuarios']) {
       const inputId = rutaId(tipo);
       const input = document.getElementById(inputId);
       console.log(`[cargarRutas] Procesando ${tipo} -> input ID: ${inputId}, input existe: ${!!input}`);
-      
+
       if (res.rutas[tipo] !== undefined && input) {
         input.value = res.rutas[tipo];
         console.log(`[cargarRutas] Asignado ${tipo}: "${res.rutas[tipo]}" al input ${inputId}`);
@@ -1905,7 +2020,7 @@ async function llenarUsuariosTop8DesdeTxt() {
 }
 
 // ...al final de scoreboard.js
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
   const saved = localStorage.getItem('scoreboard-style');
   if (saved === 'light') {
     document.body.classList.add('light-mode');
@@ -1914,7 +2029,7 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   // No cargar rutas automáticamente - se cargan al ir a la pestaña de rutas
-  
+
   // Initialize Challonge sub-tabs to show first one by default
   showChallongeSubTab(0);
 });
@@ -1975,17 +2090,43 @@ function cargarMatchChallongeEnScoreboard() {
   document.getElementById('p2NameInput').value = p2.name;
   document.getElementById('p2TagInput').value = p2.tag;
 
-  // Ronda
+  // Ronda - convertir usando estructura calculada basada en participantes
   let roundName = '';
+  
+  // Usar la variable global si la local está en 0
+  const participantsCount = tournamentParticipantsCount || window.tournamentParticipantsCount || 0;
+  console.log("🎮 cargarMatchChallongeEnScoreboard - participantsCount:", participantsCount);
+  console.log("🎮 tournamentParticipantsCount (local):", tournamentParticipantsCount);
+  console.log("🎮 window.tournamentParticipantsCount (global):", window.tournamentParticipantsCount);
+  
   if (match.round !== undefined && match.round !== null) {
-    roundName = `Ronda ${match.round}`;
+    // Usar estructura calculada basada en participantes del torneo
+    let roundsInfo;
+    if (participantsCount > 0) {
+      roundsInfo = calcularEstructuraTorneo(participantsCount);
+      console.log("✅ Usando estructura calculada basada en participantes:", roundsInfo);
+    } else {
+      // Fallback: calcular desde matches existentes
+      const allWinnerRounds = matchesCargados
+        .filter(m => m.round !== undefined && m.round !== null && m.round > 0)
+        .map(m => m.round);
+      const allLoserRounds = matchesCargados
+        .filter(m => m.round !== undefined && m.round !== null && m.round < 0)
+        .map(m => m.round);
+
+      const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
+      const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
+      const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
+      
+      roundsInfo = { maxWinners, minLosers, maxLosers };
+    }
+    
+    roundName = nombreDeRonda(match.round, roundsInfo);
   } else {
     roundName = `Match #${match.id}`;
   }
 
-  // Actualizar tanto el campo de evento (sbEvent) como el campo editable de ronda (sbRound)
-  document.getElementById('sbEvent').value = roundName;
-  document.getElementById('sbEvent').textContent = roundName;
+  // Actualizar el campo editable de ronda (sbRound)
   document.getElementById('sbRound').value = roundName;
   window.currentRoundName = roundName;
 
@@ -2038,19 +2179,19 @@ function resetearTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
   }
-  
+
   // Resetear variables globales
   timerEndTimestamp = null;
-  
+
   // Mostrar 00:00 en pantalla
   mostrarTimer(0);
-  
+
   // Limpiar el input
   document.getElementById('timerInput').value = '';
-  
+
   // Guardar el estado reseteado en el JSON
   guardarTimerEnScoreboard(null);
-  
+
   // Mostrar mensaje de confirmación
   document.getElementById('msgTimer').textContent = '🔄 Timer reseteado';
   setTimeout(() => document.getElementById('msgTimer').textContent = '', 2000);
@@ -2070,11 +2211,11 @@ function mostrarTimer(msRestante) {
 }
 
 async function guardarTimerEnScoreboard(timestamp) {
-  // Cargar scoreboard actual
-  const resLoad = await ipcRenderer.invoke('load-json');
+  // Cargar timestamp actual
+  const resLoad = await ipcRenderer.invoke('load-json', 'timestamp');
   let data = resLoad.ok && resLoad.data ? resLoad.data : {};
   data.timerEndTimestamp = timestamp;
-  await ipcRenderer.invoke('save-json', data, 'scoreboard');
+  await ipcRenderer.invoke('save-json', data, 'timestamp');
 }
 
 // Al cargar la pestaña comentaristas, mostrar el timer si existe
@@ -2085,6 +2226,11 @@ async function cargarTimerAlAbrir() {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
+  }
+  // Asegurar que el display siempre muestre 00:00 al inicio
+  const timerDisplay = document.getElementById('timerDisplay');
+  if (timerDisplay && !timerDisplay.textContent) {
+    timerDisplay.textContent = '00:00';
   }
 }
 

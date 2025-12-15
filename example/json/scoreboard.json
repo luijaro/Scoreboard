@@ -10,16 +10,5 @@
   "game": "UNI2",
   "round": "Winners Semi-Final",
   "country1": "",
-  "country2": "",
-  "comentaristas": [
-    {
-      "nombre": "Onemi",
-      "twitter": "j"
-    },
-    {
-      "nombre": "Onemi",
-      "twitter": "ads"
-    }
-  ],
-  "timerEndTimestamp": 1753218353771
+  "country2": ""
 }

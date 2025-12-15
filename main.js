@@ -83,7 +83,7 @@ function createWindow() {
     // Abrir las herramientas de desarrollador para ver la consola
     //mainWindow.webContents.openDevTools();
   });
-  
+
   // Limpiar la referencia cuando se cierre la ventana
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -105,7 +105,7 @@ app.whenReady().then(() => {
 
 function startStreamDeckServer() {
   const PORT = 3001;
-  
+
   httpServer = http.createServer((req, res) => {
     // Configurar CORS para permitir cualquier origen
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -148,16 +148,16 @@ function startStreamDeckServer() {
 
 async function handleStreamDeckRequest(pathname, res) {
   const parts = pathname.split('/').filter(p => p);
-  
+
   if (parts.length === 0) {
     // Endpoint de estado
     res.writeHead(200);
-    res.end(JSON.stringify({ 
-      status: 'active', 
+    res.end(JSON.stringify({
+      status: 'active',
       message: 'Stream Deck Server is running',
       endpoints: [
         'GET /score/player1/+1 - Increase player 1 score',
-        'GET /score/player1/-1 - Decrease player 1 score', 
+        'GET /score/player1/-1 - Decrease player 1 score',
         'GET /score/player2/+1 - Increase player 2 score',
         'GET /score/player2/-1 - Decrease player 2 score',
         'GET /reset-scores - Reset both scores to 0',
@@ -193,7 +193,7 @@ async function handleStreamDeckRequest(pathname, res) {
     // /score/player1/+1 o /score/player2/-1
     const player = parts[1]; // 'player1' o 'player2'
     const action = parts[2]; // '+1' o '-1'
-    
+
     if ((player === 'player1' || player === 'player2') && (action === '+1' || action === '-1')) {
       success = await changeScoreViaAPI(player, action);
       message = success ? `Score changed for ${player} by ${action}` : 'Failed to change score';
@@ -220,7 +220,7 @@ async function handleStreamDeckRequest(pathname, res) {
     // /game/GGST, /game/SF6, etc.
     const gameCode = parts[1].toUpperCase();
     const validGames = ['GGST', 'SF6', 'T8', 'UNI2', 'GBVSR', 'BBCF', 'MBTL', 'COTW', 'GVSR', 'HFTF', 'MBAACC', 'SCON4', 'SF3', 'VSAV'];
-    
+
     if (validGames.includes(gameCode)) {
       success = await changeGameViaAPI(gameCode);
       message = success ? `Game changed to ${gameCode}` : 'Failed to change game';
@@ -238,17 +238,17 @@ async function changeScoreViaAPI(player, action) {
     // Cargar datos actuales
     const loadResult = await loadScoreboardData();
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
     const scoreField = player === 'player1' ? 'score1' : 'score2';
     const delta = action === '+1' ? 1 : -1;
-    
+
     // Cambiar el score
     data[scoreField] = Math.max(0, (data[scoreField] || 0) + delta);
-    
+
     // Guardar en archivo
     const saveResult = await saveScoreboardData(data);
-    
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('stream-deck-score-change', {
@@ -257,9 +257,9 @@ async function changeScoreViaAPI(player, action) {
         newScore: data[scoreField]
       });
     }
-    
+
     console.log(`[Stream Deck] Score changed: ${player} ${action} -> ${data[scoreField]}`);
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error changing score:', error);
@@ -271,20 +271,20 @@ async function resetScoresViaAPI() {
   try {
     const loadResult = await loadScoreboardData();
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
     data.score1 = 0;
     data.score2 = 0;
-    
+
     const saveResult = await saveScoreboardData(data);
-    
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('stream-deck-reset-scores');
     }
-    
+
     console.log('[Stream Deck] Scores reset to 0-0');
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error resetting scores:', error);
@@ -294,21 +294,21 @@ async function resetScoresViaAPI() {
 
 async function resetTimerViaAPI() {
   try {
-    const loadResult = await loadScoreboardData();
+    const loadResult = await loadJsonData('timestamp');
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
     data.timerEndTimestamp = null;
-    
-    const saveResult = await saveScoreboardData(data);
-    
+
+    const saveResult = await saveJsonData(data, 'timestamp');
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('stream-deck-reset-timer');
     }
-    
+
     console.log('[Stream Deck] Timer reset');
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error resetting timer:', error);
@@ -318,27 +318,27 @@ async function resetTimerViaAPI() {
 
 async function setTimerViaAPI(minutes) {
   try {
-    const loadResult = await loadScoreboardData();
+    const loadResult = await loadJsonData('timestamp');
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
-    
+
     // Calcular timestamp de finalización (ahora + minutos)
     const now = Date.now();
     data.timerEndTimestamp = now + (minutes * 60 * 1000);
-    
-    const saveResult = await saveScoreboardData(data);
-    
+
+    const saveResult = await saveJsonData(data, 'timestamp');
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('stream-deck-set-timer', { 
-        minutes: minutes, 
-        endTimestamp: data.timerEndTimestamp 
+      mainWindow.webContents.send('stream-deck-set-timer', {
+        minutes: minutes,
+        endTimestamp: data.timerEndTimestamp
       });
     }
-    
+
     console.log(`[Stream Deck] Timer set to ${minutes} minutes`);
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error setting timer:', error);
@@ -350,9 +350,9 @@ async function swapPlayersViaAPI() {
   try {
     const loadResult = await loadScoreboardData();
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
-    
+
     // Intercambiar todos los datos de jugadores
     const temp = {
       player: data.player1,
@@ -361,28 +361,28 @@ async function swapPlayersViaAPI() {
       char: data.char1,
       country: data.country1
     };
-    
+
     data.player1 = data.player2;
     data.score1 = data.score2;
     data.tag1 = data.tag2;
     data.char1 = data.char2;
     data.country1 = data.country2;
-    
+
     data.player2 = temp.player;
     data.score2 = temp.score;
     data.tag2 = temp.tag;
     data.char2 = temp.char;
     data.country2 = temp.country;
-    
+
     const saveResult = await saveScoreboardData(data);
-    
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('stream-deck-swap-players');
     }
-    
+
     console.log('[Stream Deck] Players swapped');
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error swapping players:', error);
@@ -394,21 +394,21 @@ async function changeGameViaAPI(gameCode) {
   try {
     const loadResult = await loadScoreboardData();
     if (!loadResult.ok) return false;
-    
+
     const data = loadResult.data;
-    
+
     // Cambiar el juego actual
     data.game = gameCode;
-    
+
     const saveResult = await saveScoreboardData(data);
-    
+
     // Enviar comando a la ventana para actualizar la UI
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('stream-deck-change-game', gameCode);
     }
-    
+
     console.log(`[Stream Deck] Game changed to ${gameCode}`);
-    
+
     return saveResult.ok;
   } catch (error) {
     console.error('[Stream Deck] Error changing game:', error);
@@ -417,19 +417,20 @@ async function changeGameViaAPI(gameCode) {
 }
 
 // Funciones auxiliares para cargar/guardar datos
-async function loadScoreboardData() {
+// Funciones auxiliares para cargar/guardar datos (Versión Generalizada)
+async function loadJsonData(tipo = 'scoreboard') {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   let file;
-  if (rutas.scoreboard) {
-    file = rutas.scoreboard;
+  if (rutas[tipo]) {
+    file = rutas[tipo];
   } else {
-    file = path.join(userDataDir, 'scoreboard.json');
+    file = path.join(userDataDir, tipo + '.json');
   }
-  
+
   if (fs.existsSync(file)) {
     try {
       const data = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -438,22 +439,23 @@ async function loadScoreboardData() {
       return { ok: false, error: error.message };
     }
   }
-  return { ok: false, error: 'File not found' };
+  // Si no existe, retornar objeto vacío pero ok para crear
+  return { ok: true, data: {}, file };
 }
 
-async function saveScoreboardData(data) {
+async function saveJsonData(data, tipo = 'scoreboard') {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   let file;
-  if (rutas.scoreboard) {
-    file = rutas.scoreboard;
+  if (rutas[tipo]) {
+    file = rutas[tipo];
   } else {
-    file = path.join(userDataDir, 'scoreboard.json');
+    file = path.join(userDataDir, tipo + '.json');
   }
-  
+
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
     return { ok: true, file };
@@ -462,6 +464,11 @@ async function saveScoreboardData(data) {
   }
 }
 
+// Mantener alias para compatibilidad con código existente si es necesario, 
+// o actualizar llamadas restantes.
+async function loadScoreboardData() { return loadJsonData('scoreboard'); }
+async function saveScoreboardData(data) { return saveJsonData(data, 'scoreboard'); }
+
 // =========================
 //     IPC HANDLERS
 // =========================
@@ -469,7 +476,7 @@ async function saveScoreboardData(data) {
 ipcMain.handle('startgg-get-matches', async (event, eventId) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -478,7 +485,7 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
     try {
       const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
       token = data.startgg || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   // Consulta sets (matches) del evento y de cada fase/pool si existen
@@ -610,7 +617,7 @@ ipcMain.handle('save-bracket-json', async (event, bracketData) => {
   if (fs.existsSync(configFile)) {
     try {
       config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-    } catch (e) {}
+    } catch (e) { }
   }
   const rutas = config.rutas || {};
   // Usar la ruta personalizada si existe, si no usar la ruta por defecto
@@ -625,7 +632,7 @@ ipcMain.handle('save-bracket-json', async (event, bracketData) => {
 ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -634,7 +641,7 @@ ipcMain.handle('startgg-get-events', async (event, tournamentSlug) => {
     try {
       const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
       token = data.startgg || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   // Consulta eventos del torneo
@@ -675,7 +682,7 @@ ipcMain.handle('save-json', async (event, data, tipo = 'scoreboard') => {
   console.log('[save-json] Datos recibidos:', data);
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   let file;
@@ -700,7 +707,7 @@ ipcMain.handle('save-json', async (event, data, tipo = 'scoreboard') => {
 ipcMain.handle('load-json', async (event, tipo = 'scoreboard') => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   let file;
@@ -721,13 +728,13 @@ ipcMain.handle('load-json', async (event, tipo = 'scoreboard') => {
 ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, twitchChannel, startgg, nightbotToken, nightbotClientId, nightbotClientSecret, nightbotRedirectUri }) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
   let data = {};
   if (fs.existsSync(file)) {
-    try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) {}
+    try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { }
   }
   // Guardar SIEMPRE todos los campos, aunque estén vacíos
   data.apiKey = typeof apiKey !== 'undefined' ? apiKey : (data.apiKey || '');
@@ -747,7 +754,7 @@ ipcMain.handle('save-api-key', async (event, { apiKey, twitchOAuth, twitchUser, 
 ipcMain.handle('load-api-key', async () => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -776,18 +783,18 @@ ipcMain.handle('load-api-key', async () => {
 // Obtener jugadores desde Challonge
 ipcMain.handle('get-participants', async (event, slug) => {
   let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
@@ -808,19 +815,19 @@ if (fs.existsSync(file)) {
 
 // Obtener Top 8
 ipcMain.handle('get-top8', async (event, slug) => {
-let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`;
@@ -841,19 +848,19 @@ if (fs.existsSync(file)) {
 
 // Obtener matches y participantes (solo matches abiertos) + información del torneo
 ipcMain.handle('get-matches-and-participants', async (event, slug) => {
-let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   const urlTournament = `https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`;
@@ -866,11 +873,11 @@ if (fs.existsSync(file)) {
       fetch(urlMatch)
     ]);
     if (!tournamentRes.ok || !partRes.ok || !matchRes.ok) throw new Error('Error consultando Challonge');
-    
+
     const tournamentData = await tournamentRes.json();
     const partData = await partRes.json();
     const matchData = await matchRes.json();
-    
+
     const participantes = {};
     partData.forEach(p => {
       participantes[p.participant.id] = {
@@ -878,6 +885,10 @@ if (fs.existsSync(file)) {
         name: p.participant.name
       };
     });
+    
+    console.log('\n👥 [MAIN] Participantes cargados:', Object.values(participantes).length);
+    console.log('📋 [MAIN] Lista de participantes:', Object.values(participantes).map(p => p.name));
+    
     // Solo matches en desarrollo (state: 'open'), sin ganador y sin "TBD"
     const matches = matchData
       .filter(m =>
@@ -899,14 +910,20 @@ if (fs.existsSync(file)) {
         winner_id: m.match.winner_id,
         state: m.match.state
       }));
-    
-    return { 
-      ok: true, 
-      matches, 
+
+    const result = {
+      ok: true,
+      matches,
       participantes: Object.values(participantes),
+      participantsCount: Object.values(participantes).length,
       tournament_type: tournamentData.tournament.tournament_type,
       tournament_state: tournamentData.tournament.state
     };
+    
+    console.log('✅ [MAIN] Retornando respuesta con participantsCount:', result.participantsCount);
+    console.log('📊 [MAIN] Matches encontrados:', result.matches.length);
+    
+    return result;
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
   }
@@ -914,32 +931,32 @@ if (fs.existsSync(file)) {
 
 // Obtener matches de grupos específicamente
 ipcMain.handle('get-group-matches', async (event, slug) => {
-let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  let config = {};
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   try {
     // Obtener información del torneo para confirmar que es de grupos
     const tournamentRes = await fetch(`https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`);
     if (!tournamentRes.ok) throw new Error('Error obteniendo información del torneo');
-    
+
     const tournamentData = await tournamentRes.json();
     const tournamentType = tournamentData.tournament.tournament_type;
     const tournamentState = tournamentData.tournament.state;
-    
-    if ((!tournamentType || (!tournamentType.toLowerCase().includes('group') && !tournamentType.toLowerCase().includes('round robin'))) && 
-        (!tournamentState || !tournamentState.toLowerCase().includes('group'))) {
+
+    if ((!tournamentType || (!tournamentType.toLowerCase().includes('group') && !tournamentType.toLowerCase().includes('round robin'))) &&
+      (!tournamentState || !tournamentState.toLowerCase().includes('group'))) {
       return { ok: false, error: 'Este torneo no es de tipo grupo' };
     }
 
@@ -948,12 +965,12 @@ if (fs.existsSync(file)) {
       fetch(`https://api.challonge.com/v1/tournaments/${slug}/participants.json?api_key=${apiKey}`),
       fetch(`https://api.challonge.com/v1/tournaments/${slug}/matches.json?api_key=${apiKey}`)
     ]);
-    
+
     if (!partRes.ok || !matchRes.ok) throw new Error('Error obteniendo datos del torneo');
-    
+
     const partData = await partRes.json();
     const matchData = await matchRes.json();
-    
+
     console.log('🐛 Debug get-group-matches:');
     console.log('  - Tournament type:', tournamentType);
     console.log('  - Tournament state:', tournamentState);
@@ -961,22 +978,22 @@ if (fs.existsSync(file)) {
     console.log('  - Matches totales:', matchData.length);
     console.log('  - Primeros 3 participantes:', partData.slice(0, 3));
     console.log('  - Primeros 3 matches:', matchData.slice(0, 3));
-    
+
     // Crear un mapa más flexible de participantes usando group_player_ids
     const participantes = {};
     const playerMapping = {}; // Mapa de player_id -> nombre
-    
+
     partData.forEach(p => {
       const participantId = p.participant.id;
       const participantName = p.participant.name || p.participant.display_name;
-      
+
       participantes[participantId] = {
         id: participantId,
         name: participantName,
         group_name: p.participant.group_id ? `Group ${p.participant.group_id}` : 'Group Stage',
         group_player_ids: p.participant.group_player_ids || []
       };
-      
+
       // CLAVE: Mapear cada group_player_id al nombre del participante
       if (p.participant.group_player_ids && Array.isArray(p.participant.group_player_ids)) {
         p.participant.group_player_ids.forEach(playerId => {
@@ -984,17 +1001,17 @@ if (fs.existsSync(file)) {
         });
       }
     });
-    
+
     console.log('🎯 Group Player IDs mapping:');
     partData.forEach(p => {
       console.log(`  - ${p.participant.name}: participant_id=${p.participant.id}, group_player_ids=${JSON.stringify(p.participant.group_player_ids)}`);
     });
-    
+
     console.log('🔍 Player mapping creado:', playerMapping);
-    
+
     // También intentar obtener el mapping correcto desde la API de matches específicos como fallback
     let fullTournamentData = null;
-    
+
     try {
       // Obtener datos completos del torneo que incluye participantes con IDs correctos
       const fullRes = await fetch(`https://api.challonge.com/v1/tournaments/${slug}.json?include_participants=1&include_matches=1&api_key=${apiKey}`);
@@ -1013,7 +1030,7 @@ if (fs.existsSync(file)) {
           });
           console.log('🔍 Player mapping actualizado con API completo:', Object.keys(playerMapping).length, 'jugadores');
         }
-        
+
         // Si también tenemos matches en el response completo, usarlos
         if (fullTournamentData.tournament && fullTournamentData.tournament.matches) {
           console.log('🔍 Matches from full API:', fullTournamentData.tournament.matches.length);
@@ -1023,12 +1040,12 @@ if (fs.existsSync(file)) {
     } catch (e) {
       console.log('⚠️ No se pudo obtener mapping detallado:', e.message);
     }
-    
+
     console.log('🐛 Mapeando participantes:');
     console.log('  - Participantes por ID:', Object.keys(participantes));
     console.log('  - Player IDs en matches:', matchData.slice(0, 3).map(m => `${m.match.player1_id} vs ${m.match.player2_id}`));
     console.log('  - Player mapping final disponible:', playerMapping);
-    
+
     // Función para buscar nombre de jugador
     function findPlayerName(playerId) {
       // Buscar en el mapping de group_player_ids (que es lo correcto)
@@ -1045,29 +1062,29 @@ if (fs.existsSync(file)) {
       console.log(`❌ Player ${playerId} not found in mapping`);
       return 'TBD';
     }
-    
+
     // Determinar qué matches usar - preferir los de la API completa si tienen group_id
     let matchesToProcess = matchData;
-    
+
     if (fullTournamentData && fullTournamentData.tournament && fullTournamentData.tournament.matches) {
       const fullMatches = fullTournamentData.tournament.matches;
       const groupMatchesFromFull = fullMatches.filter(m => m.match.group_id);
-      
+
       if (groupMatchesFromFull.length > 0) {
         console.log('🎯 Usando matches de la API completa:', groupMatchesFromFull.length, 'matches de grupos');
         matchesToProcess = groupMatchesFromFull;
       }
     }
-    
+
     // Filtrar matches de grupos - solo matches abiertos que tengan group_id
     const groupMatches = matchesToProcess
       .filter(m => m.match.group_id && m.match.state === 'open') // Solo matches de grupos que estén abiertos
       .map(m => {
         const player1_name = findPlayerName(m.match.player1_id);
         const player2_name = findPlayerName(m.match.player2_id);
-        
+
         console.log(`🔍 Match ${m.match.id} (${m.match.state}): ${m.match.player1_id} (${player1_name}) vs ${m.match.player2_id} (${player2_name})`);
-        
+
         return {
           id: m.match.id,
           player1_id: m.match.player1_id,
@@ -1083,16 +1100,16 @@ if (fs.existsSync(file)) {
         };
       })
       .filter(m => m.player1_name !== 'TBD' && m.player2_name !== 'TBD'); // Filtrar solo los que no pudimos mapear
-    
+
     console.log('🐛 Después del filtrado:');
     console.log('  - Matches totales encontrados:', matchesToProcess.length);
     console.log('  - Matches con group_id:', matchesToProcess.filter(m => m.match.group_id).length);
     console.log('  - Matches abiertos (state=open):', matchesToProcess.filter(m => m.match.group_id && m.match.state === 'open').length);
     console.log('  - Group matches finales (abiertos y con nombres):', groupMatches.length);
     console.log('  - Group matches:', groupMatches);
-    
-    return { 
-      ok: true, 
+
+    return {
+      ok: true,
       matches: groupMatches,
       participantes: Object.values(participantes)
     };
@@ -1103,35 +1120,59 @@ if (fs.existsSync(file)) {
 
 // Modificar resultados (reportar match)
 ipcMain.handle('report-match-score', async (event, { slug, matchId, scoreCsv, winnerId }) => {
+  console.log('[MAIN] report-match-score called with:', { slug, matchId, scoreCsv, winnerId });
+  
   let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
-  if (!apiKey) return { ok: false, error: 'API key no establecida.' };
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  console.log('[MAIN] API key file:', file);
+  
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+      console.log('[MAIN] API key loaded:', apiKey ? '(exists)' : '(empty)');
+    } catch (e) {
+      console.error('[MAIN] Error reading API key:', e);
+    }
+  }
+  if (!apiKey) {
+    console.error('[MAIN] No API key found');
+    return { ok: false, error: 'API key no establecida.' };
+  }
 
   const url = `https://api.challonge.com/v1/tournaments/${slug}/matches/${matchId}.json?api_key=${apiKey}`;
+  console.log('[MAIN] Request URL:', url.replace(apiKey, '***'));
+  
   try {
+    const requestBody = {
+      match: {
+        scores_csv: scoreCsv,
+        winner_id: winnerId
+      }
+    };
+    console.log('[MAIN] Request body:', JSON.stringify(requestBody));
+    
     const res = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        match: {
-          scores_csv: scoreCsv,
-          winner_id: winnerId
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    
+    console.log('[MAIN] Response status:', res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[MAIN] Response error:', errorText);
+      throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
+    }
+    
     const data = await res.json();
+    console.log('[MAIN] Response data:', data);
     return { ok: true, match: data.match };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -1190,18 +1231,18 @@ ipcMain.handle('twitch-say', async (event, { message }) => {
 
 ipcMain.handle('get-tournament-title', async (event, slug) => {
   let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { error: 'API key no establecida.' };
   const url = `https://api.challonge.com/v1/tournaments/${slug}.json?api_key=${apiKey}`;
   try {
@@ -1275,18 +1316,18 @@ ipcMain.handle('capturar-escena-obs', async () => {
 // Obtener torneos
 ipcMain.handle('get-tournaments', async () => {
   let config = {};
-if (fs.existsSync(configFile)) {
-  try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
-}
-const rutas = config.rutas || {};
-const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
-let apiKey = '';
-if (fs.existsSync(file)) {
-  try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    apiKey = data.apiKey || '';
-  } catch (e) {}
-}
+  if (fs.existsSync(configFile)) {
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  }
+  const rutas = config.rutas || {};
+  const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
+  let apiKey = '';
+  if (fs.existsSync(file)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      apiKey = data.apiKey || '';
+    } catch (e) { }
+  }
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
   const url = `https://api.challonge.com/v1/tournaments.json?api_key=${apiKey}`;
@@ -1349,7 +1390,7 @@ ipcMain.handle('abrir-ventana-rutas', () => {
 ipcMain.handle('guardar-rutas', async (event, rutas) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   config.rutas = rutas;
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2), 'utf8');
@@ -1362,7 +1403,7 @@ ipcMain.handle('cargar-rutas', async () => {
     try {
       const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
       return { ok: true, rutas: config.rutas || {} };
-    } catch (e) {}
+    } catch (e) { }
   }
   return { ok: false, rutas: {} };
 });
@@ -1381,7 +1422,7 @@ ipcMain.removeHandler('startgg-get-event-state');
 ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -1390,7 +1431,7 @@ ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
     try {
       const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
       token = data.startgg || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   // Consulta GraphQL para estado del evento
@@ -1424,7 +1465,7 @@ ipcMain.handle('startgg-get-event-state', async (event, eventId) => {
 ipcMain.handle('startgg-get-standings', async (event, eventId) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -1433,7 +1474,7 @@ ipcMain.handle('startgg-get-standings', async (event, eventId) => {
     try {
       const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
       token = data.startgg || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   const queryStandings = `
@@ -1484,7 +1525,7 @@ ipcMain.handle('save-json-custom', async (event, data, ruta) => {
 ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const file = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -1493,7 +1534,7 @@ ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
     try {
       const data = JSON.parse(fs.readFileSync(file, 'utf8'));
       apiKey = data.apiKey || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!apiKey) return { ok: false, error: 'API key no establecida.' };
 
@@ -1514,6 +1555,9 @@ ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
         name: p.participant.name
       };
     });
+    
+    console.log('\n👥 [MAIN ALL] Participantes totales:', Object.values(participantes).length);
+    
     // DEVUELVE TODOS LOS MATCHES, sin filtros
     const matches = matchData.map(m => ({
       id: m.match.id,
@@ -1525,7 +1569,17 @@ ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
       scores_csv: m.match.scores_csv || '',
       winner_id: m.match.winner_id
     }));
-    return { ok: true, matches, participantes: Object.values(participantes) };
+    const result = { 
+      ok: true, 
+      matches, 
+      participantes: Object.values(participantes),
+      participantsCount: Object.values(participantes).length 
+    };
+    
+    console.log('✅ [MAIN ALL] Retornando con participantsCount:', result.participantsCount);
+    console.log('📊 [MAIN ALL] Total matches (incluyendo TBD):', result.matches.length);
+    
+    return result;
   } catch (e) {
     return { ok: false, error: 'No se pudo consultar Challonge: ' + e.message };
   }
@@ -1534,7 +1588,7 @@ ipcMain.handle('get-all-matches-and-participants', async (event, slug) => {
 ipcMain.handle('leer-personajes-txt', async (event) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const rutaTxt = rutas.personajes;
@@ -1551,7 +1605,7 @@ ipcMain.handle('leer-personajes-txt', async (event) => {
 ipcMain.handle('leer-usuarios-txt', async (event) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const rutaTxt = rutas.usuarios;
@@ -1588,7 +1642,7 @@ if (fs.existsSync(apikeyPath)) {
   try {
     const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
     token = data.startgg || '';
-  } catch (e) {}
+  } catch (e) { }
 }
 if (!token) return { error: 'No hay token de start.gg configurado.' };
 // ...continúa con la consulta usando el token...
@@ -1606,7 +1660,7 @@ ipcMain.handle('leer-apikey-json', async (event, filePath) => {
 ipcMain.handle('startgg-get-phase-name', async (event, phaseIds) => {
   let config = {};
   if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) {}
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
   const apikeyPath = rutas.apikey || path.join(userDataDir, 'apikey.json');
@@ -1615,7 +1669,7 @@ ipcMain.handle('startgg-get-phase-name', async (event, phaseIds) => {
     try {
       const data = JSON.parse(fs.readFileSync(apikeyPath, 'utf8'));
       token = data.startgg || '';
-    } catch (e) {}
+    } catch (e) { }
   }
   if (!token) return { error: 'No hay token de start.gg configurado.' };
   // Consulta los nombres de las fases

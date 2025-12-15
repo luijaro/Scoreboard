@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Streamcontrol MS</title>
   <!-- Fuentes modernas -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <!-- Hoja de estilos principal -->
   <link rel="stylesheet" href="css/scoreboard.css">
   <link rel="stylesheet" href="css/bracket-visual.css">
@@ -14,7 +17,7 @@
   <link rel="stylesheet" href="css/bracket-tab.css" id="css-bracket" disabled>
   <link rel="stylesheet" href="css/top8-tab.css" id="css-top8" disabled>
   <link rel="stylesheet" href="css/startgg-tab.css" id="css-startgg" disabled>
-  
+
   <!-- Estilos modernos y cuadrados -->
   <style>
     :root {
@@ -53,10 +56,13 @@
     /* Contenedor principal optimizado para ventana 900x726 */
     .app-container {
       width: 100%;
-      max-width: 880px; /* Incrementado para usar más espacio */
+      max-width: 880px;
+      /* Incrementado para usar más espacio */
       margin: 0 auto;
-      padding: 12px; /* Reducido para más espacio útil */
-      height: calc(100vh - 24px); /* Altura total disponible ajustada */
+      padding: 12px;
+      /* Reducido para más espacio útil */
+      height: calc(100vh - 24px);
+      /* Altura total disponible ajustada */
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -66,16 +72,22 @@
     /* Tabs modernos - máximo espacio */
     #tabs {
       display: flex;
-      align-items: stretch; /* Cambio de center a stretch para altura completa */
-      justify-content: space-between; /* Distribuir botones uniformemente */
-      gap: 4px; /* Reducir gap para más espacio */
+      align-items: stretch;
+      /* Cambio de center a stretch para altura completa */
+      justify-content: space-between;
+      /* Distribuir botones uniformemente */
+      gap: 4px;
+      /* Reducir gap para más espacio */
       background: var(--bg-secondary);
-      padding: 8px; /* Menos padding para más espacio */
+      padding: 8px;
+      /* Menos padding para más espacio */
       border-radius: var(--border-radius);
-      margin-bottom: 8px; /* Menos margen para más altura */
+      margin-bottom: 8px;
+      /* Menos margen para más altura */
       box-shadow: var(--shadow);
       border: 1px solid var(--border-color);
-      width: 100%; /* Asegurar ancho completo */
+      width: 100%;
+      /* Asegurar ancho completo */
       box-sizing: border-box;
     }
 
@@ -84,18 +96,25 @@
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      padding: 10px 8px; /* Más padding vertical, menos horizontal */
-      font-size: 11px; /* Fuente ligeramente más pequeña para más espacio */
-      font-weight: 600; /* Más peso para mejor legibilidad */
+      padding: 10px 8px;
+      /* Más padding vertical, menos horizontal */
+      font-size: 11px;
+      /* Fuente ligeramente más pequeña para más espacio */
+      font-weight: 600;
+      /* Más peso para mejor legibilidad */
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
       display: flex;
       align-items: center;
-      justify-content: center; /* Centrar contenido */
-      gap: 6px; /* Menos gap entre ícono y texto */
-      flex: 1; /* Cada botón ocupa espacio igual */
-      min-height: 44px; /* Altura mínima para mejor usabilidad */
+      justify-content: center;
+      /* Centrar contenido */
+      gap: 6px;
+      /* Menos gap entre ícono y texto */
+      flex: 1;
+      /* Cada botón ocupa espacio igual */
+      min-height: 44px;
+      /* Altura mínima para mejor usabilidad */
       text-align: center;
     }
 
@@ -129,62 +148,84 @@
       flex: 1;
       background: var(--bg-secondary);
       border-radius: var(--border-radius);
-      padding: 16px; /* Reducido para más espacio */
+      padding: 16px;
+      /* Reducido para más espacio */
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--border-color);
-      height: calc(100vh - 80px); /* Ajustado para los cambios de padding */
-      overflow: auto; /* Cambio de auto a hidden para evitar scroll */
+      height: calc(100vh - 80px);
+      /* Ajustado para los cambios de padding */
+      overflow: auto;
+      /* Cambio de auto a hidden para evitar scroll */
       box-sizing: border-box;
     }
 
     .tab-panel.active {
       display: flex;
       flex-direction: column;
-      height: 100%; /* Usar toda la altura disponible */
-      overflow: auto; /* Evitar overflow en el panel activo */
+      height: 100%;
+      /* Usar toda la altura disponible */
+      overflow: auto;
+      /* Evitar overflow en el panel activo */
     }
 
     /* Scoreboard compacto para ventana 900x726 */
     .scoreboard-main {
       background: radial-gradient(circle at 50% 50%, #2b232a 0%, #2a232b 35%, #20181f 100%);
       border-radius: var(--border-radius);
-      padding: 15px; /* Más reducido */
-      margin: 0 auto; /* Centrar horizontalmente */
+      padding: 15px;
+      /* Más reducido */
+      margin: 0 auto;
+      /* Centrar horizontalmente */
       display: grid;
-      grid-template-areas: 
+      grid-template-areas:
         "player1 p1controls center p2controls player2"
         "info info info info info";
       grid-template-columns: minmax(0, 260px) auto 1.5fr auto minmax(0, 260px);
       grid-template-rows: 1fr auto;
-      gap: 12px; /* Menos espacio entre elementos */
-      align-items: stretch; /* Cambio de center a stretch para usar toda la altura */
-      height: calc(100% - 32px); /* Ajustado para el nuevo padding del contenedor padre */
-      min-height: 500px; /* Altura mínima para funcionalidad */
-      max-width: 1200px; /* Ancho máximo para centrado */
-      width: 100%; /* Usar todo el ancho disponible hasta el máximo */
-      flex: 1; /* Crecer para llenar el espacio disponible */
+      gap: 12px;
+      /* Menos espacio entre elementos */
+      align-items: stretch;
+      /* Cambio de center a stretch para usar toda la altura */
+      height: calc(100% - 32px);
+      /* Ajustado para el nuevo padding del contenedor padre */
+      min-height: 500px;
+      /* Altura mínima para funcionalidad */
+      max-width: 1200px;
+      /* Ancho máximo para centrado */
+      width: 100%;
+      /* Usar todo el ancho disponible hasta el máximo */
+      flex: 1;
+      /* Crecer para llenar el espacio disponible */
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-lg);
-      box-sizing: border-box; /* Incluir padding y border en el cálculo de altura */
-      overflow: auto; /* Evitar overflow interno */
+      box-sizing: border-box;
+      /* Incluir padding y border en el cálculo de altura */
+      overflow: auto;
+      /* Evitar overflow interno */
     }
 
     .sb-side {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px; /* Reducido para ventana más pequeña */
-      padding: 15px 10px; /* Reducido */
+      gap: 8px;
+      /* Reducido para ventana más pequeña */
+      padding: 15px 10px;
+      /* Reducido */
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      min-height: 140px; /* Más reducido */
-      height: 100%; /* Usar toda la altura disponible */
-      justify-content: space-between; /* Distribuir elementos verticalmente */
+      min-height: 140px;
+      /* Más reducido */
+      height: 100%;
+      /* Usar toda la altura disponible */
+      justify-content: space-between;
+      /* Distribuir elementos verticalmente */
       max-width: 260px;
       width: 100%;
       box-sizing: border-box;
-      overflow: hidden; /* Evitar overflow en las columnas laterales */
+      overflow: hidden;
+      /* Evitar overflow en las columnas laterales */
     }
 
     .sb-side:first-child {
@@ -196,8 +237,10 @@
     }
 
     .sb-player-img {
-      width: 104px; /* +30% */
-      height: 104px; /* +30% */
+      width: 104px;
+      /* +30% */
+      height: 104px;
+      /* +30% */
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid var(--primary-color);
@@ -210,27 +253,34 @@
     }
 
     .sb-player-name {
-      font-size: 16px; /* Reducido para ventana más pequeña */
+      font-size: 16px;
+      /* Reducido para ventana más pequeña */
       font-weight: 600;
       text-align: center;
       color: var(--text-primary);
-      margin-top: 6px; /* Menos espacio */
+      margin-top: 6px;
+      /* Menos espacio */
     }
 
     .scoreboard-center {
       grid-area: center;
       text-align: center;
-      padding: 15px; /* Reducido para ventana más pequeña */
+      padding: 15px;
+      /* Reducido para ventana más pequeña */
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 10px; /* Menos espacio */
-      height: 100%; /* Usar toda la altura disponible */
-      overflow: hidden; /* Evitar overflow en el centro */
+      gap: 10px;
+      /* Menos espacio */
+      height: 100%;
+      /* Usar toda la altura disponible */
+      overflow: hidden;
+      /* Evitar overflow en el centro */
     }
 
     .sb-event {
-      font-size: 20px; /* Reducido para ventana más pequeña */
+      font-size: 20px;
+      /* Reducido para ventana más pequeña */
       font-weight: 700;
       margin-bottom: 8px;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -243,15 +293,18 @@
 
     .sb-round-input {
       width: 100%;
-      max-width: 250px; /* Reducido para ventana más pequeña */
-      padding: 8px 12px; /* Menos padding */
+      max-width: 250px;
+      /* Reducido para ventana más pequeña */
+      padding: 8px 12px;
+      /* Menos padding */
       background: var(--bg-primary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       color: var(--text-primary);
       text-align: center;
       margin: 0 auto 15px auto;
-      font-size: 13px; /* Reducido */
+      font-size: 13px;
+      /* Reducido */
       font-weight: 500;
     }
 
@@ -259,15 +312,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px; /* Menos espacio para ventana más pequeña */
+      gap: 20px;
+      /* Menos espacio para ventana más pequeña */
       margin-bottom: 15px;
-      font-size: 48px; /* Reducido para ventana más pequeña */
+      font-size: 48px;
+      /* Reducido para ventana más pequeña */
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
     }
 
     .score-anim {
-      background: #ffe8b2; /* Color de fondo animado */
+      background: #ffe8b2;
+      /* Color de fondo animado */
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -279,22 +335,26 @@
     .sb-score-sep {
       color: var(--text-secondary);
       font-weight: 300;
-      font-size: 40px; /* Reducido para ventana más pequeña */
+      font-size: 40px;
+      /* Reducido para ventana más pequeña */
     }
 
     .sb-score-labels {
       display: flex;
       justify-content: space-between;
       margin-bottom: 15px;
-      padding: 0 20px; /* Menos padding para ventana más pequeña */
+      padding: 0 20px;
+      /* Menos padding para ventana más pequeña */
     }
 
     .sb-score-labels span {
-      font-size: 14px; /* Reducido para ventana más pequeña */
+      font-size: 14px;
+      /* Reducido para ventana más pequeña */
       font-weight: 600;
       color: var(--text-secondary);
       background: rgba(255, 255, 255, 0.05);
-      padding: 6px 12px; /* Menos padding */
+      padding: 6px 12px;
+      /* Menos padding */
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -303,7 +363,8 @@
       grid-area: info;
       display: flex;
       justify-content: center;
-      gap: 25px; /* Reducido para ventana más pequeña */
+      gap: 25px;
+      /* Reducido para ventana más pequeña */
       padding: 12px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 10px;
@@ -315,71 +376,85 @@
       align-items: center;
       gap: 6px;
       color: var(--text-secondary);
-      font-size: 12px; /* Reducido */
+      font-size: 12px;
+      /* Reducido */
       font-weight: 500;
     }
 
     .sb-player-card-header {
-        width: 80%;
-        height: 4px;
-        background-color: var(--primary-color);
-        border-radius: 2px;
-        margin-bottom: 8px;
+      width: 80%;
+      height: 4px;
+      background-color: var(--primary-color);
+      border-radius: 2px;
+      margin-bottom: 8px;
     }
 
     .sb-side .sb-player-name {
-        font-size: 14px;
-        font-weight: 500;
+      font-size: 14px;
+      font-weight: 500;
     }
 
     .score-v-buttons .sb-btn-mini {
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
     }
 
     .switch-btn {
-        background: #f59e0b; /* Naranja */
+      background: #f59e0b;
+      /* Naranja */
     }
+
     .switch-btn:hover {
-        background: #d97706;
+      background: #d97706;
     }
+
     .reset-btn {
-        background: #3b82f6; /* Azul */
+      background: #3b82f6;
+      /* Azul */
     }
+
     .reset-btn:hover {
-        background: #2563eb;
+      background: #2563eb;
     }
 
     .controls-toggle-container {
-        text-align: center;
-        margin: 10px 0;
+      text-align: center;
+      margin: 10px 0;
     }
 
     #controls-toggle-btn {
-        background-color: var(--bg-tertiary);
+      background-color: var(--bg-tertiary);
     }
 
     .scoreboard-flex-row.hidden {
-        display: none;
+      display: none;
     }
 
     /* Controles integrados en scoreboard */
-    .p1-controls { grid-area: p1controls; }
-    .p2-controls { grid-area: p2controls; }
+    .p1-controls {
+      grid-area: p1controls;
+    }
+
+    .p2-controls {
+      grid-area: p2controls;
+    }
+
     .score-v-buttons {
       display: flex;
       flex-direction: row;
       justify-content: center;
       gap: 10px;
     }
+
     .game-selector-wrapper {
       display: flex;
       justify-content: center;
       margin: 0 auto 15px auto;
       max-width: 400px;
     }
+
     .game-selector-wrapper .game-select {
       width: 100%;
     }
@@ -388,7 +463,8 @@
     .scoreboard-flex-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px; /* Menos espacio */
+      gap: 12px;
+      /* Menos espacio */
       align-items: start;
     }
 
@@ -403,28 +479,34 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       border-radius: var(--border-radius);
-      padding: 15px; /* Menos padding para ventana más pequeña */
+      padding: 15px;
+      /* Menos padding para ventana más pequeña */
       border: 1px solid var(--border-color);
-      aspect-ratio: 1/1.2; /* Proporción más compacta */
+      aspect-ratio: 1/1.2;
+      /* Proporción más compacta */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       height: fit-content;
-      max-height: 260px; /* Menos altura */
+      max-height: 260px;
+      /* Menos altura */
     }
 
     .scoreboard-controls-box {
       background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
       border-radius: var(--border-radius);
-      padding: 15px; /* Menos padding para ventana más pequeña */
+      padding: 15px;
+      /* Menos padding para ventana más pequeña */
       border: 1px solid var(--border-color);
       text-align: center;
-      aspect-ratio: 1/1.2; /* Proporción más compacta */
+      aspect-ratio: 1/1.2;
+      /* Proporción más compacta */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       height: fit-content;
-      max-height: 260px; /* Menos altura */
+      max-height: 260px;
+      /* Menos altura */
     }
 
     .scoreboard-box:hover,
@@ -436,38 +518,51 @@
     .input-row {
       display: flex;
       align-items: center;
-      gap: 8px; /* Menos espacio para ventana más pequeña */
-      margin-bottom: 12px; /* Menos espacio */
-      min-height: 36px; /* Menos altura */
+      gap: 8px;
+      /* Menos espacio para ventana más pequeña */
+      margin-bottom: 12px;
+      /* Menos espacio */
+      min-height: 36px;
+      /* Menos altura */
     }
 
     .input-icon {
       color: var(--primary-color);
-      width: 20px; /* Más pequeño */
-      height: 20px; /* Más pequeño */
+      width: 20px;
+      /* Más pequeño */
+      height: 20px;
+      /* Más pequeño */
       display: flex;
       align-items: center;
       justify-content: center;
       background: rgba(99, 102, 241, 0.1);
       border-radius: 8px;
       flex-shrink: 0;
-      font-size: 12px; /* Icono más pequeño */
+      font-size: 12px;
+      /* Icono más pequeño */
     }
 
-    .sb-input, .sb-dropdown, .game-select {
+    .sb-input,
+    .sb-dropdown,
+    .game-select {
       flex: 1;
-      padding: 8px 12px; /* Menos padding para ventana más pequeña */
+      padding: 8px 12px;
+      /* Menos padding para ventana más pequeña */
       background: var(--bg-primary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       color: var(--text-primary);
-      font-size: 13px; /* Fuente más pequeña */
+      font-size: 13px;
+      /* Fuente más pequeña */
       transition: all 0.2s ease;
-      min-height: 36px; /* Menos altura */
+      min-height: 36px;
+      /* Menos altura */
       box-sizing: border-box;
     }
 
-    .sb-input:focus, .sb-dropdown:focus, .game-select:focus {
+    .sb-input:focus,
+    .sb-dropdown:focus,
+    .game-select:focus {
       outline: none;
       border-color: var(--primary-color);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -479,8 +574,10 @@
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 8px 12px; /* Menos padding para ventana más pequeña */
-      font-size: 13px; /* Fuente más pequeña */
+      padding: 8px 12px;
+      /* Menos padding para ventana más pequeña */
+      font-size: 13px;
+      /* Fuente más pequeña */
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -488,7 +585,8 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      min-height: 36px; /* Menos altura */
+      min-height: 36px;
+      /* Menos altura */
       white-space: nowrap;
     }
 
@@ -503,10 +601,13 @@
     }
 
     .sb-btn-mini {
-      padding: 8px; /* Menos padding */
+      padding: 8px;
+      /* Menos padding */
       font-size: 12px;
-      min-width: 36px; /* Menos ancho */
-      min-height: 36px; /* Menos altura */
+      min-width: 36px;
+      /* Menos ancho */
+      min-height: 36px;
+      /* Menos altura */
       justify-content: center;
       border-radius: 6px;
     }
@@ -531,9 +632,12 @@
 
     .save-btn {
       background: var(--success-color);
-      font-size: 14px; /* Fuente más pequeña */
-      padding: 10px 20px; /* Menos padding */
-      margin-top: 12px; /* Menos margen */
+      font-size: 14px;
+      /* Fuente más pequeña */
+      padding: 10px 20px;
+      /* Menos padding */
+      margin-top: 12px;
+      /* Menos margen */
       width: 100%;
       border-radius: 8px;
       font-weight: 700;
@@ -547,8 +651,10 @@
 
     .sb-btn-row {
       display: flex;
-      gap: 10px; /* Menos espacio para ventana más pequeña */
-      margin-bottom: 15px; /* Menos espacio */
+      gap: 10px;
+      /* Menos espacio para ventana más pequeña */
+      margin-bottom: 15px;
+      /* Menos espacio */
       justify-content: center;
     }
 
@@ -558,9 +664,9 @@
         max-width: 100%;
         aspect-ratio: auto;
       }
-      
+
       .scoreboard-main {
-        grid-template-areas: 
+        grid-template-areas:
           "center center"
           "player1 player2"
           "info info";
@@ -569,22 +675,23 @@
         aspect-ratio: auto;
         min-height: auto;
       }
-      
+
       .scoreboard-center {
         grid-area: center;
         margin-bottom: 20px;
       }
-      
+
       .sb-score-row {
         font-size: 56px;
       }
-      
+
       .scoreboard-flex-row {
         grid-template-columns: 1fr;
         gap: 20px;
       }
-      
-      .scoreboard-box, .scoreboard-controls-box {
+
+      .scoreboard-box,
+      .scoreboard-controls-box {
         aspect-ratio: auto;
       }
     }
@@ -593,9 +700,9 @@
       .app-container {
         padding: 16px;
       }
-      
+
       .scoreboard-main {
-        grid-template-areas: 
+        grid-template-areas:
           "center"
           "player1"
           "player2"
@@ -604,38 +711,41 @@
         grid-template-rows: auto auto auto auto;
         padding: 20px;
       }
-      
+
       .sb-side {
         min-height: auto;
         padding: 16px;
       }
-      
+
       .sb-player-img {
-        width: 104px; /* +30% */
-        height: 104px; /* +30% */
+        width: 104px;
+        /* +30% */
+        height: 104px;
+        /* +30% */
       }
-      
+
       #tabs {
         flex-wrap: wrap;
         gap: 8px;
         padding: 12px 16px;
       }
-      
+
       .tab-btn {
         padding: 8px 12px;
         font-size: 12px;
       }
-      
+
       .sb-score-row {
         font-size: 48px;
         gap: 24px;
       }
-      
+
       .sb-event {
         font-size: 24px;
       }
-      
-      .scoreboard-box, .scoreboard-controls-box {
+
+      .scoreboard-box,
+      .scoreboard-controls-box {
         padding: 16px;
       }
     }
@@ -645,16 +755,18 @@
         font-size: 36px;
         gap: 16px;
       }
-      
+
       .sb-score-sep {
         font-size: 28px;
       }
-      
+
       .sb-player-img {
-        width: 78px; /* +30% */
-        height: 78px; /* +30% */
+        width: 78px;
+        /* +30% */
+        height: 78px;
+        /* +30% */
       }
-      
+
       .sb-event {
         font-size: 20px;
       }
@@ -748,7 +860,9 @@
     }
 
     /* Mensajes de estado */
-    .sb-message, .msg-guardado, .msg-top8 {
+    .sb-message,
+    .msg-guardado,
+    .msg-top8 {
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 12px;
@@ -756,13 +870,15 @@
       margin-left: 8px;
     }
 
-    .sb-message.success, .msg-guardado.success {
+    .sb-message.success,
+    .msg-guardado.success {
       background: rgba(16, 185, 129, 0.1);
       color: var(--success-color);
       border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
-    .sb-message.error, .msg-guardado.error {
+    .sb-message.error,
+    .msg-guardado.error {
       background: rgba(239, 68, 68, 0.1);
       color: var(--error-color);
       border: 1px solid rgba(239, 68, 68, 0.2);
@@ -778,7 +894,8 @@
     }
 
     /* Selectores modernos */
-    .sb-select, .widget-select {
+    .sb-select,
+    .widget-select {
       background: var(--bg-primary);
       color: var(--text-primary);
       border: 1px solid var(--border-color);
@@ -793,6 +910,7 @@
     #startggMatchesFloatingWidget {
       display: none;
     }
+
     .floating-widget-header {
       background: var(--bg-tertiary);
       padding: 16px;
@@ -802,6 +920,7 @@
       justify-content: space-between;
       border-bottom: 1px solid var(--border-color);
     }
+
     .widget-title {
       font-weight: 600;
       color: var(--text-primary);
@@ -809,13 +928,16 @@
       align-items: center;
       gap: 8px;
     }
+
     .floating-widget-content {
       padding: 16px;
     }
+
     /* Paneles de pestañas del widget flotante */
     .widget-tab-panel {
       display: none;
     }
+
     .widget-tab-panel.active {
       display: block;
     }
@@ -851,19 +973,19 @@
 
     /* Estilos para el Top 8 del widget de Start.gg */
     .widget-top8-panel {
-  border: 1px solid var(--border-color);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-  background: var(--bg-tertiary);
+      background: var(--bg-tertiary);
       backdrop-filter: blur(5px);
     }
 
     .top8-btn {
-  background: var(--warning-color) !important;
-  color: #111 !important;
+      background: var(--warning-color) !important;
+      color: #111 !important;
     }
 
     .top8-btn:hover {
-  filter: brightness(1.05);
+      filter: brightness(1.05);
     }
 
     /* Responsivo para el Top 8 del widget */
@@ -874,16 +996,16 @@
         border-left: none;
         border-right: none;
       }
-      
-      .top8-list > div {
+
+      .top8-list>div {
         font-size: 0.9em;
         padding: 6px !important;
       }
-      
+
       .widget-buttons-row {
         flex-wrap: wrap;
       }
-      
+
       .widget-btn {
         flex: 1;
         min-width: 80px;
@@ -893,16 +1015,16 @@
     }
 
     @media (max-width: 480px) {
-      .top8-list > div {
+      .top8-list>div {
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
       }
-      
-      .top8-list > div > span {
+
+      .top8-list>div>span {
         margin-right: 0 !important;
       }
-      
+
       .widget-btn {
         font-size: 0.8em;
         padding: 6px 2px;
@@ -910,10 +1032,11 @@
     }
   </style>
 </head>
+
 <body>
   <div class="main-flex-app" style="display: flex; flex-direction: row; align-items: flex-start; height: 100vh;">
-  <div class="app-container" style="margin-right: 0; flex-shrink: 0; padding-bottom:120px;">
-<!--
+    <div class="app-container" style="margin-right: 0; flex-shrink: 0; padding-bottom:120px;">
+      <!--
 NOTA: El error "No handler registered for 'set-obs-scene'" indica que falta implementar el handler 'set-obs-scene' en tu backend (main.js o proceso principal de Electron).
 Debes agregar algo como:
 
@@ -923,1315 +1046,1398 @@ ipcMain.handle('set-obs-scene', async (event, sceneName) => {
 
 Haz lo mismo para los otros métodos relacionados si no existen.
 -->
-    <!-- =========================
+      <!-- =========================
          HEADER DE TABS PRINCIPALES
     ========================== -->
-    <nav id="tabs">
-      <button class="tab-btn active" id="tabBtnScoreboard" onclick="showTab(0)"><i class="fa fa-trophy"></i> Scoreboard</button>
-      <button class="tab-btn" id="tabBtnComentaristas" onclick="showTab(1)"><i class="fa fa-microphone"></i> Comentaristas</button>
-      <button class="tab-btn" id="tabBtnChallonge" onclick="showTab(2)"><i class="fa fa-sitemap"></i> Challonge</button>
-  <button class="tab-btn" id="tabBtnTwitch" onclick="showTab(3)"><img src="img/twitch.png" alt="Twitch" class="tab-icon" /></button>
-  <button class="tab-btn" id="tabBtnStartgg" onclick="showTab(4)"><img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" class="tab-icon" /></button>
-      <button class="tab-btn rutas-tab" id="tabBtnConfigure" onclick="showTab(5)"><i class="fa fa-cog"></i> Configurar rutas</button>
-  <button class="tab-btn" style="margin-left:auto; min-width: fit-content;" id="tabBtnTheme" title="Cambiar tema" onclick="cycleTheme()"><i class="fa fa-lightbulb"></i> Tema</button>
-    </nav>
-  <!-- =========================
+      <nav id="tabs">
+        <button class="tab-btn active" id="tabBtnScoreboard" onclick="showTab(0)"><i class="fa fa-trophy"></i>
+          Scoreboard</button>
+        <button class="tab-btn" id="tabBtnComentaristas" onclick="showTab(1)"><i class="fa fa-microphone"></i>
+          Comentaristas</button>
+        <button class="tab-btn" id="tabBtnChallonge" onclick="showTab(2)"><i class="fa fa-sitemap"></i>
+          Challonge</button>
+        <button class="tab-btn" id="tabBtnTwitch" onclick="showTab(3)"><img src="img/twitch.png" alt="Twitch"
+            class="tab-icon" /></button>
+        <button class="tab-btn" id="tabBtnStartgg" onclick="showTab(4)"><img
+            src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" class="tab-icon" /></button>
+        <button class="tab-btn rutas-tab" id="tabBtnConfigure" onclick="showTab(5)"><i class="fa fa-cog"></i> Configurar
+          rutas</button>
+        <button class="tab-btn" style="margin-left:auto; min-width: fit-content;" id="tabBtnTheme" title="Cambiar tema"
+          onclick="cycleTheme()"><i class="fa fa-lightbulb"></i> Tema</button>
+      </nav>
+      <!-- =========================
        TAB 1: SCOREBOARD
   ========================== -->
-  <section class="tab-panel active" id="tab-scoreboard">
-      <div class="scoreboard-main">
-        <!-- Jugador 1 integrado -->
-        <div class="sb-side">
-          <div class="sb-player-card-header"></div>
-          <img class="sb-player-img" id="p1CharImg" src="https://static.wikia.nocookie.net/streetfighter/images/2/29/JuriSF6render.png" alt="Juri" />
-          <div class="sb-side-content">
-            <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
-            
-              <input class="sb-input sb-player-name sb-overlay-input-strong" id="p1NameInput" value="Jugador 1" />
-              <input class="sb-input sb-player-tag sb-overlay-input-light" id="p1TagInput" value="Team" />
-              <select class="sb-dropdown sb-flag-select" id="p1FlagSelect">
-                <option value="cl" selected>Chile</option>
-                <option value="ar">Argentina</option>
-                <option value="mx">México</option>
-                <option value="us">Estados Unidos</option>
-                <option value="br">Brasil</option>
-                <option value="jp">Japón</option>
-                <!-- ... -->
-              </select>
-              <select class="sb-dropdown" id="p1CharSelect">
-                <!-- Personajes se llenan dinámicamente -->
-              </select>
-              <!-- Selector de juego p1 eliminado de sb-side-content a petición del usuario -->
+      <section class="tab-panel active" id="tab-scoreboard">
+        <div class="scoreboard-main">
+          <!-- Jugador 1 integrado -->
+          <div class="sb-side">
+            <div class="sb-player-card-header"></div>
+            <img class="sb-player-img" id="p1CharImg"
+              src="https://static.wikia.nocookie.net/streetfighter/images/2/29/JuriSF6render.png" alt="Juri" />
+            <div class="sb-side-content">
+              <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
+
+                <input class="sb-input sb-player-name sb-overlay-input-strong" id="p1NameInput" value="Jugador 1" />
+                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p1TagInput" value="Team" />
+                <select class="sb-dropdown sb-flag-select" id="p1FlagSelect">
+                  <option value="cl" selected>Chile</option>
+                  <option value="ar">Argentina</option>
+                  <option value="mx">México</option>
+                  <option value="us">Estados Unidos</option>
+                  <option value="br">Brasil</option>
+                  <option value="jp">Japón</option>
+                  <!-- ... -->
+                </select>
+                <select class="sb-dropdown" id="p1CharSelect">
+                  <!-- Personajes se llenan dinámicamente -->
+                </select>
+                <!-- Selector de juego p1 eliminado de sb-side-content a petición del usuario -->
+              </div>
+            </div>
+            <div class="score-v-buttons">
+              <button class="sb-btn sb-btn-mini" onclick="changeScore(1,1)" title="+1"><i
+                  class="fa fa-plus"></i></button>
+              <button class="sb-btn sb-btn-mini" onclick="changeScore(1,-1)" title="-1"><i
+                  class="fa fa-minus"></i></button>
             </div>
           </div>
-          <div class="score-v-buttons">
-            <button class="sb-btn sb-btn-mini" onclick="changeScore(1,1)" title="+1"><i class="fa fa-plus"></i></button>
-            <button class="sb-btn sb-btn-mini" onclick="changeScore(1,-1)" title="-1"><i class="fa fa-minus"></i></button>
-          </div>
-        </div>
 
-        <!-- Centro: Evento y marcador -->
-        <div class="scoreboard-center">
-          <div class="sb-event" id="sbEvent" style="display:none">MOONSTYLE</div>
-          <input class="sb-round-input" id="sbRound" value="" placeholder="Ronda (ej: Winners Round 1)" />
-          <div class="sb-score-row">
-            <span id="p1Score" class="score-anim">0</span>
-            <span class="sb-score-sep">-</span>
-            <span id="p2Score" class="score-anim">0</span>
-          </div>
-          <div class="sb-btn-row" style="margin-bottom: 8px;">
-            <button class="sb-btn switch-btn" onclick="swap()" title="Intercambiar jugadores"><i class="fa fa-retweet"></i></button>
-            <button class="sb-btn save-btn" onclick="guardarScoreboard()" title="Guardar Scoreboard" style="margin: 0 10px;"><i class="fa fa-save"></i></button>
-            <button class="sb-btn reset-btn" onclick="resetScores()" title="Resetear marcadores"><i class="fa fa-undo"></i></button>
-          </div>
-          <div style="display: flex; justify-content: center; margin-bottom: 8px;">
-            <select id="gameSel" class="game-select" onchange="cambiarJuego()" required>
-              <option value="" disabled hidden>Selecciona un juego</option>
-              <option value="UNI2" selected>Under Night In-Birth II [Sys:Celes]</option>
-              <option value="VSAV">Vampire Savior (Darkstalkers 3)</option>
-              <option value="BBCF">BlazBlue: Central Fiction</option>
-              <option value="COTW">Fatal Fury: City of the Wolves</option>
-              <option value="GBVSR">Granblue Fantasy Versus: Rising</option>
-              <option value="GGST">Guilty Gear -Strive-</option>
-              <option value="HFTF">JoJo: Heritage for the Future</option>
-              <option value="MBAACC">Melty Blood: Actress Again Current Code</option>
-              <option value="MBTL">Melty Blood: Type Lumina</option>
-              <option value="SCON4">Super Naruto: Clash of Ninja 4</option>
-              <option value="SF3">Street Fighter III: 3rd Strike</option>
-              <option value="SF6">Street Fighter 6</option>
-              <option value="T8">Tekken 8</option>
-            </select>
-            <script>
-            // Cargar nombres de personajes desde la carpeta según el juego seleccionado
-            async function actualizarPersonajesPorJuego() {
-              const game = document.getElementById('gameSel').value;
-              const p1CharSelect = document.getElementById('p1CharSelect');
-              const p2CharSelect = document.getElementById('p2CharSelect');
-              let chars = [];
-              try {
-                // Usar ruta relativa desde index.html
-                const folder = `personajes/${game}/`;
-                // Usar API de Node.js/Electron para leer archivos del directorio
-                if (window.require) {
-                  const fs = window.require('fs');
-                  const path = window.require('path');
-                  const dirPath = path.join(__dirname, folder);
-                  chars = fs.readdirSync(dirPath)
-                    .filter(f => f.endsWith('.png'))
-                    .map(f => f.replace(/\.png$/i, ''))
-                    .filter(f => f.toLowerCase() !== game.toLowerCase()); // Excluir logo del juego
-                } else {
-                  // Fallback: mostrar mensaje si no está disponible
-                  chars = ["No disponible en navegador"];
+          <!-- Centro: Evento y marcador -->
+          <div class="scoreboard-center">
+            <div class="sb-event" id="sbEvent" style="display:none">MOONSTYLE</div>
+            <input class="sb-round-input" id="sbRound" value="" placeholder="Ronda (ej: Winners Round 1)" />
+            <div class="sb-score-row">
+              <span id="p1Score" class="score-anim">0</span>
+              <span class="sb-score-sep">-</span>
+              <span id="p2Score" class="score-anim">0</span>
+            </div>
+            <div class="sb-btn-row" style="margin-bottom: 8px;">
+              <button class="sb-btn switch-btn" onclick="swap()" title="Intercambiar jugadores"><i
+                  class="fa fa-retweet"></i></button>
+              <button class="sb-btn save-btn" onclick="guardarScoreboard()" title="Guardar Scoreboard"
+                style="margin: 0 10px;"><i class="fa fa-save"></i></button>
+              <button class="sb-btn reset-btn" onclick="resetScores()" title="Resetear marcadores"><i
+                  class="fa fa-undo"></i></button>
+            </div>
+            <div style="display: flex; justify-content: center; margin-bottom: 8px;">
+              <select id="gameSel" class="game-select" onchange="cambiarJuego()" required>
+                <option value="" disabled hidden>Selecciona un juego</option>
+                <option value="UNI2" selected>Under Night In-Birth II [Sys:Celes]</option>
+                <option value="VSAV">Vampire Savior (Darkstalkers 3)</option>
+                <option value="BBCF">BlazBlue: Central Fiction</option>
+                <option value="COTW">Fatal Fury: City of the Wolves</option>
+                <option value="GBVSR">Granblue Fantasy Versus: Rising</option>
+                <option value="GGST">Guilty Gear -Strive-</option>
+                <option value="HFTF">JoJo: Heritage for the Future</option>
+                <option value="MBAACC">Melty Blood: Actress Again Current Code</option>
+                <option value="MBTL">Melty Blood: Type Lumina</option>
+                <option value="SCON4">Super Naruto: Clash of Ninja 4</option>
+                <option value="SF3">Street Fighter III: 3rd Strike</option>
+                <option value="SF6">Street Fighter 6</option>
+                <option value="T8">Tekken 8</option>
+              </select>
+              <script>
+                // Cargar nombres de personajes desde la carpeta según el juego seleccionado
+                async function actualizarPersonajesPorJuego() {
+                  const game = document.getElementById('gameSel').value;
+                  const p1CharSelect = document.getElementById('p1CharSelect');
+                  const p2CharSelect = document.getElementById('p2CharSelect');
+                  let chars = [];
+                  try {
+                    // Usar ruta relativa desde index.html
+                    const folder = `personajes/${game}/`;
+                    // Usar API de Node.js/Electron para leer archivos del directorio
+                    if (window.require) {
+                      const fs = window.require('fs');
+                      const path = window.require('path');
+                      const dirPath = path.join(__dirname, folder);
+                      chars = fs.readdirSync(dirPath)
+                        .filter(f => f.endsWith('.png'))
+                        .map(f => f.replace(/\.png$/i, ''))
+                        .filter(f => f.toLowerCase() !== game.toLowerCase()); // Excluir logo del juego
+                    } else {
+                      // Fallback: mostrar mensaje si no está disponible
+                      chars = ["No disponible en navegador"];
+                    }
+                  } catch (e) {
+                    chars = ["Error al cargar"];
+                  }
+                  p1CharSelect.innerHTML = chars.map(c => `<option value="${c}">${c}</option>`).join('');
+                  p2CharSelect.innerHTML = chars.map(c => `<option value="${c}">${c}</option>`).join('');
+                  // Seleccionar el primero por defecto y actualizar imagen
+                  if (chars.length > 0) {
+                    p1CharSelect.selectedIndex = 0;
+                    p2CharSelect.selectedIndex = 0;
+                    actualizarImagenPersonaje(1);
+                    actualizarImagenPersonaje(2);
+                  }
+                  // Eliminar listeners previos para evitar duplicados
+                  p1CharSelect.onchange = null;
+                  p2CharSelect.onchange = null;
+                  // Registrar listeners de cambio para ambos selectores
+                  p1CharSelect.addEventListener('change', function () { actualizarImagenPersonaje(1); });
+                  p2CharSelect.addEventListener('change', function () { actualizarImagenPersonaje(2); });
                 }
-              } catch (e) {
-                chars = ["Error al cargar"];
-              }
-              p1CharSelect.innerHTML = chars.map(c => `<option value="${c}">${c}</option>`).join('');
-              p2CharSelect.innerHTML = chars.map(c => `<option value="${c}">${c}</option>`).join('');
-              // Seleccionar el primero por defecto y actualizar imagen
-              if (chars.length > 0) {
-                p1CharSelect.selectedIndex = 0;
-                p2CharSelect.selectedIndex = 0;
-                actualizarImagenPersonaje(1);
-                actualizarImagenPersonaje(2);
-              }
-              // Eliminar listeners previos para evitar duplicados
-              p1CharSelect.onchange = null;
-              p2CharSelect.onchange = null;
-              // Registrar listeners de cambio para ambos selectores
-              p1CharSelect.addEventListener('change', function() { actualizarImagenPersonaje(1); });
-              p2CharSelect.addEventListener('change', function() { actualizarImagenPersonaje(2); });
-            }
 
-            document.getElementById('gameSel').addEventListener('change', actualizarPersonajesPorJuego);
-            window.addEventListener('DOMContentLoaded', actualizarPersonajesPorJuego);
+                document.getElementById('gameSel').addEventListener('change', actualizarPersonajesPorJuego);
+                window.addEventListener('DOMContentLoaded', actualizarPersonajesPorJuego);
 
-            // Cambiar imagen al seleccionar personaje
-            function actualizarImagenPersonaje(jugador) {
-              const game = document.getElementById('gameSel').value;
-              const charSelect = document.getElementById(jugador === 1 ? 'p1CharSelect' : 'p2CharSelect');
-              const charImg = document.getElementById(jugador === 1 ? 'p1CharImg' : 'p2CharImg');
-              const personaje = charSelect.value;
-              if (game && personaje) {
-                charImg.src = `personajes/${game}/${personaje}.png`;
-                charImg.alt = personaje;
-              }
-              // Banderas removidas del UI
-            }
+                // Cambiar imagen al seleccionar personaje
+                function actualizarImagenPersonaje(jugador) {
+                  const game = document.getElementById('gameSel').value;
+                  const charSelect = document.getElementById(jugador === 1 ? 'p1CharSelect' : 'p2CharSelect');
+                  const charImg = document.getElementById(jugador === 1 ? 'p1CharImg' : 'p2CharImg');
+                  const personaje = charSelect.value;
+                  if (game && personaje) {
+                    charImg.src = `personajes/${game}/${personaje}.png`;
+                    charImg.alt = personaje;
+                  }
+                  // Banderas removidas del UI
+                }
 
-            // Listeners ahora se agregan dinámicamente tras cada recarga de personajes
-            </script>
-          </div>
-          <div class="sb-comm-row">
-            <span id="comm1"><i class="fa fa-microphone"></i> </span>
-            <span id="comm2"><i class="fa fa-microphone"></i> </span>
-          </div>
-        </div>
-
-        <!-- Jugador 2 integrado -->
-        <div class="sb-side right">
-          <div class="sb-player-card-header"></div>
-          <img class="sb-player-img" id="p2CharImg" src="https://static.wikia.nocookie.net/streetfighter/images/1/1e/KenSF6render.png" alt="Ken" />
-          <div class="sb-side-content">
-            <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
-              <input class="sb-input sb-player-name sb-overlay-input-strong" id="p2NameInput" value="Jugador 2" />
-              <input class="sb-input sb-player-tag sb-overlay-input-light" id="p2TagInput" value="Team" />
-              <select class="sb-dropdown sb-flag-select" id="p2FlagSelect">
-                <option value="cl" selected>Chile</option>
-                <option value="ar">Argentina</option>
-                <option value="mx">México</option>
-                <option value="us">Estados Unidos</option>
-                <option value="br">Brasil</option>
-                <option value="jp">Japón</option>
-                <!-- ... -->
-              </select>
-              <select class="sb-dropdown" id="p2CharSelect">
-                <!-- Personajes se llenan dinámicamente -->
-              </select>
-              <!-- Selector de juego p2 eliminado de sb-side-content a petición del usuario -->
+                // Listeners ahora se agregan dinámicamente tras cada recarga de personajes
+              </script>
+            </div>
+            <div class="sb-comm-row">
+              <span id="comm1"><i class="fa fa-microphone"></i> </span>
+              <span id="comm2"><i class="fa fa-microphone"></i> </span>
             </div>
           </div>
-          <div class="score-v-buttons">
-            <button class="sb-btn sb-btn-mini" onclick="changeScore(2,1)" title="+1"><i class="fa fa-plus"></i></button>
-            <button class="sb-btn sb-btn-mini" onclick="changeScore(2,-1)" title="-1"><i class="fa fa-minus"></i></button>
+
+          <!-- Jugador 2 integrado -->
+          <div class="sb-side right">
+            <div class="sb-player-card-header"></div>
+            <img class="sb-player-img" id="p2CharImg"
+              src="https://static.wikia.nocookie.net/streetfighter/images/1/1e/KenSF6render.png" alt="Ken" />
+            <div class="sb-side-content">
+              <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
+                <input class="sb-input sb-player-name sb-overlay-input-strong" id="p2NameInput" value="Jugador 2" />
+                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p2TagInput" value="Team" />
+                <select class="sb-dropdown sb-flag-select" id="p2FlagSelect">
+                  <option value="cl" selected>Chile</option>
+                  <option value="ar">Argentina</option>
+                  <option value="mx">México</option>
+                  <option value="us">Estados Unidos</option>
+                  <option value="br">Brasil</option>
+                  <option value="jp">Japón</option>
+                  <!-- ... -->
+                </select>
+                <select class="sb-dropdown" id="p2CharSelect">
+                  <!-- Personajes se llenan dinámicamente -->
+                </select>
+                <!-- Selector de juego p2 eliminado de sb-side-content a petición del usuario -->
+              </div>
+            </div>
+            <div class="score-v-buttons">
+              <button class="sb-btn sb-btn-mini" onclick="changeScore(2,1)" title="+1"><i
+                  class="fa fa-plus"></i></button>
+              <button class="sb-btn sb-btn-mini" onclick="changeScore(2,-1)" title="-1"><i
+                  class="fa fa-minus"></i></button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Selector de juego eliminado de game-selector-wrapper a petición del usuario -->
+        <!-- Selector de juego eliminado de game-selector-wrapper a petición del usuario -->
 
-      <!-- Controles integrados eliminados, ahora están en el marcador principal -->
-  </section>
- 
-  <!-- =========================
+        <!-- Controles integrados eliminados, ahora están en el marcador principal -->
+      </section>
+
+      <!-- =========================
        TAB 2: COMENTARISTAS
   ========================== -->
-  <section class="tab-panel" id="tab-comentaristas">
-    <div class="panel-section">
-      <h2>Comentaristas</h2>
-      <div class="form-row">
-        <label for="com1Name">Comentarista #1:</label>
-        <input id="com1Name" class="sb-input" placeholder="Nombre comentarista 1" style="width:220px;">
-        <input id="com1Twitter" class="sb-input" placeholder="Twitter comentarista 1" style="width:220px;">
-      </div>
-      <div class="form-row">
-        <label for="com2Name">Comentarista #2:</label>
-        <input id="com2Name" class="sb-input" placeholder="Nombre comentarista 2" style="width:220px;">
-        <input id="com2Twitter" class="sb-input" placeholder="Twitter comentarista 2" style="width:220px;">
-      </div>
-      <div class="form-row" style="margin-top:1em; align-items:center;">
-        <label for="timerInput" style="margin-right:1em;">Temporizador (minutos):</label>
-        <input id="timerInput" type="number" min="0" class="sb-input" style="width:100px;">
-        <button class="sb-btn" onclick="fijarTimer()">Fijar Timer</button>
-  <button class="sb-btn btn-error" onclick="resetearTimer()">Resetear Timer</button>
-        <span id="msgTimer" class="msg-guardado"></span>
-      </div>
-      <div class="form-row" style="margin-top:1em;">
-  <div id="timerDisplay" class="text-warning" style="font-size:2em; font-weight:bold;"></div>
-      </div>
-      <div class="form-row">
-        <button class="sb-btn" onclick="guardarComentaristas()">Guardar Comentaristas</button>
-        <span id="msgComentaristas" class="msg-guardado"></span>
-      </div>
-    </div>
-  </section>
+      <section class="tab-panel" id="tab-comentaristas">
+        <div class="panel-section">
+          <h2>Comentaristas</h2>
+          <div class="form-row">
+            <label for="com1Name">Comentarista #1:</label>
+            <input id="com1Name" class="sb-input" placeholder="Nombre comentarista 1" style="width:220px;">
+            <input id="com1Twitter" class="sb-input" placeholder="Twitter comentarista 1" style="width:220px;">
+          </div>
+          <div class="form-row">
+            <label for="com2Name">Comentarista #2:</label>
+            <input id="com2Name" class="sb-input" placeholder="Nombre comentarista 2" style="width:220px;">
+            <input id="com2Twitter" class="sb-input" placeholder="Twitter comentarista 2" style="width:220px;">
+          </div>
+          <div class="form-row" style="margin-top:1em; align-items:center;">
+            <label for="timerInput" style="margin-right:1em;">Temporizador (minutos):</label>
+            <input id="timerInput" type="number" min="0" class="sb-input" style="width:100px;">
+            <button class="sb-btn" onclick="fijarTimer()">Fijar Timer</button>
+            <button class="sb-btn btn-error" onclick="resetearTimer()">Resetear Timer</button>
+            <span id="msgTimer" class="msg-guardado"></span>
+          </div>
+          <div class="form-row" style="margin-top:1em;">
+            <div id="timerDisplay" class="text-warning" style="font-size:2em; font-weight:bold;">00:00</div>
+          </div>
+          <div class="form-row">
+            <button class="sb-btn" onclick="guardarComentaristas()">Guardar Comentaristas</button>
+            <span id="msgComentaristas" class="msg-guardado"></span>
+          </div>
+        </div>
+      </section>
 
-  <!-- =========================
+      <!-- =========================
        TAB 3: CHALLONGE
   ========================== -->
-  <section class="tab-panel" id="tab-challonge">
-    <!-- Submenu de Challonge -->
-    <nav class="sub-tabs">
-      <button class="sub-tab-btn active" onclick="showChallongeSubTab(0)">Credenciales</button>
-      <button class="sub-tab-btn" onclick="showChallongeSubTab(1)">Bracket</button>
-      <button class="sub-tab-btn" onclick="showChallongeSubTab(2)">Top 8</button>
-    </nav>
+      <section class="tab-panel" id="tab-challonge">
+        <!-- Submenu de Challonge -->
+        <nav class="sub-tabs">
+          <button class="sub-tab-btn active" onclick="showChallongeSubTab(0)">Credenciales</button>
+          <button class="sub-tab-btn" onclick="showChallongeSubTab(1)">Bracket</button>
+          <button class="sub-tab-btn" onclick="showChallongeSubTab(2)">Top 8</button>
+        </nav>
 
-    <!-- Sub-tab 1: Credenciales -->
-    <div class="sub-tab-panel active" id="challonge-credenciales">
-      <!-- Sección Challonge -->
-      <div class="panel-section">
-        <h2>Challonge</h2>
-        <div class="form-row">
-          <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input" style="width:200px;">
-          <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
-          <span id="msgApi" class="sb-message"></span>
-        </div>
-        <div class="form-row">
-  <!-- <button class="sb-btn" onclick="buscarTorneosMatches()">Buscar Torneos</button> -->      </div>
-        <div class="form-row">
-          <select id="tournamentList" class="sb-select" style="width:220px;">
-            <option value="">Selecciona un torneo...</option>
-          </select>
-          <button class="sb-btn" onclick="cargarMatches()">Buscar Matches</button>
-          <span id="msgMatches" class="sb-message"></span>
-        </div>
-        <div class="form-row">
-          <select id="selectMatch" class="sb-select" style="width:220px; display:none;"></select>
-        </div>
-        <div class="form-row" style="margin-top:1em;">
-          <div id="preview-match" class="preview-match" style="margin-bottom:1em;"></div>
-          <button class="sb-btn sb-btn-danger" onclick="confirmarYReportar()">Reportar resultado a Challonge</button>
-          <span id="msgReportChallonge" class="sb-message"></span>
-        </div>
-      </div>
-      <!-- Sección Twitch Bot -->
-      <!-- (Twitch bot moved to new tab) -->
-    </div>
-
-    <!-- Sub-tab 2: Bracket -->
-    <div class="sub-tab-panel" id="challonge-bracket">
-      <div class="tab-content-center">
-        <div class="bracket-card-center">
-          <div style="display: flex; align-items: center; gap: 1em; margin-bottom:2em; ">
-            <select id="tournamentBracket" class="sb-select">
-              <option value="">Selecciona un torneo...</option>
-            </select>
-            <button class="sb-btn" onclick="renderBracketVisual()">Mostrar Bracket Visual</button>
+        <!-- Sub-tab 1: Credenciales -->
+        <div class="sub-tab-panel active" id="challonge-credenciales">
+          <!-- Sección Challonge -->
+          <div class="panel-section">
+            <h2>Challonge</h2>
+            <div class="form-row">
+              <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input" style="width:200px;">
+              <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
+              <span id="msgApi" class="sb-message"></span>
+            </div>
+            <div class="form-row">
+              <!-- <button class="sb-btn" onclick="buscarTorneosMatches()">Buscar Torneos</button> -->
+            </div>
+            <div class="form-row">
+              <select id="tournamentList" class="sb-select" style="width:220px;">
+                <option value="">Selecciona un torneo...</option>
+              </select>
+              <button class="sb-btn" onclick="cargarMatches()">Buscar Matches</button>
+              <span id="msgMatches" class="sb-message"></span>
+            </div>
+            <div class="form-row">
+              <select id="selectMatch" class="sb-select" style="width:220px; display:none;"></select>
+            </div>
+            <div class="form-row" style="margin-top:1em;">
+              <div id="preview-match" class="preview-match" style="margin-bottom:1em;"></div>
+              <button class="sb-btn sb-btn-danger" onclick="confirmarYReportar()">Reportar resultado a
+                Challonge</button>
+              <span id="msgReportChallonge" class="sb-message"></span>
+            </div>
           </div>
-          <div id="bracket-visual-container" class="bracket-visual-card"></div>
+          <!-- Sección Twitch Bot -->
+          <!-- (Twitch bot moved to new tab) -->
         </div>
-        <div style="text-align:center; margin-top:20px;">
-          <button id="btnGuardarBracket" class="sb-btn btn-primary">Guardar Bracket</button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Sub-tab 3: Top 8 -->
-    <div class="sub-tab-panel" id="challonge-top8">
-      <div class="top8-wrapper">
-        <div class="top8-main-content">
-          <div class="top8-header" style="margin-top:1.5em; margin-bottom:1em; display:flex; align-items:center;">
-            <select id="tournamentTop8" class="sb-select" style="margin-left:0;">
-              <option value="">Selecciona un torneo...</option>
-            </select>
-            <input type="date" id="fechaTop8" style="margin-left:1em; font-size:1em; padding:0.3em 0.7em;">
+        <!-- Sub-tab 2: Bracket -->
+        <div class="sub-tab-panel" id="challonge-bracket">
+          <div class="tab-content-center">
+            <div class="bracket-card-center">
+              <div style="display: flex; align-items: center; gap: 1em; margin-bottom:2em; ">
+                <select id="tournamentBracket" class="sb-select">
+                  <option value="">Selecciona un torneo...</option>
+                </select>
+                <button class="sb-btn" onclick="renderBracketVisual()">Mostrar Bracket Visual</button>
+              </div>
+              <div id="bracket-visual-container" class="bracket-visual-card"></div>
+            </div>
+            <div style="text-align:center; margin-top:20px;">
+              <button id="btnGuardarBracket" class="sb-btn btn-primary">Guardar Bracket</button>
+            </div>
           </div>
-          <table class="top8-table">
-            <thead>
-              <tr>
-                <th>Puesto</th>
-                <th>Jugador</th>
-                <th>Personaje</th>
-                <th>Twitter</th>
-              </tr>
-            </thead>
-            <tbody id="top8Table"></tbody>
-          </table>
-          <div class="top8-controls">
-            <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
-            <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
-            <button class="sb-btn" onclick="generarMensajeTop8DesdeInputs()">Generar mensaje</button>
-          </div>
-          <div id="msgTop8Copy" class="msg-top8-copy"></div>
-          <span id="msgTop8" class="msg-top8"></span>
         </div>
-        <!-- Caja de mensaje y botón copiar, a la derecha -->
-        <div class="top8-mensaje-box">
-          <textarea id="mensajeTop8Text" class="top8-mensaje-textarea" readonly></textarea>
-          <button class="sb-btn btn-secondary copiar-mensaje-btn"
-            style="font-weight:bold; font-size:1.1em; padding:0.7em 2em; border-radius:8px; margin-top:0.2em;"
-            onclick="copiarMensajeTop8()">Copiar mensaje</button>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- =========================
+        <!-- Sub-tab 3: Top 8 -->
+        <div class="sub-tab-panel" id="challonge-top8">
+          <div class="top8-wrapper">
+            <div class="top8-main-content">
+              <div class="top8-header" style="margin-top:1.5em; margin-bottom:1em; display:flex; align-items:center;">
+                <select id="tournamentTop8" class="sb-select" style="margin-left:0;">
+                  <option value="">Selecciona un torneo...</option>
+                </select>
+                <input type="date" id="fechaTop8" style="margin-left:1em; font-size:1em; padding:0.3em 0.7em;">
+              </div>
+              <table class="top8-table">
+                <thead>
+                  <tr>
+                    <th>Puesto</th>
+                    <th>Jugador</th>
+                    <th>Personaje</th>
+                    <th>Twitter</th>
+                  </tr>
+                </thead>
+                <tbody id="top8Table"></tbody>
+              </table>
+              <div class="top8-controls">
+                <button class="sb-btn" onclick="twittearMensaje()">Twittear mensaje</button>
+                <button class="sb-btn" onclick="guardarTop8()">Guardar Top 8</button>
+                <button class="sb-btn" onclick="generarMensajeTop8DesdeInputs()">Generar mensaje</button>
+              </div>
+              <div id="msgTop8Copy" class="msg-top8-copy"></div>
+              <span id="msgTop8" class="msg-top8"></span>
+            </div>
+            <!-- Caja de mensaje y botón copiar, a la derecha -->
+            <div class="top8-mensaje-box">
+              <textarea id="mensajeTop8Text" class="top8-mensaje-textarea" readonly></textarea>
+              <button class="sb-btn btn-secondary copiar-mensaje-btn"
+                style="font-weight:bold; font-size:1.1em; padding:0.7em 2em; border-radius:8px; margin-top:0.2em;"
+                onclick="copiarMensajeTop8()">Copiar mensaje</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
        TAB 4: TWITCH
   ========================== -->
-  <section class="tab-panel" id="tab-twitch">
-    <!-- Sub-tabs para Twitch -->
-    <div class="twitch-subtabs">
-      <button class="twitch-subtab-btn active" id="twitchSubTabBtn1" onclick="showTwitchSubTab(0)">Comandos</button>
-      <button class="twitch-subtab-btn" id="twitchSubTabBtn2" onclick="showTwitchSubTab(1)">Nightbot</button>
-      <button class="twitch-subtab-btn" id="twitchSubTabBtn3" onclick="showTwitchSubTab(2)">Conexión</button>
-    </div>
-    <div class="twitch-subtab-panel active" id="twitchSubTabPanel1">
-      <div class="panel-section">
-        <h2>Comandos Rápidos de Twitch Bot</h2>
-        <div class="form-row">
-          <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
-          <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
-          <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
+      <section class="tab-panel" id="tab-twitch">
+        <!-- Sub-tabs para Twitch -->
+        <div class="twitch-subtabs">
+          <button class="twitch-subtab-btn active" id="twitchSubTabBtn1" onclick="showTwitchSubTab(0)">Comandos</button>
+          <button class="twitch-subtab-btn" id="twitchSubTabBtn2" onclick="showTwitchSubTab(1)">Nightbot</button>
+          <button class="twitch-subtab-btn" id="twitchSubTabBtn3" onclick="showTwitchSubTab(2)">Conexión</button>
         </div>
-        <div class="form-row">
-          <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
-          <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar Custom</button>
-        </div>
-      </div>
-    </div>
-    <div class="twitch-subtab-panel" id="twitchSubTabPanel2">
-      <div class="panel-section">
-        <h2>Nightbot: Setear Comando Custom</h2>
-        <details style="margin-bottom:10px;">
-          <summary style="cursor:pointer;font-weight:500;">Generar Token OAuth</summary>
-          <div class="form-row" style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:10px; margin-top:10px;">
-            <input id="nbClientId" placeholder="Client ID" class="sb-input" style="width:160px;">
-            <input id="nbRedirectUri" placeholder="Redirect URI" value="http://localhost" class="sb-input" style="width:160px;">
-            <button class="sb-btn" onclick="generarNightbotAuthUrl()">Generar URL de autorización</button>
+        <div class="twitch-subtab-panel active" id="twitchSubTabPanel1">
+          <div class="panel-section">
+            <h2>Comandos Rápidos de Twitch Bot</h2>
+            <div class="form-row">
+              <button class="sb-btn" onclick="enviarBracketBot()">!bracket</button>
+              <button class="sb-btn" onclick="enviarComandoBot('!score')">!score</button>
+              <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
+            </div>
+            <div class="form-row">
+              <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
+              <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar
+                Custom</button>
+            </div>
           </div>
-          <div id="nbAuthUrl" style="margin:8px 0 8px 0;word-break:break-all;"></div>
-          <div class="form-row" style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:10px;">
-            <input id="nbClientSecret" placeholder="Client Secret" class="sb-input" style="width:160px;">
-            <input id="nbAuthCode" placeholder="Code recibido" class="sb-input" style="width:140px;">
-            <button class="sb-btn btn-success" onclick="obtenerYGuardarNightbotToken()">Obtener y guardar token</button>
+        </div>
+        <div class="twitch-subtab-panel" id="twitchSubTabPanel2">
+          <div class="panel-section">
+            <h2>Nightbot: Setear Comando Custom</h2>
+            <details style="margin-bottom:10px;">
+              <summary style="cursor:pointer;font-weight:500;">Generar Token OAuth</summary>
+              <div class="form-row"
+                style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:10px; margin-top:10px;">
+                <input id="nbClientId" placeholder="Client ID" class="sb-input" style="width:160px;">
+                <input id="nbRedirectUri" placeholder="Redirect URI" value="http://localhost" class="sb-input"
+                  style="width:160px;">
+                <button class="sb-btn" onclick="generarNightbotAuthUrl()">Generar URL de autorización</button>
+              </div>
+              <div id="nbAuthUrl" style="margin:8px 0 8px 0;word-break:break-all;"></div>
+              <div class="form-row" style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:10px;">
+                <input id="nbClientSecret" placeholder="Client Secret" class="sb-input" style="width:160px;">
+                <input id="nbAuthCode" placeholder="Code recibido" class="sb-input" style="width:140px;">
+                <button class="sb-btn btn-success" onclick="obtenerYGuardarNightbotToken()">Obtener y guardar
+                  token</button>
+              </div>
+              <div class="form-row" style="margin:0;">
+                <span id="nbJsonMsg" class="sb-message"></span>
+              </div>
+            </details>
+            <div class="form-row">
+              <input id="nightbotToken" type="password" placeholder="Token OAuth de Nightbot" class="sb-input"
+                style="width:260px;">
+              <button class="sb-btn" style="margin-left:8px;" onclick="guardarNightbotTokenManual()">Guardar
+                token</button>
+            </div>
+            <div class="form-row">
+              <input id="nightbotCommand" placeholder="Comando (ej: !miinfo)" class="sb-input" style="width:140px;">
+              <input id="nightbotResponse" placeholder="Respuesta del comando" class="sb-input" style="width:320px;">
+              <button class="sb-btn" onclick="setNightbotCommand()">Setear</button>
+            </div>
+            <div class="form-row">
+              <span id="msgNightbot" class="sb-message"></span>
+            </div>
+            <div class="form-row text-muted" style="font-size:0.95em; margin-top:8px;">
+              Requiere que tu canal tenga Nightbot y el bot esté moderador.<br>
+              El token OAuth se obtiene en <a href="https://nightbot.tv/account" target="_blank">nightbot.tv/account</a>
+              &rarr; API Docs.<br>
+              <b>¡No compartas tu token con nadie!</b><br>
+              <a href="https://nightbot.tv/commands/custom" target="_blank">Gestionar comandos en nightbot.tv</a>
+            </div>
           </div>
-          <div class="form-row" style="margin:0;">
-            <span id="nbJsonMsg" class="sb-message"></span>
+        </div>
+        <div class="twitch-subtab-panel" id="twitchSubTabPanel3">
+          <div class="panel-section">
+            <h2><img src="img/twitch.png" alt="Twitch"
+                style="height:1.3em;vertical-align:middle; margin-right:0.5em;" />Conectar bot a Twitch</h2>
+            <div class="form-row">
+              <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input" style="width:140px;">
+              <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input"
+                style="width:210px;">
+              <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input" style="width:140px;">
+              <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
+              <span id="msgTwitch" class="sb-message"></span>
+            </div>
           </div>
-        </details>
-        <div class="form-row">
-          <input id="nightbotToken" type="password" placeholder="Token OAuth de Nightbot" class="sb-input" style="width:260px;">
-        <button class="sb-btn" style="margin-left:8px;" onclick="guardarNightbotTokenManual()">Guardar token</button>
         </div>
-        <div class="form-row">
-          <input id="nightbotCommand" placeholder="Comando (ej: !miinfo)" class="sb-input" style="width:140px;">
-          <input id="nightbotResponse" placeholder="Respuesta del comando" class="sb-input" style="width:320px;">
-          <button class="sb-btn" onclick="setNightbotCommand()">Setear</button>
-        </div>
-        <div class="form-row">
-          <span id="msgNightbot" class="sb-message"></span>
-        </div>
-  <div class="form-row text-muted" style="font-size:0.95em; margin-top:8px;">
-          Requiere que tu canal tenga Nightbot y el bot esté moderador.<br>
-          El token OAuth se obtiene en <a href="https://nightbot.tv/account" target="_blank">nightbot.tv/account</a> &rarr; API Docs.<br>
-          <b>¡No compartas tu token con nadie!</b><br>
-          <a href="https://nightbot.tv/commands/custom" target="_blank">Gestionar comandos en nightbot.tv</a>
-        </div>
-      </div>
-    </div>
-    <div class="twitch-subtab-panel" id="twitchSubTabPanel3">
-      <div class="panel-section">
-        <h2><img src="img/twitch.png" alt="Twitch" style="height:1.3em;vertical-align:middle; margin-right:0.5em;" />Conectar bot a Twitch</h2>
-        <div class="form-row">
-          <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input" style="width:140px;">
-          <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input" style="width:210px;">
-          <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input" style="width:140px;">
-          <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
-          <span id="msgTwitch" class="sb-message"></span>
-        </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <!-- =========================
+      <!-- =========================
        TAB 5: START.GG
   ========================== -->
-  <section class="tab-panel" id="tab-startgg">
-  <div class="panel-section" style="max-width:900px; margin:2em auto;">
-      <h2 style="margin-bottom:0.7em; letter-spacing:1px; display:flex; align-items:center; gap:0.7em;">
-        <img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" style="height:1.3em;vertical-align:middle;" />
-      </h2>
-      <div class="form-row" style="margin-bottom:1.2em; gap:1em; flex-wrap:wrap; align-items:center;">
-  <label for="startggSlug" class="text-muted" style="margin-right:1em; font-size:1.08em;">Slug o búsqueda:</label>
-  <input id="startggSlug" class="sb-input" placeholder="Ej: tournament/mi-torneo/event/singles o palabras clave" style="width:320px; font-size:1.08em;">
-  <button class="sb-btn btn-secondary" style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;" onclick="buscarStartGG()"><i class="fa fa-search"></i> Buscar</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.2em; gap:1em; flex-wrap:wrap; align-items:center;">
-  <label for="startggToken" class="text-muted" style="margin-right:1em; font-size:1.08em;">Token Start.gg:</label>
-  <input id="startggToken" class="sb-input" type="password" placeholder="Token start.gg" style="width:320px; font-size:1.08em;">
-  <button class="sb-btn btn-success" style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;" onclick="guardarStartggToken()"><i class="fa fa-key"></i> Guardar Token</button>
-        <span id="msgStartggToken" class="sb-message"></span>
-      </div>
-      <div class="form-row" style="margin-bottom:1em;">
-        <span class="text-muted" style="font-size:1em;">Puedes buscar por nombre de torneo, slug, o pegar la ruta completa de un evento.<br>
-        Ejemplo: <b>tournament/never-give-up-2024/events</b> o <b>Blood Veil Overdrive</b></span>
-      </div>
-      <div class="form-row" style="margin-bottom:1em;">
-        <span class="text-warning" style="font-size:1em;">Los resultados mostrarán el estado de cada torneo y evento.<br>
-        Si el evento está terminado, podrás generar el Top 8 automáticamente.</span>
-      </div>
-  <div id="startggResults" class="sgg-eventos-list" style="margin-top:2em; min-height:120px;"></div>
-    </div>
-  </section>
+      <section class="tab-panel" id="tab-startgg">
+        <div class="panel-section" style="max-width:900px; margin:2em auto;">
+          <h2 style="margin-bottom:0.7em; letter-spacing:1px; display:flex; align-items:center; gap:0.7em;">
+            <img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg"
+              style="height:1.3em;vertical-align:middle;" />
+          </h2>
+          <div class="form-row" style="margin-bottom:1.2em; gap:1em; flex-wrap:wrap; align-items:center;">
+            <label for="startggSlug" class="text-muted" style="margin-right:1em; font-size:1.08em;">Slug o
+              búsqueda:</label>
+            <input id="startggSlug" class="sb-input"
+              placeholder="Ej: tournament/mi-torneo/event/singles o palabras clave"
+              style="width:320px; font-size:1.08em;">
+            <button class="sb-btn btn-secondary"
+              style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;"
+              onclick="buscarStartGG()"><i class="fa fa-search"></i> Buscar</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; gap:1em; flex-wrap:wrap; align-items:center;">
+            <label for="startggToken" class="text-muted" style="margin-right:1em; font-size:1.08em;">Token
+              Start.gg:</label>
+            <input id="startggToken" class="sb-input" type="password" placeholder="Token start.gg"
+              style="width:320px; font-size:1.08em;">
+            <button class="sb-btn btn-success"
+              style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;"
+              onclick="guardarStartggToken()"><i class="fa fa-key"></i> Guardar Token</button>
+            <span id="msgStartggToken" class="sb-message"></span>
+          </div>
+          <div class="form-row" style="margin-bottom:1em;">
+            <span class="text-muted" style="font-size:1em;">Puedes buscar por nombre de torneo, slug, o pegar la ruta
+              completa de un evento.<br>
+              Ejemplo: <b>tournament/never-give-up-2024/events</b> o <b>Blood Veil Overdrive</b></span>
+          </div>
+          <div class="form-row" style="margin-bottom:1em;">
+            <span class="text-warning" style="font-size:1em;">Los resultados mostrarán el estado de cada torneo y
+              evento.<br>
+              Si el evento está terminado, podrás generar el Top 8 automáticamente.</span>
+          </div>
+          <div id="startggResults" class="sgg-eventos-list" style="margin-top:2em; min-height:120px;"></div>
+        </div>
+      </section>
 
-  <!-- =========================
+      <!-- =========================
        TAB 5: CONFIGURAR RUTAS
   ========================== -->
-  <section class="tab-panel" id="tab-configure">
-    <fieldset class="panel-section" style="max-width:600px; margin:2em auto 2.5em auto;">
-      <legend style="font-size:1.3em; font-weight:bold; padding:0 0.7em;">Configurar rutas de archivos</legend>
-      <div class="text-muted" style="margin-bottom:1.5em; font-size:1em;">
-        Selecciona la ubicación de cada archivo JSON que utiliza la aplicación.<br>
-        Puedes dejar una ruta vacía para usar la ubicación por defecto.
-      </div>
-      <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
-        <label for="rutaScoreboard" style="min-width:160px;">Scoreboard JSON:</label>
-        <input id="rutaScoreboard" class="sb-input" style="width:320px;" readonly>
-        <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
-        <label for="rutaBracket" style="min-width:160px;">Bracket JSON:</label>
-        <input id="rutaBracket" class="sb-input" style="width:320px;" readonly>
-        <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
-        <label for="rutaTop8" style="min-width:160px;">Top8 JSON:</label>
-        <input id="rutaTop8" class="sb-input" style="width:320px;" readonly>
-        <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
-      </div>
-      <div class="form-row" style="margin-bottom:1.7em; align-items:center;">
-        <label for="rutaApiKey" style="min-width:160px;">API Key JSON:</label>
-        <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
-        <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
-      </div>
-      <div class="form-row" style="justify-content: flex-end;">
-        <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
-      </div>
-    </fieldset>
-  </section>
+      <section class="tab-panel" id="tab-configure">
+        <fieldset class="panel-section" style="max-width:600px; margin:2em auto 2.5em auto;">
+          <legend style="font-size:1.3em; font-weight:bold; padding:0 0.7em;">Configurar rutas de archivos</legend>
+          <div class="text-muted" style="margin-bottom:1.5em; font-size:1em;">
+            Selecciona la ubicación de cada archivo JSON que utiliza la aplicación.<br>
+            Puedes dejar una ruta vacía para usar la ubicación por defecto.
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+            <label for="rutaScoreboard" style="min-width:160px;">Scoreboard JSON:</label>
+            <input id="rutaScoreboard" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+            <label for="rutaCasters" style="min-width:160px;">Casters JSON:</label>
+            <input id="rutaCasters" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('casters')">Elegir...</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+            <label for="rutaTimestamp" style="min-width:160px;">Timestamp JSON:</label>
+            <input id="rutaTimestamp" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('timestamp')">Elegir...</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+            <label for="rutaBracket" style="min-width:160px;">Bracket JSON:</label>
+            <input id="rutaBracket" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
+            <label for="rutaTop8" style="min-width:160px;">Top8 JSON:</label>
+            <input id="rutaTop8" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
+          </div>
+          <div class="form-row" style="margin-bottom:1.7em; align-items:center;">
+            <label for="rutaApiKey" style="min-width:160px;">API Key JSON:</label>
+            <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
+            <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
+          </div>
+          <div class="form-row" style="justify-content: flex-end;">
+            <button class="sb-btn" onclick="guardarTodasLasRutas()">Guardar todo</button>
+          </div>
+        </fieldset>
+      </section>
 
- 
 
-  </div> <!-- Cierre del app-container -->
-  
-  <!-- Script principal de la app -->
-  <script src="js/scoreboard.js"></script>
-  <script src="js/bracket-visual.js"></script>
-  <script src="js/startgg.js"></script>
-  <script>
-    function toggleControls() {
-      const controls = document.querySelector('.scoreboard-flex-row');
-      const button = document.getElementById('controls-toggle-btn');
-      controls.classList.toggle('hidden');
-      if (controls.classList.contains('hidden')) {
-        button.textContent = 'Mostrar Controles';
-      } else {
-        button.textContent = 'Ocultar Controles';
+
+    </div> <!-- Cierre del app-container -->
+
+    <!-- Script principal de la app -->
+    <script src="js/scoreboard.js"></script>
+    <script src="js/bracket-visual.js"></script>
+    <script src="js/startgg.js"></script>
+    <script>
+      function toggleControls() {
+        const controls = document.querySelector('.scoreboard-flex-row');
+        const button = document.getElementById('controls-toggle-btn');
+        controls.classList.toggle('hidden');
+        if (controls.classList.contains('hidden')) {
+          button.textContent = 'Mostrar Controles';
+        } else {
+          button.textContent = 'Ocultar Controles';
+        }
       }
-    }
-  </script>
-  <!-- Contenedor global de notificaciones -->
-<div id="notificaciones-app"></div>
+    </script>
+    <!-- Contenedor global de notificaciones -->
+    <div id="notificaciones-app"></div>
 
 
 
-<!-- Widget flotante con tabs para Start.gg y Challonge (único, sin duplicados) -->
-<div id="tournamentFloatingWidget" style="display:block; min-width:280px; max-width:360px; width:100%; margin-left:12px; box-shadow:0 0 16px #0005; position:static; height:100vh; background:var(--bg-secondary); overflow-y:auto; z-index:1000;">
-  <div class="floating-widget-header" style="padding: 0; flex-direction: column; align-items: stretch;">
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 0 16px;">
-      <div class="widget-title">
-        <i class="fa fa-gamepad"></i> Torneos
-      </div>
-    </div>
-    <nav style="display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-top: 10px;">
-      <button class="tab-btn widget-tab-btn active" id="tabBtnStartggWidget" onclick="showTournamentWidgetTab(0)" style="flex:1; border-radius: 0; border-bottom: none; font-size: 1em; padding: 10px 0;">
-        <img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" style="height:1.3em;vertical-align:middle;" />
-      </button>
-      <button class="tab-btn widget-tab-btn" id="tabBtnChallongeWidget" onclick="showTournamentWidgetTab(1)" style="flex:1; border-radius: 0; border-bottom: none; font-size: 1em; padding: 10px 0;">
-        <img src="img/cha.png" alt="Challonge" style="height:1.7em; display:block; margin:0 auto;" />
-      </button>
-    </nav>
-  </div>
-  <div class="floating-widget-content" style="padding:0;">
-    <!-- Start.gg tab content -->
-    <div id="tournamentWidgetPanelStartgg" class="widget-tab-panel active" style="padding: 16px;">
-      <div class="widget-selector-row">
-        <input id="startggTournamentInput" class="widget-select" placeholder="Buscar torneo..." style="width:90%; margin-bottom:10px;" onkeydown="if(event.key==='Enter'){buscarStartggDesdeWidget();}" />
-        <button class="sb-btn" style="width:90%; margin-bottom:10px;" onclick="buscarStartggDesdeWidget()"><i class="fa fa-search"></i> Buscar</button>
-        <select id="startggTournamentSelector" class="widget-select" onchange="cargarEventosDelTorneo()">
-          <option value="">Selecciona un torneo...</option>
-        </select>
-      </div>
-      <div class="widget-selector-row">
-        <select id="startggEventSelector" class="widget-select" onchange="cargarMatchesDelEvento()" style="display:none;">
-          <option value="">Selecciona un evento...</option>
-        </select>
-      </div>
-      <div class="widget-selector-row">
-        <select id="startggMatchSelector" class="widget-select" style="display:none;">
-          <option value="">Selecciona un match...</option>
-        </select>
-        <div id="matchLoadingBar" class="widget-loading-bar" style="display:none;">
-          <div class="loading-bar-fill"></div>
-          <span class="loading-text">Cargando matches...</span>
-        </div>
-      </div>
-      <div class="widget-buttons-row">
-        <button class="widget-btn load-btn" onclick="cargarMatchStartggEnScoreboard()" title="Cargar match en scoreboard">
-          <i class="fa fa-upload"></i> Cargar
-        </button>
-        <button class="widget-btn update-btn" onclick="actualizarMatchesStartggEnScoreboard()" title="Actualizar matches">
-          <i class="fa fa-refresh"></i> Actualizar
-        </button>
-        <button class="widget-btn bracket-btn" onclick="guardarBracketStartggDesdeWidget()" title="Guardar bracket completo">
-          <i class="fa fa-sitemap"></i> Bracket
-        </button>
-        <button class="widget-btn top8-btn" onclick="mostrarTop8StartggDesdeWidget()" title="Ver Top 8 del evento">
-          <i class="fa fa-list-ol"></i> Top 8
-        </button>
-      </div>
-      <!-- Panel de Top 8 (inicialmente oculto) -->
-    <div id="startggTop8Panel" class="widget-top8-panel" style="display:none; margin-top:15px; border-radius:8px; padding:15px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h4 style="margin:0; font-size:1.1em;" class="text-warning">
-            <i class="fa fa-trophy"></i> Top 8 - <span id="startggTop8EventName">Evento</span>
-          </h4>
-      <button onclick="cerrarTop8StartggWidget()" style="background:none; border:none; font-size:1.2em; cursor:pointer;" class="text-muted" title="Cerrar Top 8">×</button>
-        </div>
-        <div id="startggTop8Content" style="max-height:300px; overflow-y:auto;">
-      <div style="text-align:center; padding:20px;" class="text-muted">
-            Selecciona un evento para ver el Top 8
+    <!-- Widget flotante con tabs para Start.gg y Challonge (único, sin duplicados) -->
+    <div id="tournamentFloatingWidget"
+      style="display:block; min-width:280px; max-width:360px; width:100%; margin-left:12px; box-shadow:0 0 16px #0005; position:static; height:100vh; background:var(--bg-secondary); overflow-y:auto; z-index:1000;">
+      <div class="floating-widget-header" style="padding: 0; flex-direction: column; align-items: stretch;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 0 16px;">
+          <div class="widget-title">
+            <i class="fa fa-gamepad"></i> Torneos
           </div>
         </div>
-        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-    <button class="sb-btn btn-secondary" onclick="copiarTop8StartggWidget()" style="font-size:0.9em; padding:6px 12px;">
-            <i class="fa fa-copy"></i> Copiar
+        <nav style="display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-top: 10px;">
+          <button class="tab-btn widget-tab-btn active" id="tabBtnStartggWidget" onclick="showTournamentWidgetTab(0)"
+            style="flex:1; border-radius: 0; border-bottom: none; font-size: 1em; padding: 10px 0;">
+            <img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg"
+              style="height:1.3em;vertical-align:middle;" />
           </button>
-    <button class="sb-btn btn-success" onclick="guardarTop8StartggWidget()" style="font-size:0.9em; padding:6px 12px;">
-            <i class="fa fa-save"></i> Guardar
+          <button class="tab-btn widget-tab-btn" id="tabBtnChallongeWidget" onclick="showTournamentWidgetTab(1)"
+            style="flex:1; border-radius: 0; border-bottom: none; font-size: 1em; padding: 10px 0;">
+            <img src="img/cha.png" alt="Challonge" style="height:1.7em; display:block; margin:0 auto;" />
           </button>
+        </nav>
+      </div>
+      <div class="floating-widget-content" style="padding:0;">
+        <!-- Start.gg tab content -->
+        <div id="tournamentWidgetPanelStartgg" class="widget-tab-panel active" style="padding: 16px;">
+          <div class="widget-selector-row">
+            <input id="startggTournamentInput" class="widget-select" placeholder="Buscar torneo..."
+              style="width:90%; margin-bottom:10px;" onkeydown="if(event.key==='Enter'){buscarStartggDesdeWidget();}" />
+            <button class="sb-btn" style="width:90%; margin-bottom:10px;" onclick="buscarStartggDesdeWidget()"><i
+                class="fa fa-search"></i> Buscar</button>
+            <select id="startggTournamentSelector" class="widget-select" onchange="cargarEventosDelTorneo()">
+              <option value="">Selecciona un torneo...</option>
+            </select>
+          </div>
+          <div class="widget-selector-row">
+            <select id="startggEventSelector" class="widget-select" onchange="cargarMatchesDelEvento()"
+              style="display:none;">
+              <option value="">Selecciona un evento...</option>
+            </select>
+          </div>
+          <div class="widget-selector-row">
+            <select id="startggMatchSelector" class="widget-select" style="display:none;">
+              <option value="">Selecciona un match...</option>
+            </select>
+            <div id="matchLoadingBar" class="widget-loading-bar" style="display:none;">
+              <div class="loading-bar-fill"></div>
+              <span class="loading-text">Cargando matches...</span>
+            </div>
+          </div>
+          <div class="widget-buttons-row">
+            <button class="widget-btn load-btn" onclick="cargarMatchStartggEnScoreboard()"
+              title="Cargar match en scoreboard">
+              <i class="fa fa-upload"></i> Cargar
+            </button>
+            <button class="widget-btn update-btn" onclick="actualizarMatchesStartggEnScoreboard()"
+              title="Actualizar matches">
+              <i class="fa fa-refresh"></i> Actualizar
+            </button>
+            <button class="widget-btn bracket-btn" onclick="guardarBracketStartggDesdeWidget()"
+              title="Guardar bracket completo">
+              <i class="fa fa-sitemap"></i> Bracket
+            </button>
+            <button class="widget-btn top8-btn" onclick="mostrarTop8StartggDesdeWidget()" title="Ver Top 8 del evento">
+              <i class="fa fa-list-ol"></i> Top 8
+            </button>
+          </div>
+          <!-- Panel de Top 8 (inicialmente oculto) -->
+          <div id="startggTop8Panel" class="widget-top8-panel"
+            style="display:none; margin-top:15px; border-radius:8px; padding:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h4 style="margin:0; font-size:1.1em;" class="text-warning">
+                <i class="fa fa-trophy"></i> Top 8 - <span id="startggTop8EventName">Evento</span>
+              </h4>
+              <button onclick="cerrarTop8StartggWidget()"
+                style="background:none; border:none; font-size:1.2em; cursor:pointer;" class="text-muted"
+                title="Cerrar Top 8">×</button>
+            </div>
+            <div id="startggTop8Content" style="max-height:300px; overflow-y:auto;">
+              <div style="text-align:center; padding:20px;" class="text-muted">
+                Selecciona un evento para ver el Top 8
+              </div>
+            </div>
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="sb-btn btn-secondary" onclick="copiarTop8StartggWidget()"
+                style="font-size:0.9em; padding:6px 12px;">
+                <i class="fa fa-copy"></i> Copiar
+              </button>
+              <button class="sb-btn btn-success" onclick="guardarTop8StartggWidget()"
+                style="font-size:0.9em; padding:6px 12px;">
+                <i class="fa fa-save"></i> Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Challonge tab content -->
+        <div id="tournamentWidgetPanelChallonge" class="widget-tab-panel" style="padding: 16px;">
+          <div class="widget-selector-row">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+              <input id="challongeTournamentInput" class="widget-select"
+                placeholder="Buscar por nombre o slug (ej: mi-torneo-2024)..." style="flex: 1;"
+                onkeydown="if(event.key==='Enter'){buscarChallongeDesdeWidget();}" />
+              <button class="sb-btn" onclick="cargarTorneosDesdeWidget()" title="Cargar todos los torneos de tu API"
+                style="padding: 8px 12px; min-width: auto;">
+                <i class="fa fa-user"></i>
+              </button>
+            </div>
+            <div style="font-size: 10px;" class="text-muted"
+              style="margin-bottom: 8px; text-align: center; padding: 0 5%;">
+              💡 Usa el slug del torneo para búsqueda directa o el icono de usuario para cargar todos tus torneos
+            </div>
+            <button class="sb-btn" style="width:90%; margin-bottom:10px;" onclick="buscarChallongeDesdeWidget()"><i
+                class="fa fa-search"></i> Buscar</button>
+            <select id="challongeTournamentSelector" class="widget-select"
+              onchange="cargarMatchesChallongeDesdeWidget()">
+              <option value="">Selecciona un torneo...</option>
+            </select>
+          </div>
+          <div class="widget-selector-row">
+            <select id="challongeMatchSelector" class="widget-select" style="display:none;">
+              <option value="">Selecciona un match...</option>
+            </select>
+            <div id="challongeMatchLoadingBar" class="widget-loading-bar" style="display:none;">
+              <div class="loading-bar-fill"></div>
+              <span class="loading-text">Cargando matches...</span>
+            </div>
+          </div>
+          <div class="widget-buttons-row">
+            <button class="widget-btn load-btn" onclick="cargarMatchChallongeEnScoreboard()"
+              title="Cargar match en scoreboard">
+              <i class="fa fa-upload"></i> Cargar
+            </button>
+            <button class="widget-btn update-btn" onclick="actualizarMatchesChallongeEnScoreboard()"
+              title="Actualizar matches">
+              <i class="fa fa-refresh"></i> Actualizar
+            </button>
+            <button class="widget-btn bracket-btn" onclick="guardarBracketChallongeDesdeWidget()"
+              title="Guardar bracket completo siguiendo esquema Start.gg">
+              <i class="fa fa-sitemap"></i> Bracket
+            </button>
+            <button class="widget-btn top8-btn btn-error" onclick="mostrarTop8ChallongeDesdeWidget()"
+              title="Ver Top 8 del torneo">
+              <i class="fa fa-trophy"></i> Top 8
+            </button>
+          </div>
+
+          <!-- Panel de Top 8 de Challonge (inicialmente oculto) -->
+          <div id="challongeTop8Panel" class="top8-ch-panel" style="display:none; margin-top:15px;">
+            <div class="top8-ch-header">
+              <h4 class="top8-ch-title">
+                <i class="fa fa-trophy"></i> Top 8 - <span id="challongeTop8TournamentName">Torneo</span>
+              </h4>
+              <button onclick="cerrarTop8ChallongeWidget()" class="top8-ch-close" title="Cerrar Top 8">
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+            <div id="challongeTop8Content">
+              <!-- El contenido del Top 8 se cargará aquí -->
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px; justify-content:center;">
+              <button class="sb-btn btn-secondary" onclick="copiarTop8ChallongeWidget()"
+                style="font-size:0.9em; padding:6px 12px;">
+                <i class="fa fa-copy"></i> Copiar
+              </button>
+              <button class="sb-btn btn-success" onclick="guardarTop8ChallongeWidget()"
+                style="font-size:0.9em; padding:6px 12px;">
+                <i class="fa fa-save"></i> Guardar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Challonge tab content -->
-    <div id="tournamentWidgetPanelChallonge" class="widget-tab-panel" style="padding: 16px;">
-      <div class="widget-selector-row">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
-          <input id="challongeTournamentInput" class="widget-select" placeholder="Buscar por nombre o slug (ej: mi-torneo-2024)..." style="flex: 1;" onkeydown="if(event.key==='Enter'){buscarChallongeDesdeWidget();}" />
-          <button class="sb-btn" onclick="cargarTorneosDesdeWidget()" title="Cargar todos los torneos de tu API" style="padding: 8px 12px; min-width: auto;">
-            <i class="fa fa-user"></i>
-          </button>
-        </div>
-        <div style="font-size: 10px;" class="text-muted" style="margin-bottom: 8px; text-align: center; padding: 0 5%;">
-          💡 Usa el slug del torneo para búsqueda directa o el icono de usuario para cargar todos tus torneos
-        </div>
-        <button class="sb-btn" style="width:90%; margin-bottom:10px;" onclick="buscarChallongeDesdeWidget()"><i class="fa fa-search"></i> Buscar</button>
-        <select id="challongeTournamentSelector" class="widget-select" onchange="cargarMatchesChallongeDesdeWidget()">
-          <option value="">Selecciona un torneo...</option>
-        </select>
-      </div>
-      <div class="widget-selector-row">
-        <select id="challongeMatchSelector" class="widget-select" style="display:none;">
-          <option value="">Selecciona un match...</option>
-        </select>
-        <div id="challongeMatchLoadingBar" class="widget-loading-bar" style="display:none;">
-          <div class="loading-bar-fill"></div>
-          <span class="loading-text">Cargando matches...</span>
-        </div>
-      </div>
-      <div class="widget-buttons-row">
-        <button class="widget-btn load-btn" onclick="cargarMatchChallongeEnScoreboard()" title="Cargar match en scoreboard">
-          <i class="fa fa-upload"></i> Cargar
-        </button>
-        <button class="widget-btn update-btn" onclick="actualizarMatchesChallongeEnScoreboard()" title="Actualizar matches">
-          <i class="fa fa-refresh"></i> Actualizar
-        </button>
-        <button class="widget-btn bracket-btn" onclick="guardarBracketChallongeDesdeWidget()" title="Guardar bracket completo siguiendo esquema Start.gg">
-          <i class="fa fa-sitemap"></i> Bracket
-        </button>
-  <button class="widget-btn top8-btn btn-error" onclick="mostrarTop8ChallongeDesdeWidget()" title="Ver Top 8 del torneo">
-          <i class="fa fa-trophy"></i> Top 8
-        </button>
-      </div>
-      
-      <!-- Panel de Top 8 de Challonge (inicialmente oculto) -->
-      <div id="challongeTop8Panel" class="top8-ch-panel" style="display:none; margin-top:15px;">
-        <div class="top8-ch-header">
-          <h4 class="top8-ch-title">
-            <i class="fa fa-trophy"></i> Top 8 - <span id="challongeTop8TournamentName">Torneo</span>
-          </h4>
-          <button onclick="cerrarTop8ChallongeWidget()" class="top8-ch-close" title="Cerrar Top 8">
-            <i class="fa fa-times"></i>
-          </button>
-        </div>
-        <div id="challongeTop8Content">
-          <!-- El contenido del Top 8 se cargará aquí -->
-        </div>
-        <div style="display:flex; gap:8px; margin-top:10px; justify-content:center;">
-          <button class="sb-btn btn-secondary" onclick="copiarTop8ChallongeWidget()" style="font-size:0.9em; padding:6px 12px;">
-            <i class="fa fa-copy"></i> Copiar
-          </button>
-          <button class="sb-btn btn-success" onclick="guardarTop8ChallongeWidget()" style="font-size:0.9em; padding:6px 12px;">
-            <i class="fa fa-save"></i> Guardar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script>
-// Tab switching logic for floating widget
-function showTournamentWidgetTab(idx) {
-  const btns = [document.getElementById('tabBtnStartggWidget'), document.getElementById('tabBtnChallongeWidget')];
-  const panels = [document.getElementById('tournamentWidgetPanelStartgg'), document.getElementById('tournamentWidgetPanelChallonge')];
-  btns.forEach((b, i) => b.classList.toggle('active', i === idx));
-  panels.forEach((p, i) => p.classList.toggle('active', i === idx));
-  // Enfocar el input correcto al cambiar de tab
-  setTimeout(() => {
-    if(idx === 0) {
-      const input = document.getElementById('startggTournamentInput');
-      if(input) input.focus();
-    } else {
-      const input = document.getElementById('challongeTournamentInput');
-      if(input) input.focus();
-    }
-  }, 50);
-}
-
-// === RECORDAR ÚLTIMOS VALORES DE WIDGETS ===
-function saveWidgetState() {
-  // Start.gg
-  localStorage.setItem('startggTournamentInput', document.getElementById('startggTournamentInput')?.value || '');
-  localStorage.setItem('startggTournamentSelector', document.getElementById('startggTournamentSelector')?.value || '');
-  localStorage.setItem('startggEventSelector', document.getElementById('startggEventSelector')?.value || '');
-  localStorage.setItem('startggMatchSelector', document.getElementById('startggMatchSelector')?.value || '');
-  // Challonge
-  localStorage.setItem('challongeTournamentInput', document.getElementById('challongeTournamentInput')?.value || '');
-  localStorage.setItem('challongeTournamentSelector', document.getElementById('challongeTournamentSelector')?.value || '');
-  localStorage.setItem('challongeMatchSelector', document.getElementById('challongeMatchSelector')?.value || '');
-}
-
-function restoreWidgetState() {
-  // Start.gg
-  const sggInput = localStorage.getItem('startggTournamentInput') || '';
-  const sggTourn = localStorage.getItem('startggTournamentSelector') || '';
-  const sggEvent = localStorage.getItem('startggEventSelector') || '';
-  const sggMatch = localStorage.getItem('startggMatchSelector') || '';
-  if(document.getElementById('startggTournamentInput')) document.getElementById('startggTournamentInput').value = sggInput;
-  if(document.getElementById('startggTournamentSelector')) document.getElementById('startggTournamentSelector').value = sggTourn;
-  if(document.getElementById('startggEventSelector')) document.getElementById('startggEventSelector').value = sggEvent;
-  if(document.getElementById('startggMatchSelector')) document.getElementById('startggMatchSelector').value = sggMatch;
-  // Challonge
-  const chInput = localStorage.getItem('challongeTournamentInput') || '';
-  const chTourn = localStorage.getItem('challongeTournamentSelector') || '';
-  const chMatch = localStorage.getItem('challongeMatchSelector') || '';
-  if(document.getElementById('challongeTournamentInput')) document.getElementById('challongeTournamentInput').value = chInput;
-  if(document.getElementById('challongeTournamentSelector')) document.getElementById('challongeTournamentSelector').value = chTourn;
-  if(document.getElementById('challongeMatchSelector')) document.getElementById('challongeMatchSelector').value = chMatch;
-}
-
-// Guardar estado al cambiar los inputs/selects relevantes
-window.addEventListener('DOMContentLoaded', function() {
-  restoreWidgetState();
-  [
-    'startggTournamentInput','startggTournamentSelector','startggEventSelector','startggMatchSelector',
-    'challongeTournamentInput','challongeTournamentSelector','challongeMatchSelector'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('change', saveWidgetState);
-    if(el) el.addEventListener('input', saveWidgetState);
-  });
-});
-function cerrarTournamentWidget() {
-  document.getElementById('tournamentFloatingWidget').style.display = 'none';
-}
-// === CHALLONGE WIDGET ===
-async function buscarChallongeDesdeWidget() {
-  const input = document.getElementById('challongeTournamentInput');
-  const selector = document.getElementById('challongeTournamentSelector');
-  if (!input || !selector) return;
-  
-  const query = input.value.trim().toLowerCase();
-  selector.innerHTML = '<option value="">Buscando torneos...</option>';
-  
-  try {
-    // Si el query parece ser un slug (sin espacios y con guiones), buscar directamente
-    if (query && !query.includes(' ') && (query.includes('-') || query.includes('_'))) {
-      // Intentar buscar directamente por slug
-      try {
-        const slugRes = await window.ipcRenderer.invoke('get-matches-and-participants', query);
-        if (slugRes.ok && slugRes.tournament_name) {
-          // Si encontramos el torneo por slug, agregarlo directamente
-          selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
-          const opt = document.createElement('option');
-          opt.value = query;
-          opt.textContent = `🎯 ${slugRes.tournament_name} (encontrado por slug)`;
-          opt.selected = true; // Seleccionar automáticamente
-          selector.appendChild(opt);
-          
-          // Mostrar notificación de éxito
-          if (window.mostrarNotificacion) {
-            window.mostrarNotificacion(`✅ Torneo encontrado: ${slugRes.tournament_name}`, 'success');
+    <script>
+      // Tab switching logic for floating widget
+      function showTournamentWidgetTab(idx) {
+        const btns = [document.getElementById('tabBtnStartggWidget'), document.getElementById('tabBtnChallongeWidget')];
+        const panels = [document.getElementById('tournamentWidgetPanelStartgg'), document.getElementById('tournamentWidgetPanelChallonge')];
+        btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+        panels.forEach((p, i) => p.classList.toggle('active', i === idx));
+        // Enfocar el input correcto al cambiar de tab
+        setTimeout(() => {
+          if (idx === 0) {
+            const input = document.getElementById('startggTournamentInput');
+            if (input) input.focus();
+          } else {
+            const input = document.getElementById('challongeTournamentInput');
+            if (input) input.focus();
           }
-          
-          // Cargar automáticamente los matches
-          setTimeout(() => cargarMatchesChallongeDesdeWidget(), 500);
+        }, 50);
+      }
+
+      // === RECORDAR ÚLTIMOS VALORES DE WIDGETS ===
+      function saveWidgetState() {
+        // Start.gg
+        localStorage.setItem('startggTournamentInput', document.getElementById('startggTournamentInput')?.value || '');
+        localStorage.setItem('startggTournamentSelector', document.getElementById('startggTournamentSelector')?.value || '');
+        localStorage.setItem('startggEventSelector', document.getElementById('startggEventSelector')?.value || '');
+        localStorage.setItem('startggMatchSelector', document.getElementById('startggMatchSelector')?.value || '');
+        // Challonge
+        localStorage.setItem('challongeTournamentInput', document.getElementById('challongeTournamentInput')?.value || '');
+        localStorage.setItem('challongeTournamentSelector', document.getElementById('challongeTournamentSelector')?.value || '');
+        localStorage.setItem('challongeMatchSelector', document.getElementById('challongeMatchSelector')?.value || '');
+      }
+
+      function restoreWidgetState() {
+        // Start.gg
+        const sggInput = localStorage.getItem('startggTournamentInput') || '';
+        const sggTourn = localStorage.getItem('startggTournamentSelector') || '';
+        const sggEvent = localStorage.getItem('startggEventSelector') || '';
+        const sggMatch = localStorage.getItem('startggMatchSelector') || '';
+        if (document.getElementById('startggTournamentInput')) document.getElementById('startggTournamentInput').value = sggInput;
+        if (document.getElementById('startggTournamentSelector')) document.getElementById('startggTournamentSelector').value = sggTourn;
+        if (document.getElementById('startggEventSelector')) document.getElementById('startggEventSelector').value = sggEvent;
+        if (document.getElementById('startggMatchSelector')) document.getElementById('startggMatchSelector').value = sggMatch;
+        // Challonge
+        const chInput = localStorage.getItem('challongeTournamentInput') || '';
+        const chTourn = localStorage.getItem('challongeTournamentSelector') || '';
+        const chMatch = localStorage.getItem('challongeMatchSelector') || '';
+        if (document.getElementById('challongeTournamentInput')) document.getElementById('challongeTournamentInput').value = chInput;
+        if (document.getElementById('challongeTournamentSelector')) document.getElementById('challongeTournamentSelector').value = chTourn;
+        if (document.getElementById('challongeMatchSelector')) document.getElementById('challongeMatchSelector').value = chMatch;
+      }
+
+      // Guardar estado al cambiar los inputs/selects relevantes
+      window.addEventListener('DOMContentLoaded', function () {
+        restoreWidgetState();
+        [
+          'startggTournamentInput', 'startggTournamentSelector', 'startggEventSelector', 'startggMatchSelector',
+          'challongeTournamentInput', 'challongeTournamentSelector', 'challongeMatchSelector'
+        ].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('change', saveWidgetState);
+          if (el) el.addEventListener('input', saveWidgetState);
+        });
+      });
+      function cerrarTournamentWidget() {
+        document.getElementById('tournamentFloatingWidget').style.display = 'none';
+      }
+      // === CHALLONGE WIDGET ===
+      async function buscarChallongeDesdeWidget() {
+        const input = document.getElementById('challongeTournamentInput');
+        const selector = document.getElementById('challongeTournamentSelector');
+        if (!input || !selector) return;
+
+        const query = input.value.trim().toLowerCase();
+        selector.innerHTML = '<option value="">Buscando torneos...</option>';
+
+        try {
+          // Si el query parece ser un slug (sin espacios y con guiones), buscar directamente
+          if (query && !query.includes(' ') && (query.includes('-') || query.includes('_'))) {
+            // Intentar buscar directamente por slug
+            try {
+              const slugRes = await window.ipcRenderer.invoke('get-matches-and-participants', query);
+              if (slugRes.ok && slugRes.tournament_name) {
+                // Si encontramos el torneo por slug, agregarlo directamente
+                selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
+                const opt = document.createElement('option');
+                opt.value = query;
+                opt.textContent = `🎯 ${slugRes.tournament_name} (encontrado por slug)`;
+                opt.selected = true; // Seleccionar automáticamente
+                selector.appendChild(opt);
+
+                // Mostrar notificación de éxito
+                if (window.mostrarNotificacion) {
+                  window.mostrarNotificacion(`✅ Torneo encontrado: ${slugRes.tournament_name}`, 'success');
+                }
+
+                // Cargar automáticamente los matches
+                setTimeout(() => cargarMatchesChallongeDesdeWidget(), 500);
+                return;
+              }
+            } catch (slugError) {
+              // Si falla la búsqueda por slug, continuar con búsqueda normal
+              console.log('Slug no encontrado, buscando en lista general...');
+            }
+          }
+
+          // Búsqueda normal en la lista de torneos
+          const res = await window.ipcRenderer.invoke('get-tournaments');
+          if (!res.ok) throw new Error(res.error || 'Error al obtener torneos');
+
+          let torneos = res.tournaments || [];
+
+          // Filtrar por nombre si hay query
+          if (query) {
+            torneos = torneos.filter(t =>
+              t.name.toLowerCase().includes(query) ||
+              t.url.toLowerCase().includes(query)
+            );
+          }
+
+          if (!torneos.length) {
+            selector.innerHTML = '<option value="">No se encontraron torneos</option>';
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion(`❌ No se encontraron torneos para: "${query}"`, 'error');
+            }
+            return;
+          }
+
+          selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
+          torneos.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.url;
+            opt.textContent = t.name + (t.state ? ` (${t.state})` : '');
+            selector.appendChild(opt);
+          });
+
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(`✅ Encontrados ${torneos.length} torneo(s)`, 'success');
+          }
+
+        } catch (e) {
+          selector.innerHTML = `<option value="">❌ ${e.message}</option>`;
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
+          }
+        }
+      }
+
+      async function cargarMatchesChallongeDesdeWidget() {
+        const selector = document.getElementById('challongeTournamentSelector');
+        const matchSelector = document.getElementById('challongeMatchSelector');
+        const loadingBar = document.getElementById('challongeMatchLoadingBar');
+        if (!selector || !matchSelector || !loadingBar) return;
+        const slug = selector.value;
+        if (!slug) {
+          matchSelector.style.display = 'none';
+          loadingBar.style.display = 'none';
+          matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
           return;
         }
-      } catch (slugError) {
-        // Si falla la búsqueda por slug, continuar con búsqueda normal
-        console.log('Slug no encontrado, buscando en lista general...');
+        matchSelector.style.display = 'none';
+        loadingBar.style.display = 'block';
+        try {
+          const res = await window.ipcRenderer.invoke('get-matches-and-participants', slug);
+          if (!res.ok || !res.matches) throw new Error(res.error || 'No se pudieron obtener matches');
+          
+          // Guardar número de participantes para cálculos de estructura en el widget
+          if (typeof window.tournamentParticipantsCount !== 'undefined') {
+            window.tournamentParticipantsCount = res.participantsCount || res.participantes?.length || 0;
+            console.log('🎮 [WIDGET] Participantes guardados:', window.tournamentParticipantsCount);
+          }
+          
+          // Solo matches abiertos y con jugadores asignados
+          const matches = res.matches.filter(m => m.player1_name && m.player2_name && m.player1_name !== 'TBD' && m.player2_name !== 'TBD' && !m.winner_id);
+          if (!matches.length) {
+            matchSelector.innerHTML = '<option value="">No hay matches abiertos</option>';
+            matchSelector.style.display = 'block';
+            loadingBar.style.display = 'none';
+            return;
+          }
+          matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
+          matches.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.player1_name} vs ${m.player2_name} (Ronda ${m.round || ''})`;
+            opt.dataset.match = JSON.stringify(m);
+            matchSelector.appendChild(opt);
+          });
+          matchSelector.style.display = 'block';
+          loadingBar.style.display = 'none';
+        } catch (e) {
+          matchSelector.innerHTML = `<option value="">❌ ${e.message}</option>`;
+          matchSelector.style.display = 'block';
+          loadingBar.style.display = 'none';
+        }
       }
-    }
-    
-    // Búsqueda normal en la lista de torneos
-    const res = await window.ipcRenderer.invoke('get-tournaments');
-    if (!res.ok) throw new Error(res.error || 'Error al obtener torneos');
-    
-    let torneos = res.tournaments || [];
-    
-    // Filtrar por nombre si hay query
-    if (query) {
-      torneos = torneos.filter(t => 
-        t.name.toLowerCase().includes(query) || 
-        t.url.toLowerCase().includes(query)
-      );
-    }
-    
-    if (!torneos.length) {
-      selector.innerHTML = '<option value="">No se encontraron torneos</option>';
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion(`❌ No se encontraron torneos para: "${query}"`, 'error');
-      }
-      return;
-    }
-    
-    selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
-    torneos.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.url;
-      opt.textContent = t.name + (t.state ? ` (${t.state})` : '');
-      selector.appendChild(opt);
-    });
-    
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion(`✅ Encontrados ${torneos.length} torneo(s)`, 'success');
-    }
-    
-  } catch (e) {
-    selector.innerHTML = `<option value="">❌ ${e.message}</option>`;
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
-    }
-  }
-}
 
-async function cargarMatchesChallongeDesdeWidget() {
-  const selector = document.getElementById('challongeTournamentSelector');
-  const matchSelector = document.getElementById('challongeMatchSelector');
-  const loadingBar = document.getElementById('challongeMatchLoadingBar');
-  if (!selector || !matchSelector || !loadingBar) return;
-  const slug = selector.value;
-  if (!slug) {
-    matchSelector.style.display = 'none';
-    loadingBar.style.display = 'none';
-    matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
-    return;
-  }
-  matchSelector.style.display = 'none';
-  loadingBar.style.display = 'block';
-  try {
-    const res = await window.ipcRenderer.invoke('get-matches-and-participants', slug);
-    if (!res.ok || !res.matches) throw new Error(res.error || 'No se pudieron obtener matches');
-    // Solo matches abiertos y con jugadores asignados
-    const matches = res.matches.filter(m => m.player1_name && m.player2_name && m.player1_name !== 'TBD' && m.player2_name !== 'TBD' && !m.winner_id);
-    if (!matches.length) {
-      matchSelector.innerHTML = '<option value="">No hay matches abiertos</option>';
-      matchSelector.style.display = 'block';
-      loadingBar.style.display = 'none';
-      return;
-    }
-    matchSelector.innerHTML = '<option value="">Selecciona un match...</option>';
-    matches.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = `${m.player1_name} vs ${m.player2_name} (Ronda ${m.round || ''})`;
-      opt.dataset.match = JSON.stringify(m);
-      matchSelector.appendChild(opt);
-    });
-    matchSelector.style.display = 'block';
-    loadingBar.style.display = 'none';
-  } catch (e) {
-    matchSelector.innerHTML = `<option value="">❌ ${e.message}</option>`;
-    matchSelector.style.display = 'block';
-    loadingBar.style.display = 'none';
-  }
-}
+      // Cargar todos los torneos de la API en el widget
+      async function cargarTorneosDesdeWidget() {
+        const selector = document.getElementById('challongeTournamentSelector');
+        if (!selector) return;
 
-// Cargar todos los torneos de la API en el widget
-async function cargarTorneosDesdeWidget() {
-  const selector = document.getElementById('challongeTournamentSelector');
-  if (!selector) return;
-  
-  selector.innerHTML = '<option value="">Cargando torneos...</option>';
-  
-  try {
-    const res = await window.ipcRenderer.invoke('get-tournaments');
-    if (!res.ok) throw new Error(res.error || 'Error al obtener torneos');
-    
-    const torneos = res.tournaments || [];
-    
-    if (!torneos.length) {
-      selector.innerHTML = '<option value="">No se encontraron torneos</option>';
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('❌ No se encontraron torneos en tu cuenta', 'error');
-      }
-      return;
-    }
-    
-    selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
-    torneos.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.url;
-      opt.textContent = t.name + (t.state ? ` (${t.state})` : '');
-      selector.appendChild(opt);
-    });
-    
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion(`✅ Cargados ${torneos.length} torneo(s) de tu API`, 'success');
-    }
-    
-  } catch (e) {
-    selector.innerHTML = `<option value="">❌ ${e.message}</option>`;
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
-    }
-  }
-}
+        selector.innerHTML = '<option value="">Cargando torneos...</option>';
 
-// === FUNCIONES TOP 8 CHALLONGE WIDGET ===
-async function mostrarTop8ChallongeDesdeWidget() {
-  const tournamentSelector = document.getElementById('challongeTournamentSelector');
-  const panel = document.getElementById('challongeTop8Panel');
-  const content = document.getElementById('challongeTop8Content');
-  const tournamentNameSpan = document.getElementById('challongeTop8TournamentName');
-  
-  if (!tournamentSelector.value) {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
-    }
-    return;
-  }
-  
-  // Mostrar el panel
-  panel.style.display = 'block';
-  content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando Top 8...</div>';
-  
-  // Obtener el nombre del torneo seleccionado
-  const tournamentName = tournamentSelector.options[tournamentSelector.selectedIndex].text;
-  tournamentNameSpan.textContent = tournamentName;
-  
-  try {
-    // Siempre recargar personajes con el juego actual del scoreboard
-    const currentGame = document.getElementById('gameSel')?.value || 'GGST';
-    console.log('[ChallongeTop8Widget] Forzando recarga de personajes para juego:', currentGame);
-    
-    try {
-      const personajesRes = await window.ipcRenderer.invoke('get-personajes', currentGame);
-      if (personajesRes.personajes && personajesRes.personajes.length) {
-        window.listaPersonajes = personajesRes.personajes.map(p => p.nombre);
-        console.log('[ChallongeTop8Widget] Personajes cargados:', window.listaPersonajes.length, 'para juego:', currentGame);
-      } else {
-        window.listaPersonajes = [];
-        console.warn('[ChallongeTop8Widget] No se encontraron personajes para', currentGame);
+        try {
+          const res = await window.ipcRenderer.invoke('get-tournaments');
+          if (!res.ok) throw new Error(res.error || 'Error al obtener torneos');
+
+          const torneos = res.tournaments || [];
+
+          if (!torneos.length) {
+            selector.innerHTML = '<option value="">No se encontraron torneos</option>';
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('❌ No se encontraron torneos en tu cuenta', 'error');
+            }
+            return;
+          }
+
+          selector.innerHTML = '<option value="">Selecciona un torneo...</option>';
+          torneos.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.url;
+            opt.textContent = t.name + (t.state ? ` (${t.state})` : '');
+            selector.appendChild(opt);
+          });
+
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(`✅ Cargados ${torneos.length} torneo(s) de tu API`, 'success');
+          }
+
+        } catch (e) {
+          selector.innerHTML = `<option value="">❌ ${e.message}</option>`;
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
+          }
+        }
       }
-    } catch (e) {
-      console.warn('[ChallongeTop8Widget] Error al cargar personajes:', e);
-      window.listaPersonajes = [];
-    }
-    
-    // Llamar a la función de Challonge para obtener el Top 8
-    const tournamentSlug = tournamentSelector.value;
-    console.log('[ChallongeTop8Widget] Cargando Top 8 para torneo:', tournamentSlug);
-    
-    const response = await window.ipcRenderer.invoke('get-top8', tournamentSlug);
-    
-    console.log('[ChallongeTop8Widget] Respuesta completa de Challonge:', response);
-    
-    if (response.error || !response.top8) {
-  content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ ${response.error || 'No se pudo obtener el Top 8'}</div>`;
-      return;
-    }
-    
-    const top8Data = response.top8;
-    console.log('[ChallongeTop8Widget] Top 8 obtenido:', top8Data);
-    
-    if (!top8Data || top8Data.length === 0) {
-  content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-warning">⚠️ No hay suficientes participantes para un Top 8</div>';
-      return;
-    }
-    
-    // Ordenar por ranking
-    top8Data.sort((a, b) => a.final_rank - b.final_rank);
-    
-    // Generar HTML del Top 8
-  let html = '<div class="top8-ch-table-wrap">';
-  html += '<table class="top8-ch-table">';
-  html += '<thead><tr><th>Pos</th><th>Jugador</th><th>Personaje</th><th>Twitter</th></tr></thead>';
-  html += '<tbody>';
-    
-    top8Data.forEach((player, idx) => {
-      html += `<tr>`;
-      html += `<td style="text-align:center; font-weight:bold;">${player.final_rank}</td>`;
-      html += `<td>${player.name}</td>`;
-      html += `<td>
+
+      // === FUNCIONES TOP 8 CHALLONGE WIDGET ===
+      async function mostrarTop8ChallongeDesdeWidget() {
+        const tournamentSelector = document.getElementById('challongeTournamentSelector');
+        const panel = document.getElementById('challongeTop8Panel');
+        const content = document.getElementById('challongeTop8Content');
+        const tournamentNameSpan = document.getElementById('challongeTop8TournamentName');
+
+        if (!tournamentSelector.value) {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
+          }
+          return;
+        }
+
+        // Mostrar el panel
+        panel.style.display = 'block';
+        content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando Top 8...</div>';
+
+        // Obtener el nombre del torneo seleccionado
+        const tournamentName = tournamentSelector.options[tournamentSelector.selectedIndex].text;
+        tournamentNameSpan.textContent = tournamentName;
+
+        try {
+          // Siempre recargar personajes con el juego actual del scoreboard
+          const currentGame = document.getElementById('gameSel')?.value || 'GGST';
+          console.log('[ChallongeTop8Widget] Forzando recarga de personajes para juego:', currentGame);
+
+          try {
+            const personajesRes = await window.ipcRenderer.invoke('get-personajes', currentGame);
+            if (personajesRes.personajes && personajesRes.personajes.length) {
+              window.listaPersonajes = personajesRes.personajes.map(p => p.nombre);
+              console.log('[ChallongeTop8Widget] Personajes cargados:', window.listaPersonajes.length, 'para juego:', currentGame);
+            } else {
+              window.listaPersonajes = [];
+              console.warn('[ChallongeTop8Widget] No se encontraron personajes para', currentGame);
+            }
+          } catch (e) {
+            console.warn('[ChallongeTop8Widget] Error al cargar personajes:', e);
+            window.listaPersonajes = [];
+          }
+
+          // Llamar a la función de Challonge para obtener el Top 8
+          const tournamentSlug = tournamentSelector.value;
+          console.log('[ChallongeTop8Widget] Cargando Top 8 para torneo:', tournamentSlug);
+
+          const response = await window.ipcRenderer.invoke('get-top8', tournamentSlug);
+
+          console.log('[ChallongeTop8Widget] Respuesta completa de Challonge:', response);
+
+          if (response.error || !response.top8) {
+            content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ ${response.error || 'No se pudo obtener el Top 8'}</div>`;
+            return;
+          }
+
+          const top8Data = response.top8;
+          console.log('[ChallongeTop8Widget] Top 8 obtenido:', top8Data);
+
+          if (!top8Data || top8Data.length === 0) {
+            content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-warning">⚠️ No hay suficientes participantes para un Top 8</div>';
+            return;
+          }
+
+          // Ordenar por ranking
+          top8Data.sort((a, b) => a.final_rank - b.final_rank);
+
+          // Generar HTML del Top 8
+          let html = '<div class="top8-ch-table-wrap">';
+          html += '<table class="top8-ch-table">';
+          html += '<thead><tr><th>Pos</th><th>Jugador</th><th>Personaje</th><th>Twitter</th></tr></thead>';
+          html += '<tbody>';
+
+          top8Data.forEach((player, idx) => {
+            html += `<tr>`;
+            html += `<td style="text-align:center; font-weight:bold;">${player.final_rank}</td>`;
+            html += `<td>${player.name}</td>`;
+            html += `<td>
         <select id="challongeTop8Char${idx}" class="top8-ch-select">
           ${(window.listaPersonajes || []).map(char => `<option value="${char}">${char}</option>`).join("")}
         </select>
       </td>`;
-      html += `<td>
+            html += `<td>
         <select id="challongeTop8Twitter${idx}" class="top8-ch-twitter">
           <option value="">Seleccionar...</option>
         </select>
       </td>`;
-      html += '</tr>';
-    });
-    
-    html += '</tbody></table></div>';
-  content.innerHTML = html;
-    
-    // Llenar usuarios de Twitter desde archivo
-    try {
-      const usuariosRes = await window.ipcRenderer.invoke('leer-usuarios-txt');
-      if (usuariosRes.ok && usuariosRes.usuarios) {
-        const usuariosOrdenados = usuariosRes.usuarios.slice().sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-        
-        for (let i = 0; i < top8Data.length; i++) {
-          const twitterSelect = document.getElementById(`challongeTop8Twitter${i}`);
-          if (twitterSelect) {
-            twitterSelect.innerHTML = '<option value="">Seleccionar...</option>';
-            usuariosOrdenados.forEach(usuario => {
-              const option = document.createElement('option');
-              option.value = usuario;
-              option.textContent = usuario;
-              twitterSelect.appendChild(option);
-            });
+            html += '</tr>';
+          });
+
+          html += '</tbody></table></div>';
+          content.innerHTML = html;
+
+          // Llenar usuarios de Twitter desde archivo
+          try {
+            const usuariosRes = await window.ipcRenderer.invoke('leer-usuarios-txt');
+            if (usuariosRes.ok && usuariosRes.usuarios) {
+              const usuariosOrdenados = usuariosRes.usuarios.slice().sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+              for (let i = 0; i < top8Data.length; i++) {
+                const twitterSelect = document.getElementById(`challongeTop8Twitter${i}`);
+                if (twitterSelect) {
+                  twitterSelect.innerHTML = '<option value="">Seleccionar...</option>';
+                  usuariosOrdenados.forEach(usuario => {
+                    const option = document.createElement('option');
+                    option.value = usuario;
+                    option.textContent = usuario;
+                    twitterSelect.appendChild(option);
+                  });
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('[ChallongeTop8Widget] Error al cargar usuarios:', e);
+          }
+
+          // Guardar datos globalmente para las funciones de copiar/guardar
+          window.challongeTop8Data = {
+            tournament: tournamentName,
+            players: top8Data
+          };
+
+        } catch (error) {
+          console.error('[ChallongeTop8Widget] Error:', error);
+          content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error al cargar Top 8: ${error.message}</div>`;
+        }
+      }
+
+      function cerrarTop8ChallongeWidget() {
+        const panel = document.getElementById('challongeTop8Panel');
+        if (panel) panel.style.display = 'none';
+      }
+
+      function copiarTop8ChallongeWidget() {
+        if (!window.challongeTop8Data) {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion('❌ No hay datos de Top 8 para copiar', 'error');
+          }
+          return;
+        }
+
+        let mensaje = `Resultados ${window.challongeTop8Data.tournament}\n\n`;
+
+        window.challongeTop8Data.players.forEach((player, idx) => {
+          const twitterSelect = document.getElementById(`challongeTop8Twitter${idx}`);
+          let twitter = twitterSelect ? twitterSelect.value.trim() : '';
+
+          if (!twitter) {
+            twitter = '@' + player.name.replace(/\s/g, '_');
+          }
+          if (!twitter.startsWith('@')) twitter = '@' + twitter;
+
+          mensaje += `${player.final_rank}) ${twitter}\n`;
+        });
+
+        mensaje += `\n¡Gracias por participar!`;
+
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(mensaje).then(() => {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion('✅ Top 8 copiado al portapapeles', 'success');
+          }
+        }).catch(err => {
+          console.error('Error al copiar:', err);
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion('❌ Error al copiar al portapapeles', 'error');
+          }
+        });
+      }
+
+      async function guardarTop8ChallongeWidget() {
+        if (!window.challongeTop8Data) {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion('❌ No hay datos de Top 8 para guardar', 'error');
+          }
+          return;
+        }
+
+        const currentGame = document.getElementById('gameSel')?.value || 'GGST';
+        const top8ForSave = [];
+
+        window.challongeTop8Data.players.forEach((player, idx) => {
+          const charSelect = document.getElementById(`challongeTop8Char${idx}`);
+          const twitterSelect = document.getElementById(`challongeTop8Twitter${idx}`);
+
+          top8ForSave.push({
+            nombre: player.name,
+            personaje: charSelect ? charSelect.value : '',
+            juego: currentGame,
+            twitter: twitterSelect ? twitterSelect.value : ''
+          });
+        });
+
+        const dataToSave = {
+          evento: window.challongeTop8Data.tournament,
+          fecha: new Date().toLocaleDateString('es-CL'),
+          top8: top8ForSave
+        };
+
+        try {
+          const res = await window.ipcRenderer.invoke('save-json', dataToSave, 'top8');
+          if (res.ok) {
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('✅ Top 8 guardado correctamente', 'success');
+            }
+          } else {
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('❌ Error al guardar Top 8', 'error');
+            }
+          }
+        } catch (error) {
+          console.error('Error al guardar Top 8:', error);
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion('❌ Error al guardar Top 8', 'error');
           }
         }
       }
-    } catch (e) {
-      console.warn('[ChallongeTop8Widget] Error al cargar usuarios:', e);
-    }
-    
-    // Guardar datos globalmente para las funciones de copiar/guardar
-    window.challongeTop8Data = {
-      tournament: tournamentName,
-      players: top8Data
-    };
-    
-  } catch (error) {
-    console.error('[ChallongeTop8Widget] Error:', error);
-  content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error al cargar Top 8: ${error.message}</div>`;
-  }
-}
 
-function cerrarTop8ChallongeWidget() {
-  const panel = document.getElementById('challongeTop8Panel');
-  if (panel) panel.style.display = 'none';
-}
+      // === FUNCIÓN ACTUALIZAR MATCHES CHALLONGE WIDGET ===
+      async function actualizarMatchesChallongeEnScoreboard() {
+        const tournamentSelector = document.getElementById('challongeTournamentSelector');
 
-function copiarTop8ChallongeWidget() {
-  if (!window.challongeTop8Data) {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion('❌ No hay datos de Top 8 para copiar', 'error');
-    }
-    return;
-  }
-  
-  let mensaje = `Resultados ${window.challongeTop8Data.tournament}\n\n`;
-  
-  window.challongeTop8Data.players.forEach((player, idx) => {
-    const twitterSelect = document.getElementById(`challongeTop8Twitter${idx}`);
-    let twitter = twitterSelect ? twitterSelect.value.trim() : '';
-    
-    if (!twitter) {
-      twitter = '@' + player.name.replace(/\s/g, '_');
-    }
-    if (!twitter.startsWith('@')) twitter = '@' + twitter;
-    
-    mensaje += `${player.final_rank}) ${twitter}\n`;
-  });
-  
-  mensaje += `\n¡Gracias por participar!`;
-  
-  // Copiar al portapapeles
-  navigator.clipboard.writeText(mensaje).then(() => {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion('✅ Top 8 copiado al portapapeles', 'success');
-    }
-  }).catch(err => {
-    console.error('Error al copiar:', err);
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion('❌ Error al copiar al portapapeles', 'error');
-    }
-  });
-}
-
-async function guardarTop8ChallongeWidget() {
-  if (!window.challongeTop8Data) {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion('❌ No hay datos de Top 8 para guardar', 'error');
-    }
-    return;
-  }
-  
-  const currentGame = document.getElementById('gameSel')?.value || 'GGST';
-  const top8ForSave = [];
-  
-  window.challongeTop8Data.players.forEach((player, idx) => {
-    const charSelect = document.getElementById(`challongeTop8Char${idx}`);
-    const twitterSelect = document.getElementById(`challongeTop8Twitter${idx}`);
-    
-    top8ForSave.push({
-      nombre: player.name,
-      personaje: charSelect ? charSelect.value : '',
-      juego: currentGame,
-      twitter: twitterSelect ? twitterSelect.value : ''
-    });
-  });
-  
-  const dataToSave = {
-    evento: window.challongeTop8Data.tournament,
-    fecha: new Date().toLocaleDateString('es-CL'),
-    top8: top8ForSave
-  };
-  
-  try {
-    const res = await window.ipcRenderer.invoke('save-json', dataToSave, 'top8');
-    if (res.ok) {
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('✅ Top 8 guardado correctamente', 'success');
-      }
-    } else {
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('❌ Error al guardar Top 8', 'error');
-      }
-    }
-  } catch (error) {
-    console.error('Error al guardar Top 8:', error);
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion('❌ Error al guardar Top 8', 'error');
-    }
-  }
-}
-
-// === FUNCIÓN ACTUALIZAR MATCHES CHALLONGE WIDGET ===
-async function actualizarMatchesChallongeEnScoreboard() {
-  const tournamentSelector = document.getElementById('challongeTournamentSelector');
-  
-  if (!tournamentSelector.value) {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
-    }
-    return;
-  }
-  
-  // Simplemente recargar los matches del torneo seleccionado
-  await cargarMatchesChallongeDesdeWidget();
-  
-  if (window.mostrarNotificacion) {
-    window.mostrarNotificacion("🔄 Matches actualizados", "success");
-  }
-}
-
-// === FUNCIÓN BRACKET CHALLONGE WIDGET ===
-async function guardarBracketChallongeDesdeWidget() {
-  const tournamentSelector = document.getElementById('challongeTournamentSelector');
-  
-  if (!tournamentSelector.value) {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
-    }
-    return;
-  }
-  
-  const tournamentSlug = tournamentSelector.value;
-  
-  try {
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion("🔄 Generando bracket visual...", "info");
-    }
-    
-    // Usar la misma lógica que renderBracketVisual pero para el widget
-    const res = await window.ipcRenderer.invoke('get-all-matches-and-participants', tournamentSlug);
-    if (!res.ok || !res.matches || !res.matches.length) {
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('❌ No se encontraron matches para este torneo.', 'error');
-      }
-      return;
-    }
-
-    // Mapea IDs a nombres
-    const participantes = {};
-    (res.participantes || []).forEach(p => {
-      participantes[p.id] = p.name;
-    });
-
-    // Detecta el número de ronda más alto en winners
-    const winnerRounds = res.matches.filter(m => m.round > 0).map(m => m.round);
-    const maxWinnerRound = Math.max(...winnerRounds);
-    const rondas = {};
-    res.matches.forEach(m => {
-      const ronda = Number(m.round);
-      if (!rondas[ronda]) rondas[ronda] = [];
-      rondas[ronda].push(m);
-    });
-
-    // Detecta Grand Final y Reset
-    const grandFinalMatches = (rondas[maxWinnerRound] || []).filter(m => {
-      if (!m.scores_csv) return false;
-      const [s1, s2] = m.scores_csv.split('-').map(s => Number(s.trim() || '0'));
-      return s1 > 0 || s2 > 0;
-    });
-
-    // Asigna round_name a TODOS los matches siguiendo la lógica de Start.gg
-    const losersRounds = Object.keys(rondas).map(Number).filter(r => r < 0).sort((a, b) => a - b);
-    const matchesAll = res.matches.map(m => {
-      let p1sc = "0", p2sc = "0";
-      if (m.scores_csv && m.scores_csv.includes('-')) {
-        [p1sc, p2sc] = m.scores_csv.split('-').map(s => s.trim());
-      }
-      let round_name = "";
-      if (m.round === maxWinnerRound) {
-        if (grandFinalMatches.length === 2) {
-          const idx = rondas[maxWinnerRound].findIndex(x => x.id === m.id);
-          round_name = idx === 0 ? "Grand Final" : "Grand Final Reset";
-        } else {
-          round_name = "Grand Final";
+        if (!tournamentSelector.value) {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
+          }
+          return;
         }
-      } else if (m.round === maxWinnerRound - 1) {
-        round_name = "Winners Final";
-      } else if (m.round === maxWinnerRound - 2) {
-        round_name = "Winners Semis";
-      } else if (m.round < 0) {
-        // Losers: ordena de menos a más negativo (más antiguo a más reciente)
-        const sortedLosers = losersRounds.slice().sort((a, b) => a - b);
-        const idx = sortedLosers.indexOf(m.round);
-        const losersNames = [
-          "Losers Finals",
-          "Losers Semis",
-          "Losers Quarters",
-          "Losers Top 8"
-        ];
-        // El más negativo (idx 0) es "Losers Finals", el más cercano a 0 es "Losers Top 8"
-        round_name = losersNames[idx] || `Losers Ronda ${Math.abs(m.round)}`;
-      } else {
-        round_name = `Ronda ${m.round}`;
-      }
-      return {
-        ...m,
-        player1_sc: p1sc,
-        player2_sc: p2sc,
-        round_name
-      };
-    });
 
-    // Guardar bracket JSON con el esquema de Start.gg
-    const bracketData = {
-      torneo: tournamentSlug,
-      fecha: new Date().toLocaleDateString(),
-      matches: matchesAll,
-      participantes: participantes
-    };
-    
-    const saveRes = await window.ipcRenderer.invoke('save-json', bracketData, 'bracket');
-    
-    if (saveRes.ok) {
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('✅ Bracket guardado correctamente siguiendo el esquema de Start.gg', 'success');
-      }
-    } else {
-      if (window.mostrarNotificacion) {
-        window.mostrarNotificacion('❌ Error al guardar bracket', 'error');
-      }
-    }
-    
-  } catch (error) {
-    console.error('[ChallongeBracketWidget] Error:', error);
-    if (window.mostrarNotificacion) {
-      window.mostrarNotificacion(`❌ Error al generar bracket: ${error.message}`, 'error');
-    }
-  }
-}
+        // Simplemente recargar los matches del torneo seleccionado
+        await cargarMatchesChallongeDesdeWidget();
 
-// Mostrar el widget y enfocar input al cargar
-window.addEventListener('DOMContentLoaded', function() {
-  const widget = document.getElementById('tournamentFloatingWidget');
-  if(widget) widget.style.display = 'block';
-  const input = document.getElementById('startggTournamentInput');
-  if(input) input.focus();
-});
-// Buscar torneo desde el widget
-function buscarStartggDesdeWidget() {
-  const input = document.getElementById('startggTournamentInput');
-  if(!input) return;
-  const query = input.value.trim();
-  if(query) buscarStartGG(query); // Pasa el texto de búsqueda como parámetro
-}
-
-// Funciones para el Top 8 del widget de Start.gg
-async function mostrarTop8StartggDesdeWidget() {
-  const eventSelector = document.getElementById('startggEventSelector');
-  const panel = document.getElementById('startggTop8Panel');
-  const content = document.getElementById('startggTop8Content');
-  const eventNameSpan = document.getElementById('startggTop8EventName');
-  
-  if (!eventSelector.value) {
-    mostrarNotificacion("❌ Selecciona un evento primero.", "error");
-    return;
-  }
-  
-  // Mostrar el panel
-  panel.style.display = 'block';
-  content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando Top 8...</div>';
-  
-  // Obtener el nombre del evento seleccionado
-  const eventName = eventSelector.options[eventSelector.selectedIndex].text;
-  eventNameSpan.textContent = eventName;
-  
-  try {
-    // Siempre recargar personajes con el juego actual del scoreboard
-    const currentGame = document.getElementById('gameSel')?.value || 'GGST';
-    console.log('[Top8Widget] Forzando recarga de personajes para juego:', currentGame);
-    
-    try {
-      const personajesRes = await window.ipcRenderer.invoke('get-personajes', currentGame);
-      if (personajesRes.personajes && personajesRes.personajes.length) {
-        window.listaPersonajes = personajesRes.personajes.map(p => p.nombre);
-        console.log('[Top8Widget] Personajes cargados:', window.listaPersonajes.length, 'para juego:', currentGame);
-      } else {
-        window.listaPersonajes = [];
-        console.warn('[Top8Widget] No se encontraron personajes para', currentGame);
+        if (window.mostrarNotificacion) {
+          window.mostrarNotificacion("🔄 Matches actualizados", "success");
+        }
       }
-    } catch (e) {
-      console.warn('[Top8Widget] Error al cargar personajes:', e);
-      window.listaPersonajes = [];
-    }
-    
-    // Llamar a la función de Start.gg para obtener el Top 8
-    // IMPORTANTE: eventSelector.value contiene el ID del evento, no el slug
-    const eventId = parseInt(eventSelector.value); // Asegurar que sea un número
-    console.log('[Top8Widget] Cargando Top 8 para evento ID:', eventId, 'tipo:', typeof eventId);
-    
-    const response = await window.ipcRenderer.invoke('startgg-get-standings', eventId);
-    
-    console.log('[Top8Widget] Respuesta completa de Start.gg:', response);
-    
-    if (!response.ok) {
-      console.error('[Top8Widget] Error en respuesta:', response.error);
-  content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error: ${response.error || 'No se pudo obtener datos del servidor'}</div>`;
-      return;
-    }
-    
-    if (!response.top8 || response.top8.length === 0) {
-      console.warn('[Top8Widget] No se encontró Top 8 en la respuesta:', response);
-  content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-error">❌ No se encontró Top 8 para este evento.</div>';
-      return;
-    }
-    
-    console.log('[Top8Widget] Top 8 encontrado:', response.top8.length, 'jugadores');
-    
-    // Generar el HTML para mostrar el Top 8 con selectores responsive
-    let html = '<div class="top8-widget-list" style="display:grid; gap:6px; max-height:280px; overflow-y:auto;">';
-    
-    response.top8.forEach((player, index) => {
-      const position = index + 1;
-      const emoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'][index] || `${position}º`;
-      
-      // Debug: mostrar estructura del jugador
-      console.log(`[Top8Widget] Jugador ${index + 1}:`, player);
-      
-      // Usar la misma lógica simple que la pestaña principal
-      const name = player.nombre || player.gamerTag || player.name || `Jugador ${position}`;
-      const character = player.character || '';
-      
-      console.log(`[Top8Widget] Nombre extraído: ${name}, Personaje: ${character}`);
-      
-      html += `
+
+      // === FUNCIÓN BRACKET CHALLONGE WIDGET ===
+      async function guardarBracketChallongeDesdeWidget() {
+        const tournamentSelector = document.getElementById('challongeTournamentSelector');
+
+        if (!tournamentSelector.value) {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion("❌ Selecciona un torneo primero.", "error");
+          }
+          return;
+        }
+
+        const tournamentSlug = tournamentSelector.value;
+
+        try {
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion("🔄 Generando bracket visual...", "info");
+          }
+
+          // Usar la misma lógica que renderBracketVisual pero para el widget
+          const res = await window.ipcRenderer.invoke('get-all-matches-and-participants', tournamentSlug);
+          if (!res.ok || !res.matches || !res.matches.length) {
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('❌ No se encontraron matches para este torneo.', 'error');
+            }
+            return;
+          }
+
+          // Mapea IDs a nombres
+          const participantes = {};
+          (res.participantes || []).forEach(p => {
+            participantes[p.id] = p.name;
+          });
+
+          // Detecta el número de ronda más alto en winners
+          const winnerRounds = res.matches.filter(m => m.round > 0).map(m => m.round);
+          const maxWinnerRound = Math.max(...winnerRounds);
+          const rondas = {};
+          res.matches.forEach(m => {
+            const ronda = Number(m.round);
+            if (!rondas[ronda]) rondas[ronda] = [];
+            rondas[ronda].push(m);
+          });
+
+          // Detecta Grand Final y Reset
+          const grandFinalMatches = (rondas[maxWinnerRound] || []).filter(m => {
+            if (!m.scores_csv) return false;
+            const [s1, s2] = m.scores_csv.split('-').map(s => Number(s.trim() || '0'));
+            return s1 > 0 || s2 > 0;
+          });
+
+          // Asigna round_name a TODOS los matches siguiendo la lógica de Start.gg
+          const losersRounds = Object.keys(rondas).map(Number).filter(r => r < 0).sort((a, b) => a - b);
+          const matchesAll = res.matches.map(m => {
+            let p1sc = "0", p2sc = "0";
+            if (m.scores_csv && m.scores_csv.includes('-')) {
+              [p1sc, p2sc] = m.scores_csv.split('-').map(s => s.trim());
+            }
+            let round_name = "";
+            if (m.round === maxWinnerRound) {
+              if (grandFinalMatches.length === 2) {
+                const idx = rondas[maxWinnerRound].findIndex(x => x.id === m.id);
+                round_name = idx === 0 ? "Grand Final" : "Grand Final Reset";
+              } else {
+                round_name = "Grand Final";
+              }
+            } else if (m.round === maxWinnerRound - 1) {
+              round_name = "Winners Final";
+            } else if (m.round === maxWinnerRound - 2) {
+              round_name = "Winners Semis";
+            } else if (m.round < 0) {
+              // Losers: ordena de menos a más negativo (más antiguo a más reciente)
+              const sortedLosers = losersRounds.slice().sort((a, b) => a - b);
+              const idx = sortedLosers.indexOf(m.round);
+              const losersNames = [
+                "Losers Finals",
+                "Losers Semis",
+                "Losers Quarters",
+                "Losers Top 8"
+              ];
+              // El más negativo (idx 0) es "Losers Finals", el más cercano a 0 es "Losers Top 8"
+              round_name = losersNames[idx] || `Losers Ronda ${Math.abs(m.round)}`;
+            } else {
+              round_name = `Ronda ${m.round}`;
+            }
+            return {
+              ...m,
+              player1_sc: p1sc,
+              player2_sc: p2sc,
+              round_name
+            };
+          });
+
+          // Guardar bracket JSON con el esquema de Start.gg
+          const bracketData = {
+            torneo: tournamentSlug,
+            fecha: new Date().toLocaleDateString(),
+            matches: matchesAll,
+            participantes: participantes
+          };
+
+          const saveRes = await window.ipcRenderer.invoke('save-json', bracketData, 'bracket');
+
+          if (saveRes.ok) {
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('✅ Bracket guardado correctamente siguiendo el esquema de Start.gg', 'success');
+            }
+          } else {
+            if (window.mostrarNotificacion) {
+              window.mostrarNotificacion('❌ Error al guardar bracket', 'error');
+            }
+          }
+
+        } catch (error) {
+          console.error('[ChallongeBracketWidget] Error:', error);
+          if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(`❌ Error al generar bracket: ${error.message}`, 'error');
+          }
+        }
+      }
+
+      // Mostrar el widget y enfocar input al cargar
+      window.addEventListener('DOMContentLoaded', function () {
+        const widget = document.getElementById('tournamentFloatingWidget');
+        if (widget) widget.style.display = 'block';
+        const input = document.getElementById('startggTournamentInput');
+        if (input) input.focus();
+      });
+      // Buscar torneo desde el widget
+      function buscarStartggDesdeWidget() {
+        const input = document.getElementById('startggTournamentInput');
+        if (!input) return;
+        const query = input.value.trim();
+        if (query) buscarStartGG(query); // Pasa el texto de búsqueda como parámetro
+      }
+
+      // Funciones para el Top 8 del widget de Start.gg
+      async function mostrarTop8StartggDesdeWidget() {
+        const eventSelector = document.getElementById('startggEventSelector');
+        const panel = document.getElementById('startggTop8Panel');
+        const content = document.getElementById('startggTop8Content');
+        const eventNameSpan = document.getElementById('startggTop8EventName');
+
+        if (!eventSelector.value) {
+          mostrarNotificacion("❌ Selecciona un evento primero.", "error");
+          return;
+        }
+
+        // Mostrar el panel
+        panel.style.display = 'block';
+        content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando Top 8...</div>';
+
+        // Obtener el nombre del evento seleccionado
+        const eventName = eventSelector.options[eventSelector.selectedIndex].text;
+        eventNameSpan.textContent = eventName;
+
+        try {
+          // Siempre recargar personajes con el juego actual del scoreboard
+          const currentGame = document.getElementById('gameSel')?.value || 'GGST';
+          console.log('[Top8Widget] Forzando recarga de personajes para juego:', currentGame);
+
+          try {
+            const personajesRes = await window.ipcRenderer.invoke('get-personajes', currentGame);
+            if (personajesRes.personajes && personajesRes.personajes.length) {
+              window.listaPersonajes = personajesRes.personajes.map(p => p.nombre);
+              console.log('[Top8Widget] Personajes cargados:', window.listaPersonajes.length, 'para juego:', currentGame);
+            } else {
+              window.listaPersonajes = [];
+              console.warn('[Top8Widget] No se encontraron personajes para', currentGame);
+            }
+          } catch (e) {
+            console.warn('[Top8Widget] Error al cargar personajes:', e);
+            window.listaPersonajes = [];
+          }
+
+          // Llamar a la función de Start.gg para obtener el Top 8
+          // IMPORTANTE: eventSelector.value contiene el ID del evento, no el slug
+          const eventId = parseInt(eventSelector.value); // Asegurar que sea un número
+          console.log('[Top8Widget] Cargando Top 8 para evento ID:', eventId, 'tipo:', typeof eventId);
+
+          const response = await window.ipcRenderer.invoke('startgg-get-standings', eventId);
+
+          console.log('[Top8Widget] Respuesta completa de Start.gg:', response);
+
+          if (!response.ok) {
+            console.error('[Top8Widget] Error en respuesta:', response.error);
+            content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error: ${response.error || 'No se pudo obtener datos del servidor'}</div>`;
+            return;
+          }
+
+          if (!response.top8 || response.top8.length === 0) {
+            console.warn('[Top8Widget] No se encontró Top 8 en la respuesta:', response);
+            content.innerHTML = '<div style="text-align:center; padding:20px;" class="text-error">❌ No se encontró Top 8 para este evento.</div>';
+            return;
+          }
+
+          console.log('[Top8Widget] Top 8 encontrado:', response.top8.length, 'jugadores');
+
+          // Generar el HTML para mostrar el Top 8 con selectores responsive
+          let html = '<div class="top8-widget-list" style="display:grid; gap:6px; max-height:280px; overflow-y:auto;">';
+
+          response.top8.forEach((player, index) => {
+            const position = index + 1;
+            const emoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'][index] || `${position}º`;
+
+            // Debug: mostrar estructura del jugador
+            console.log(`[Top8Widget] Jugador ${index + 1}:`, player);
+
+            // Usar la misma lógica simple que la pestaña principal
+            const name = player.nombre || player.gamerTag || player.name || `Jugador ${position}`;
+            const character = player.character || '';
+
+            console.log(`[Top8Widget] Nombre extraído: ${name}, Personaje: ${character}`);
+
+            html += `
   <div class="top8-widget-item" style="display:flex; align-items:center; padding:6px 8px; background:rgba(255,255,255,0.05); border-radius:4px; border-left:3px solid ${getPositionColor(position)}; flex-wrap:wrap; gap:8px;">
           <div style="display:flex; align-items:center; flex:1; min-width:0;">
             <span style="font-size:1em; margin-right:8px; min-width:25px; flex-shrink:0;">${emoji}</span>
@@ -2249,167 +2455,167 @@ async function mostrarTop8StartggDesdeWidget() {
           </div>
         </div>
       `;
-    });
-    
-    html += '</div>';
-    content.innerHTML = html;
-    
-    // Guardar los datos para las funciones de copiar/guardar
-    window.currentTop8Data = {
-      eventName: eventName,
-      eventId: eventId, // Corregido: usar eventId en lugar de eventSlug
-      players: response.top8.map((player, index) => {
-        // Usar la misma lógica simple que arriba
-        const extractedName = player.nombre || player.gamerTag || player.name || `Jugador ${index + 1}`;
-        const extractedCharacter = player.character || '';
-        
-        return {
-          ...player,
-          originalIndex: index,
-          extractedName: extractedName,
-          extractedCharacter: extractedCharacter
+          });
+
+          html += '</div>';
+          content.innerHTML = html;
+
+          // Guardar los datos para las funciones de copiar/guardar
+          window.currentTop8Data = {
+            eventName: eventName,
+            eventId: eventId, // Corregido: usar eventId en lugar de eventSlug
+            players: response.top8.map((player, index) => {
+              // Usar la misma lógica simple que arriba
+              const extractedName = player.nombre || player.gamerTag || player.name || `Jugador ${index + 1}`;
+              const extractedCharacter = player.character || '';
+
+              return {
+                ...player,
+                originalIndex: index,
+                extractedName: extractedName,
+                extractedCharacter: extractedCharacter
+              };
+            })
+          };
+
+        } catch (error) {
+          console.error('[Top8Widget] Error completo:', error);
+          console.error('[Top8Widget] Stack trace:', error.stack);
+          content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error al cargar el Top 8: ${error.message}</div>`;
+        }
+      }
+
+      function getPositionColor(position) {
+        const colors = {
+          1: '#ffd700', // Oro
+          2: '#c0c0c0', // Plata  
+          3: '#cd7f32', // Bronce
+          4: '#e67e22', // Naranja
+          5: '#9b59b6', // Púrpura
+          6: '#3498db', // Azul
+          7: '#2ecc71', // Verde
+          8: '#95a5a6'  // Gris
         };
-      })
-    };
-    
-  } catch (error) {
-    console.error('[Top8Widget] Error completo:', error);
-    console.error('[Top8Widget] Stack trace:', error.stack);
-  content.innerHTML = `<div style="text-align:center; padding:20px;" class="text-error">❌ Error al cargar el Top 8: ${error.message}</div>`;
-  }
-}
+        return colors[position] || '#666';
+      }
 
-function getPositionColor(position) {
-  const colors = {
-    1: '#ffd700', // Oro
-    2: '#c0c0c0', // Plata  
-    3: '#cd7f32', // Bronce
-    4: '#e67e22', // Naranja
-    5: '#9b59b6', // Púrpura
-    6: '#3498db', // Azul
-    7: '#2ecc71', // Verde
-    8: '#95a5a6'  // Gris
-  };
-  return colors[position] || '#666';
-}
+      function cerrarTop8StartggWidget() {
+        const panel = document.getElementById('startggTop8Panel');
+        panel.style.display = 'none';
+      }
 
-function cerrarTop8StartggWidget() {
-  const panel = document.getElementById('startggTop8Panel');
-  panel.style.display = 'none';
-}
+      // Función para actualizar los datos del Top 8 cuando cambian los selectores
+      function actualizarTop8WidgetData() {
+        if (!window.currentTop8Data) return;
 
-// Función para actualizar los datos del Top 8 cuando cambian los selectores
-function actualizarTop8WidgetData() {
-  if (!window.currentTop8Data) return;
-  
-  // Actualizar los personajes seleccionados en los datos
-  window.currentTop8Data.players.forEach((player, index) => {
-    const charSelect = document.getElementById(`top8WidgetChar${index}`);
-    if (charSelect) {
-      player.selectedCharacter = charSelect.value;
-    }
-  });
-}
+        // Actualizar los personajes seleccionados en los datos
+        window.currentTop8Data.players.forEach((player, index) => {
+          const charSelect = document.getElementById(`top8WidgetChar${index}`);
+          if (charSelect) {
+            player.selectedCharacter = charSelect.value;
+          }
+        });
+      }
 
-function copiarTop8StartggWidget() {
-  if (!window.currentTop8Data) {
-    mostrarNotificacion("❌ No hay datos de Top 8 para copiar.", "error");
-    return;
-  }
-  
-  // Actualizar datos antes de copiar
-  actualizarTop8WidgetData();
-  
-  const data = window.currentTop8Data;
-  let mensaje = `🏆 TOP 8 - ${data.eventName}\\n\\n`;
-  
-  data.players.forEach((player, index) => {
-    const emoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'][index] || `${index + 1}º`;
-    const name = player.extractedName || player.gamerTag || player.name || 'Jugador desconocido';
-    const character = player.selectedCharacter || player.extractedCharacter || '';
-    
-    mensaje += `${emoji} ${name}`;
-    if (character) mensaje += ` (${character})`;
-    mensaje += `\\n`;
-  });
-  
-  mensaje += '\\n#FGC #StartGG';
-  
-  // Copiar al portapapeles
-  navigator.clipboard.writeText(mensaje).then(() => {
-    mostrarNotificacion("✅ Top 8 copiado al portapapeles.", "success");
-  }).catch(() => {
-    // Fallback para navegadores más antiguos
-    const textarea = document.createElement('textarea');
-    textarea.value = mensaje;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    mostrarNotificacion("✅ Top 8 copiado al portapapeles.", "success");
-  });
-}
+      function copiarTop8StartggWidget() {
+        if (!window.currentTop8Data) {
+          mostrarNotificacion("❌ No hay datos de Top 8 para copiar.", "error");
+          return;
+        }
 
-async function guardarTop8StartggWidget() {
-  if (!window.currentTop8Data) {
-    mostrarNotificacion("❌ No hay datos de Top 8 para guardar.", "error");
-    return;
-  }
-  
-  // Actualizar datos antes de guardar
-  actualizarTop8WidgetData();
-  
-  const data = window.currentTop8Data;
-  const juego = document.getElementById('gameSel')?.value || '';
-  const fecha = new Date().toLocaleDateString('es-CL');
-  
-  const top8Data = data.players.map((player, index) => {
-    const name = player.extractedName || player.gamerTag || player.name || 'Jugador desconocido';
-    const character = player.selectedCharacter || player.extractedCharacter || '';
-    
-    return {
-      puesto: index + 1,
-      nombre: name,
-      personaje: character,
-      juego: juego
-    };
-  });
-  
-  try {
-    const res = await window.ipcRenderer.invoke('save-json', {
-      evento: data.eventName,
-      fecha: fecha,
-      top8: top8Data
-    }, 'top8');
-    
-    if (res.ok) {
-      mostrarNotificacion("✅ Top 8 guardado correctamente.", "success");
-    } else {
-      mostrarNotificacion("❌ Error al guardar: " + (res.error || 'Error desconocido'), "error");
-    }
-  } catch (error) {
-    console.error('Error guardando Top 8:', error);
-    mostrarNotificacion("❌ Error al guardar el Top 8.", "error");
-  }
-}
-</script>
+        // Actualizar datos antes de copiar
+        actualizarTop8WidgetData();
 
-  <!-- Cierre del contenedor principal flex -->
+        const data = window.currentTop8Data;
+        let mensaje = `🏆 TOP 8 - ${data.eventName}\\n\\n`;
+
+        data.players.forEach((player, index) => {
+          const emoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'][index] || `${index + 1}º`;
+          const name = player.extractedName || player.gamerTag || player.name || 'Jugador desconocido';
+          const character = player.selectedCharacter || player.extractedCharacter || '';
+
+          mensaje += `${emoji} ${name}`;
+          if (character) mensaje += ` (${character})`;
+          mensaje += `\\n`;
+        });
+
+        mensaje += '\\n#FGC #StartGG';
+
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(mensaje).then(() => {
+          mostrarNotificacion("✅ Top 8 copiado al portapapeles.", "success");
+        }).catch(() => {
+          // Fallback para navegadores más antiguos
+          const textarea = document.createElement('textarea');
+          textarea.value = mensaje;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          mostrarNotificacion("✅ Top 8 copiado al portapapeles.", "success");
+        });
+      }
+
+      async function guardarTop8StartggWidget() {
+        if (!window.currentTop8Data) {
+          mostrarNotificacion("❌ No hay datos de Top 8 para guardar.", "error");
+          return;
+        }
+
+        // Actualizar datos antes de guardar
+        actualizarTop8WidgetData();
+
+        const data = window.currentTop8Data;
+        const juego = document.getElementById('gameSel')?.value || '';
+        const fecha = new Date().toLocaleDateString('es-CL');
+
+        const top8Data = data.players.map((player, index) => {
+          const name = player.extractedName || player.gamerTag || player.name || 'Jugador desconocido';
+          const character = player.selectedCharacter || player.extractedCharacter || '';
+
+          return {
+            puesto: index + 1,
+            nombre: name,
+            personaje: character,
+            juego: juego
+          };
+        });
+
+        try {
+          const res = await window.ipcRenderer.invoke('save-json', {
+            evento: data.eventName,
+            fecha: fecha,
+            top8: top8Data
+          }, 'top8');
+
+          if (res.ok) {
+            mostrarNotificacion("✅ Top 8 guardado correctamente.", "success");
+          } else {
+            mostrarNotificacion("❌ Error al guardar: " + (res.error || 'Error desconocido'), "error");
+          }
+        } catch (error) {
+          console.error('Error guardando Top 8:', error);
+          mostrarNotificacion("❌ Error al guardar el Top 8.", "error");
+        }
+      }
+    </script>
+
+    <!-- Cierre del contenedor principal flex -->
   </div>
 
   <script>
-// Vincular botones del asistente OAuth2 de Nightbot
-document.addEventListener('DOMContentLoaded', function() {
-  const btnAuthUrl = document.querySelector('button[onclick="generarNightbotAuthUrl()"]');
-  if (btnAuthUrl) btnAuthUrl.onclick = generarNightbotAuthUrl;
-  const btnCurl = document.querySelector('button[onclick="generarNightbotCurl()"]');
-  if (btnCurl) btnCurl.onclick = generarNightbotCurl;
-});
+    // Vincular botones del asistente OAuth2 de Nightbot
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnAuthUrl = document.querySelector('button[onclick="generarNightbotAuthUrl()"]');
+      if (btnAuthUrl) btnAuthUrl.onclick = generarNightbotAuthUrl;
+      const btnCurl = document.querySelector('button[onclick="generarNightbotCurl()"]');
+      if (btnCurl) btnCurl.onclick = generarNightbotCurl;
+    });
   </script>
 
   <script>
     // Theme manager: default | neon | metro
-    (function initTheme(){
+    (function initTheme() {
       try {
         // Migrate old neon flag
         const neonOld = localStorage.getItem('theme-neon-enabled');
@@ -2427,7 +2633,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // Default to Metro per user preference
           setTheme('metro');
         }
-      } catch(_) {
+      } catch (_) {
         setTheme('default');
       }
     })();
@@ -2436,7 +2642,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.body.classList.remove('theme-neon', 'theme-metro');
       if (name === 'neon') document.body.classList.add('theme-neon');
       if (name === 'metro') document.body.classList.add('theme-metro');
-      try { localStorage.setItem('app-theme', name); } catch(_) {}
+      try { localStorage.setItem('app-theme', name); } catch (_) { }
       updateThemeButtonLabel(name);
     }
 
@@ -2455,6 +2661,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 
 </body>
+
 </html>
 
 <!--

@@ -1,12 +1,14 @@
-$(function() {
+$(function () {
     const jsonPath = 'json/bracket.json';
     let lastData = '';
 
     function cargarEvento(selector, valor) {
-        gsap.to(selector, { opacity: 0, duration: 0.3, onComplete: function() {
-            $(selector).text(valor);
-            gsap.to(selector, { opacity: 1, duration: 0.3 });
-        }});
+        gsap.to(selector, {
+            opacity: 0, duration: 0.3, onComplete: function () {
+                $(selector).text(valor);
+                gsap.to(selector, { opacity: 1, duration: 0.3 });
+            }
+        });
     }
 
     function crearMatch(match) {
@@ -29,15 +31,15 @@ $(function() {
 
         // Limpia todos los bloques
         $('#winners-semis, #winners-final, #grand-final, #grand-final-reset, #losers-r1, #losers-quarters, #losers-semis, #losers-final').empty();
-        // Si existe, elimina el bloque de Grand Final Reset
-        $('#grand-final-reset').parent('.bracket-cell').remove();
+        // Si existe, elimina el bloque de Grand Final Reset (si fue creado dinámicamente antes)
+        $('#grand-final-reset-container').remove();
 
         // Mapea rounds a divs
         const roundToDiv = {
             "Winners Semis": "#winners-semis",
             "Winners Final": "#winners-final",
             "Grand Final": "#grand-final",
-            "Losers Top 8": "#losers-r1",           // <--- CORREGIDO
+            "Losers Top 8": "#losers-r1",
             "Losers Quarters": "#losers-quarters",
             "Losers Quarter Finals": "#losers-quarters",
             "Losers Semis": "#losers-semis",
@@ -54,20 +56,25 @@ $(function() {
             }
         });
 
-        // Si hay Grand Final Reset, crea el bloque dinámicamente
+        // Si hay Grand Final Reset, crea el bloque dinámicamente y cambia el fondo
         const gfResetMatches = data.matches.filter(m => m.round_name === "Grand Final Reset");
         if (gfResetMatches.length > 0) {
-            // Crea el bloque y lo inserta después de Grand Final
+            // Cambia el fondo a t8r.png
+            $('#bg').attr('src', 't8r.png');
+
+            // Crea el bloque y lo inserta en el contenedor principal
             const $cell = $(`
-                <div class="bracket-cell" style="grid-column:4;grid-row:1;">
-                    <div class="round-title">GRAND FINAL RESET</div>
+                <div id="grand-final-reset-container" class="round-container">
                     <div id="grand-final-reset"></div>
                 </div>
             `);
-            $('.bracket-cell[style*="grid-column:3"][style*="grid-row:1"]').after($cell);
+            $('.bracket-container').append($cell);
             gfResetMatches.forEach(match => {
                 $('#grand-final-reset').append(crearMatch(match));
             });
+        } else {
+            // Asegura que el fondo sea t8.png si no hay reset
+            $('#bg').attr('src', 't8.png');
         }
 
         gsap.to('.match', {
@@ -79,7 +86,7 @@ $(function() {
     }
 
     function updateBracket() {
-        $.getJSON(jsonPath, function(data) {
+        $.getJSON(jsonPath, function (data) {
             const dataStr = JSON.stringify(data);
             if (dataStr !== lastData) {
                 lastData = dataStr;
