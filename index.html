@@ -569,6 +569,18 @@
       transform: translateY(-1px);
     }
 
+    .moon-select {
+      margin-top: 4px;
+      background: var(--bg-secondary);
+      border: 1px solid #7c3aed;
+      font-size: 13px;
+    }
+
+    .moon-select:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+    }
+
     .sb-btn {
       background: var(--primary-color);
       color: white;
@@ -1092,6 +1104,11 @@ Haz lo mismo para los otros métodos relacionados si no existen.
                 <select class="sb-dropdown" id="p1CharSelect">
                   <!-- Personajes se llenan dinámicamente -->
                 </select>
+                <select class="sb-dropdown moon-select" id="p1MoonSelect" style="display:none;">
+                  <option value="Full">🌕 Full Moon</option>
+                  <option value="Half">🌗 Half Moon</option>
+                  <option value="Crescent">🌙 Crescent Moon</option>
+                </select>
                 <!-- Selector de juego p1 eliminado de sb-side-content a petición del usuario -->
               </div>
             </div>
@@ -1183,6 +1200,18 @@ Haz lo mismo para los otros métodos relacionados si no existen.
                 document.getElementById('gameSel').addEventListener('change', actualizarPersonajesPorJuego);
                 window.addEventListener('DOMContentLoaded', actualizarPersonajesPorJuego);
 
+                // Mostrar/ocultar selectores de Moon según el juego
+                function toggleMoonSelectors() {
+                  const game = document.getElementById('gameSel').value;
+                  const show = (game === 'MBAACC');
+                  const p1Moon = document.getElementById('p1MoonSelect');
+                  const p2Moon = document.getElementById('p2MoonSelect');
+                  if (p1Moon) p1Moon.style.display = show ? '' : 'none';
+                  if (p2Moon) p2Moon.style.display = show ? '' : 'none';
+                }
+                document.getElementById('gameSel').addEventListener('change', toggleMoonSelectors);
+                window.addEventListener('DOMContentLoaded', toggleMoonSelectors);
+
                 // Cambiar imagen al seleccionar personaje
                 function actualizarImagenPersonaje(jugador) {
                   const game = document.getElementById('gameSel').value;
@@ -1225,6 +1254,11 @@ Haz lo mismo para los otros métodos relacionados si no existen.
                 </select>
                 <select class="sb-dropdown" id="p2CharSelect">
                   <!-- Personajes se llenan dinámicamente -->
+                </select>
+                <select class="sb-dropdown moon-select" id="p2MoonSelect" style="display:none;">
+                  <option value="Full">🌕 Full Moon</option>
+                  <option value="Half">🌗 Half Moon</option>
+                  <option value="Crescent">🌙 Crescent Moon</option>
                 </select>
                 <!-- Selector de juego p2 eliminado de sb-side-content a petición del usuario -->
               </div>
@@ -1916,13 +1950,13 @@ Haz lo mismo para los otros métodos relacionados si no existen.
         try {
           const res = await window.ipcRenderer.invoke('get-matches-and-participants', slug);
           if (!res.ok || !res.matches) throw new Error(res.error || 'No se pudieron obtener matches');
-          
+
           // Guardar número de participantes para cálculos de estructura en el widget
           if (typeof window.tournamentParticipantsCount !== 'undefined') {
             window.tournamentParticipantsCount = res.participantsCount || res.participantes?.length || 0;
             console.log('🎮 [WIDGET] Participantes guardados:', window.tournamentParticipantsCount);
           }
-          
+
           // Solo matches abiertos y con jugadores asignados
           const matches = res.matches.filter(m => m.player1_name && m.player2_name && m.player1_name !== 'TBD' && m.player2_name !== 'TBD' && !m.winner_id);
           if (!matches.length) {

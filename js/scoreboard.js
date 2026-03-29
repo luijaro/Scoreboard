@@ -734,18 +734,31 @@ function swap() {
   let p2Score = document.getElementById('p2Score').textContent;
   let p1Char = document.getElementById('p1CharSelect') ? document.getElementById('p1CharSelect').value : '';
   let p2Char = document.getElementById('p2CharSelect') ? document.getElementById('p2CharSelect').value : '';
-  // Banderas removidas
+
+  // Capturar lunas actuales
+  let p1Moon = document.getElementById('p1MoonSelect') ? document.getElementById('p1MoonSelect').value : '';
+  let p2Moon = document.getElementById('p2MoonSelect') ? document.getElementById('p2MoonSelect').value : '';
+
+  // Intercambiar valores básicos
   document.getElementById('p1NameInput').value = p2Name;
   document.getElementById('p2NameInput').value = p1Name;
   document.getElementById('p1TagInput').value = p2Tag;
   document.getElementById('p2TagInput').value = p1Tag;
   document.getElementById('p1Score').textContent = p2Score;
   document.getElementById('p2Score').textContent = p1Score;
+
+  // Intercambiar personajes
   if (document.getElementById('p1CharSelect') && document.getElementById('p2CharSelect')) {
     document.getElementById('p1CharSelect').value = p2Char;
     document.getElementById('p2CharSelect').value = p1Char;
   }
-  // Banderas removidas
+
+  // Intercambiar lunas si existen
+  if (document.getElementById('p1MoonSelect') && document.getElementById('p2MoonSelect')) {
+    document.getElementById('p1MoonSelect').value = p2Moon;
+    document.getElementById('p2MoonSelect').value = p1Moon;
+  }
+
   updateVisual();
 }
 
@@ -760,7 +773,7 @@ function getScoreboardData() {
 
   const game = document.getElementById('gameSel').value;
   const round = document.getElementById('sbRound').value;
-  
+
   // Mapeo de códigos de juego a nombres completos
   const gameNames = {
     'UNI2': 'Under Night In-Birth II [Sys:Celes]',
@@ -777,10 +790,10 @@ function getScoreboardData() {
     'SF6': 'Street Fighter 6',
     'T8': 'Tekken 8'
   };
-  
+
   // Obtener nombre completo del juego
   const gameName = gameNames[game] || game;
-  
+
   // Generar event como "nombre del juego - ronda"
   const event = round ? `${gameName} - ${round}` : gameName;
 
@@ -793,6 +806,8 @@ function getScoreboardData() {
     tag2: document.getElementById('p2TagInput').value,
     char1: document.getElementById('p1CharSelect')?.value || '',
     char2: document.getElementById('p2CharSelect')?.value || '',
+    moon1: game === 'MBAACC' ? (document.getElementById('p1MoonSelect')?.value || '') : '',
+    moon2: game === 'MBAACC' ? (document.getElementById('p2MoonSelect')?.value || '') : '',
     game: game,
     event: event,
     round: round,
@@ -850,6 +865,12 @@ let imgPersonajes = {};
 
 async function cambiarJuego() {
   const juegoFolder = document.getElementById('gameSel').value;
+
+  // Mostrar/ocultar selectores de Moon para MBAACC
+  if (typeof toggleMoonSelectors === 'function') {
+    toggleMoonSelectors();
+  }
+
   const res = await ipcRenderer.invoke('get-personajes', juegoFolder);
 
   if (res.personajes && res.personajes.length) {
@@ -1066,23 +1087,23 @@ function calcularEstructuraTorneo(numParticipants) {
   // En un torneo de doble eliminación:
   // Winners: ceil(log2(N)) rondas - funciona para cualquier N (con byes si no es potencia de 2)
   const winnersRounds = Math.ceil(Math.log2(numParticipants));
-  
+
   // Losers: (2 × Winners) - 2 rondas
   // Esta fórmula funciona para cualquier número de participantes
   // Ejemplos con potencias de 2: 8p→3W,4L | 16p→4W,6L | 32p→5W,8L | 64p→6W,10L
   // Ejemplos con otros números: 13p→4W,6L | 24p→5W,8L | 50p→6W,10L
   const losersRounds = Math.max(1, (winnersRounds * 2) - 2);
-  
+
   const result = {
     maxWinners: winnersRounds,
     minLosers: -losersRounds,
     maxLosers: -1
   };
-  
+
   console.log(`📊 Estructura calculada para ${numParticipants} participantes:`);
   console.log(`   Winners=${winnersRounds}, Losers=${losersRounds}`);
   console.log(`   Objeto retornado:`, JSON.stringify(result));
-  
+
   return result;
 }
 
@@ -1375,11 +1396,11 @@ function mostrarMatchEnScoreboard() {
       const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
       const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
       const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
-      
+
       roundsInfo = { maxWinners, minLosers, maxLosers };
       console.log(`🔍 Debug rondas para match ${match.id} (contando matches existentes):`);
     }
-    
+
     console.log(`  - Round actual: ${match.round}`);
     console.log(`  - Participantes del torneo: ${tournamentParticipantsCount}`);
     console.log(`  - Estructura calculada - maxWinners: ${roundsInfo.maxWinners}, minLosers: ${roundsInfo.minLosers}, maxLosers: ${roundsInfo.maxLosers}`);
@@ -1435,7 +1456,7 @@ async function reportarResultadoChallonge() {
   const matchId = select && select.value;
   console.log('[REPORT] selectMatch value:', matchId);
   console.log('[REPORT] matchesCargados:', matchesCargados);
-  
+
   if (!matchId || !matchesCargados.length) {
     mostrarNotificacion("Selecciona un match primero.", "error");
     return;
@@ -1443,7 +1464,7 @@ async function reportarResultadoChallonge() {
   // CAMBIO: Usar el slug del select de torneos
   const slug = document.getElementById('tournamentList').value.trim();
   console.log('[REPORT] slug:', slug);
-  
+
   if (!slug) {
     mostrarNotificacion("Falta slug del torneo.", "error");
     return;
@@ -1451,10 +1472,10 @@ async function reportarResultadoChallonge() {
   const score1 = document.getElementById('p1Score').textContent.trim();
   const score2 = document.getElementById('p2Score').textContent.trim();
   console.log('[REPORT] scores:', score1, '-', score2);
-  
+
   const match = matchesCargados.find(m => String(m.id) === String(matchId));
   console.log('[REPORT] match found:', match);
-  
+
   if (!match) {
     mostrarNotificacion("Match no encontrado.", "error");
     return;
@@ -1467,13 +1488,13 @@ async function reportarResultadoChallonge() {
     mostrarNotificacion("Empate no permitido.", "error");
     return;
   }
-  
+
   console.log('[REPORT] Sending to API:', { slug, matchId, scoreCsv, winnerId });
 
   document.getElementById('msgReportChallonge').textContent = "Enviando...";
   const res = await ipcRenderer.invoke('report-match-score', { slug, matchId, scoreCsv, winnerId });
   console.log('[REPORT] Response:', res);
-  
+
   if (res.ok) {
     mostrarNotificacion("✅ Resultado reportado correctamente.", "success");
     document.getElementById('msgReportChallonge').textContent = "";
@@ -2092,13 +2113,13 @@ function cargarMatchChallongeEnScoreboard() {
 
   // Ronda - convertir usando estructura calculada basada en participantes
   let roundName = '';
-  
+
   // Usar la variable global si la local está en 0
   const participantsCount = tournamentParticipantsCount || window.tournamentParticipantsCount || 0;
   console.log("🎮 cargarMatchChallongeEnScoreboard - participantsCount:", participantsCount);
   console.log("🎮 tournamentParticipantsCount (local):", tournamentParticipantsCount);
   console.log("🎮 window.tournamentParticipantsCount (global):", window.tournamentParticipantsCount);
-  
+
   if (match.round !== undefined && match.round !== null) {
     // Usar estructura calculada basada en participantes del torneo
     let roundsInfo;
@@ -2117,10 +2138,10 @@ function cargarMatchChallongeEnScoreboard() {
       const maxWinners = allWinnerRounds.length ? Math.max(...allWinnerRounds) : 1;
       const minLosers = allLoserRounds.length ? Math.min(...allLoserRounds) : -1;
       const maxLosers = allLoserRounds.length ? Math.max(...allLoserRounds) : -1;
-      
+
       roundsInfo = { maxWinners, minLosers, maxLosers };
     }
-    
+
     roundName = nombreDeRonda(match.round, roundsInfo);
   } else {
     roundName = `Match #${match.id}`;
