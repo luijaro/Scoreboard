@@ -2,6 +2,10 @@
 
 Gestor de torneos con integración a Challonge, overlays en tiempo real, control y captura de OBS, y publicación sencilla de resultados en Twitter.
 
+## Documentacion completa
+
+- Abre `documentacion-proyecto.html` para ver la documentacion tecnica completa del proyecto y un tutorial de puesta en marcha.
+
 ---
 
 ## 🚀 Instalación y ejecución

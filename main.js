@@ -70,7 +70,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1240,
     height: 810,
-    resizable: false, // Evita que el usuario cambie el tamaño
+    resizable: true, // Permite que el usuario cambie el tamaño y maximice
     icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       nodeIntegration: true,
