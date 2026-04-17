@@ -1272,7 +1272,7 @@ body {
 
 @media (max-width: 900px) {
   .scoreboard-main {
-    grid-template-areas: 
+    grid-template-areas:
       "center"
       "player1"
       "player2"
@@ -1281,15 +1281,42 @@ body {
     grid-template-rows: auto auto auto auto;
     padding: 20px;
   }
-  
+
   .sb-side {
     min-height: auto;
     padding: 16px;
   }
-  
+
   .sb-player-img {
     width: 104px;
     height: 104px;
+  }
+
+  .sb-comm-row {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .top8-wrapper {
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  .top8-mensaje-box {
+    margin: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .top8-mensaje-textarea {
+    max-width: 100%;
+    min-height: 200px;
+  }
+
+  #notificaciones-app {
+    top: 12px;
+    right: 12px;
+    max-width: calc(100vw - 24px);
   }
 }
 
@@ -1451,12 +1478,13 @@ body {
 
 /* scoreboard.css */
 .top8-mensaje-box {
-  min-width: 320px;
+  min-width: 0;
   max-width: 420px;
+  width: 100%;
   background: none;
   margin-top: 1.5em;
   margin-right: 2.5em;
-  margin-left: 1.5em;      /* <-- Mueve la caja a la izquierda */
+  margin-left: 1.5em;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1469,9 +1497,10 @@ body {
   border-radius: 10px;
   padding: 1em 1.2em;
   font-size: 1em;
-  min-width: 320px;
+  width: 100%;
+  min-width: 0;
   max-width: 420px;
-  min-height: 400px;       /* <-- Más alto verticalmente */
+  min-height: 400px;
   resize: none;
   margin-bottom: 0.7em;
   box-shadow: 0 2px 12px #0005;
@@ -1479,6 +1508,7 @@ body {
   letter-spacing: 0.5px;
   white-space: pre-wrap;
   word-break: break-word;
+  box-sizing: border-box;
 }
 
 .copiar-mensaje-btn {
@@ -1498,6 +1528,7 @@ body {
   justify-content: flex-start;
   gap: 2.5em;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .top8-main-content {

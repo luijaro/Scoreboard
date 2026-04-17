@@ -6,7 +6,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 520px;
+  min-height: auto;
   max-width: 1400px;
   margin: 2.5em auto 2.5em auto;
   background: var(--bg-secondary);
@@ -136,9 +136,28 @@ body.light-mode .bracket-player.loser { color: var(--text-primary) !important; o
     padding: 0 0.2em;
   }
   .bracket-round {
-    max-width: 98vw;
+    max-width: 98%;
     min-width: 120px;
     flex: 1 1 100%;
     padding: 0.7em 0.5em;
+  }
+  .bracket-card-center {
+    padding: 1.5em 1em;
+    margin: 1em auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .bracket-round {
+    padding: 0.5em 0.3em;
+  }
+  .bracket-round-title {
+    font-size: 0.95em;
+  }
+  .bracket-player {
+    font-size: 0.9em;
+  }
+  .bracket-player-name {
+    max-width: 90px;
   }
 }

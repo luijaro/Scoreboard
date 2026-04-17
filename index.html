@@ -23,7 +23,7 @@
 </head>
 
 <body>
-  <div class="main-flex-app" style="display: flex; flex-direction: row; align-items: flex-start; height: 100vh;">
+  <div class="main-flex-app" style="display: flex; flex-direction: row; align-items: stretch; height: 100vh; overflow: hidden;">
     <div class="app-container" style="margin-right: 0; flex-shrink: 0;">
       <!--
 NOTA: El error "No handler registered for 'set-obs-scene'" indica que falta implementar el handler 'set-obs-scene' en tu backend (main.js o proceso principal de Electron).
@@ -262,17 +262,17 @@ Haz lo mismo para los otros métodos relacionados si no existen.
           <h2>Comentaristas</h2>
           <div class="form-row">
             <label for="com1Name">Comentarista #1:</label>
-            <input id="com1Name" class="sb-input" placeholder="Nombre comentarista 1" style="width:220px;">
-            <input id="com1Twitter" class="sb-input" placeholder="Twitter comentarista 1" style="width:220px;">
+            <input id="com1Name" class="sb-input" placeholder="Nombre comentarista 1">
+            <input id="com1Twitter" class="sb-input" placeholder="Twitter comentarista 1">
           </div>
           <div class="form-row">
             <label for="com2Name">Comentarista #2:</label>
-            <input id="com2Name" class="sb-input" placeholder="Nombre comentarista 2" style="width:220px;">
-            <input id="com2Twitter" class="sb-input" placeholder="Twitter comentarista 2" style="width:220px;">
+            <input id="com2Name" class="sb-input" placeholder="Nombre comentarista 2">
+            <input id="com2Twitter" class="sb-input" placeholder="Twitter comentarista 2">
           </div>
           <div class="form-row" style="margin-top:1em; align-items:center;">
             <label for="timerInput" style="margin-right:1em;">Temporizador (minutos):</label>
-            <input id="timerInput" type="number" min="0" class="sb-input" style="width:100px;">
+            <input id="timerInput" type="number" min="0" class="sb-input" style="max-width:100px;">
             <button class="sb-btn" onclick="fijarTimer()">Fijar Timer</button>
             <button class="sb-btn btn-error" onclick="resetearTimer()">Resetear Timer</button>
             <span id="msgTimer" class="msg-guardado"></span>
@@ -304,7 +304,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
           <div class="panel-section">
             <h2>Challonge</h2>
             <div class="form-row">
-              <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input" style="width:200px;">
+              <input id="apikey" type="password" placeholder="Challonge API Key" class="sb-input">
               <button class="sb-btn" onclick="guardarApiKey()">Guardar Key</button>
               <span id="msgApi" class="sb-message"></span>
             </div>
@@ -312,14 +312,14 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               <!-- <button class="sb-btn" onclick="buscarTorneosMatches()">Buscar Torneos</button> -->
             </div>
             <div class="form-row">
-              <select id="tournamentList" class="sb-select" style="width:220px;">
+              <select id="tournamentList" class="sb-select">
                 <option value="">Selecciona un torneo...</option>
               </select>
               <button class="sb-btn" onclick="cargarMatches()">Buscar Matches</button>
               <span id="msgMatches" class="sb-message"></span>
             </div>
             <div class="form-row">
-              <select id="selectMatch" class="sb-select" style="width:220px; display:none;"></select>
+              <select id="selectMatch" class="sb-select" style="display:none;"></select>
             </div>
             <div class="form-row" style="margin-top:1em;">
               <div id="preview-match" class="preview-match" style="margin-bottom:1em;"></div>
@@ -409,7 +409,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               <button class="sb-btn" onclick="enviarComandoBot('!top8')">!top8</button>
             </div>
             <div class="form-row">
-              <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input" style="width:320px;">
+              <input id="twitchCustomMsg" placeholder="Mensaje personalizado..." class="sb-input">
               <button class="sb-btn" onclick="enviarComandoBot(document.getElementById('twitchCustomMsg').value)">Enviar
                 Custom</button>
             </div>
@@ -422,15 +422,14 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               <summary style="cursor:pointer;font-weight:500;">Generar Token OAuth</summary>
               <div class="form-row"
                 style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:10px; margin-top:10px;">
-                <input id="nbClientId" placeholder="Client ID" class="sb-input" style="width:160px;">
-                <input id="nbRedirectUri" placeholder="Redirect URI" value="http://localhost" class="sb-input"
-                  style="width:160px;">
+                <input id="nbClientId" placeholder="Client ID" class="sb-input">
+                <input id="nbRedirectUri" placeholder="Redirect URI" value="http://localhost" class="sb-input">
                 <button class="sb-btn" onclick="generarNightbotAuthUrl()">Generar URL de autorización</button>
               </div>
               <div id="nbAuthUrl" style="margin:8px 0 8px 0;word-break:break-all;"></div>
               <div class="form-row" style="flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:10px;">
-                <input id="nbClientSecret" placeholder="Client Secret" class="sb-input" style="width:160px;">
-                <input id="nbAuthCode" placeholder="Code recibido" class="sb-input" style="width:140px;">
+                <input id="nbClientSecret" placeholder="Client Secret" class="sb-input">
+                <input id="nbAuthCode" placeholder="Code recibido" class="sb-input">
                 <button class="sb-btn btn-success" onclick="obtenerYGuardarNightbotToken()">Obtener y guardar
                   token</button>
               </div>
@@ -439,14 +438,13 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               </div>
             </details>
             <div class="form-row">
-              <input id="nightbotToken" type="password" placeholder="Token OAuth de Nightbot" class="sb-input"
-                style="width:260px;">
+              <input id="nightbotToken" type="password" placeholder="Token OAuth de Nightbot" class="sb-input">
               <button class="sb-btn" style="margin-left:8px;" onclick="guardarNightbotTokenManual()">Guardar
                 token</button>
             </div>
             <div class="form-row">
-              <input id="nightbotCommand" placeholder="Comando (ej: !miinfo)" class="sb-input" style="width:140px;">
-              <input id="nightbotResponse" placeholder="Respuesta del comando" class="sb-input" style="width:320px;">
+              <input id="nightbotCommand" placeholder="Comando (ej: !miinfo)" class="sb-input">
+              <input id="nightbotResponse" placeholder="Respuesta del comando" class="sb-input">
               <button class="sb-btn" onclick="setNightbotCommand()">Setear</button>
             </div>
             <div class="form-row">
@@ -466,10 +464,9 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             <h2><img src="img/twitch.png" alt="Twitch"
                 style="height:1.3em;vertical-align:middle; margin-right:0.5em;" />Conectar bot a Twitch</h2>
             <div class="form-row">
-              <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input" style="width:140px;">
-              <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input"
-                style="width:210px;">
-              <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input" style="width:140px;">
+              <input id="twitchUser" placeholder="Usuario de Twitch" class="sb-input">
+              <input id="twitchOAuth" type="password" placeholder="OAuth: oauth:xxxx..." class="sb-input">
+              <input id="twitchChannel" placeholder="Canal (sin #)" class="sb-input">
               <button class="sb-btn" onclick="conectarTwitchBot()">Conectar</button>
               <span id="msgTwitch" class="sb-message"></span>
             </div>
@@ -491,7 +488,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               búsqueda:</label>
             <input id="startggSlug" class="sb-input"
               placeholder="Ej: tournament/mi-torneo/event/singles o palabras clave"
-              style="width:320px; font-size:1.08em;">
+              style="font-size:1.08em;">
             <button class="sb-btn btn-secondary"
               style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;"
               onclick="buscarStartGG()"><i class="fa fa-search"></i> Buscar</button>
@@ -500,7 +497,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             <label for="startggToken" class="text-muted" style="margin-right:1em; font-size:1.08em;">Token
               Start.gg:</label>
             <input id="startggToken" class="sb-input" type="password" placeholder="Token start.gg"
-              style="width:320px; font-size:1.08em;">
+              style="font-size:1.08em;">
             <button class="sb-btn btn-success"
               style="font-weight:bold; font-size:1.08em; border-radius:7px; padding:0.5em 1.5em;"
               onclick="guardarStartggToken()"><i class="fa fa-key"></i> Guardar Token</button>
@@ -532,32 +529,32 @@ Haz lo mismo para los otros métodos relacionados si no existen.
           </div>
           <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
             <label for="rutaScoreboard" style="min-width:160px;">Scoreboard JSON:</label>
-            <input id="rutaScoreboard" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaScoreboard" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('scoreboard')">Elegir...</button>
           </div>
           <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
             <label for="rutaCasters" style="min-width:160px;">Casters JSON:</label>
-            <input id="rutaCasters" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaCasters" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('casters')">Elegir...</button>
           </div>
           <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
             <label for="rutaTimestamp" style="min-width:160px;">Timestamp JSON:</label>
-            <input id="rutaTimestamp" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaTimestamp" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('timestamp')">Elegir...</button>
           </div>
           <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
             <label for="rutaBracket" style="min-width:160px;">Bracket JSON:</label>
-            <input id="rutaBracket" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaBracket" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('bracket')">Elegir...</button>
           </div>
           <div class="form-row" style="margin-bottom:1.2em; align-items:center;">
             <label for="rutaTop8" style="min-width:160px;">Top8 JSON:</label>
-            <input id="rutaTop8" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaTop8" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('top8')">Elegir...</button>
           </div>
           <div class="form-row" style="margin-bottom:1.7em; align-items:center;">
             <label for="rutaApiKey" style="min-width:160px;">API Key JSON:</label>
-            <input id="rutaApiKey" class="sb-input" style="width:320px;" readonly>
+            <input id="rutaApiKey" class="sb-input" readonly>
             <button class="sb-btn" onclick="elegirRuta('apikey')">Elegir...</button>
           </div>
           <div class="form-row" style="justify-content: flex-end;">
@@ -593,7 +590,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
 
     <!-- Widget flotante con tabs para Start.gg y Challonge (único, sin duplicados) -->
     <div id="tournamentFloatingWidget"
-      style="display:block; min-width:280px; max-width:360px; width:100%; margin-left:12px; box-shadow:0 0 16px #0005; position:static; height:100vh; background:var(--bg-secondary); overflow-y:auto; z-index:1000;">
+      style="display:block; min-width:260px; max-width:360px; width:100%; margin-left:12px; box-shadow:0 0 16px #0005; position:static; height:100%; background:var(--bg-secondary); overflow-y:auto; z-index:1000; flex-shrink:0;">
       <div class="floating-widget-header" style="padding: 0; flex-direction: column; align-items: stretch;">
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 0 16px;">
           <div class="widget-title">
