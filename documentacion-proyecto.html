@@ -494,6 +494,7 @@
         <a href="#integraciones">5. Integraciones externas</a>
         <a href="#endpoints">6. Endpoints HTTP</a>
         <a href="#archivos">7. Archivos y Config</a>
+        <a href="#state-json" class="sublink">7.1 Estado unificado (state.json)</a>
         <a href="#tutorial">8. Tutorial completo</a>
         <a href="#tut-instalacion" class="sublink">Instalación</a>
         <a href="#tut-obs" class="sublink">Conectar OBS</a>
@@ -508,7 +509,7 @@
       
       <div class="hero-header">
         <h1>Documentación Técnica</h1>
-        <p class="muted">Última actualización: 10-04-2026</p>
+        <p class="muted">Última actualización: 20-04-2026</p>
         <p>
           Este documento describe la arquitectura, archivos, flujo de datos, integraciones externas
           y un tutorial completo para ejecutar y operar la aplicación Scoreboard.
@@ -692,9 +693,100 @@ Scoreboard/
             <p><code>apikey.json</code><br><span class="muted">Aisla tokens para evitar filtraciones visuales en live-streams.</span></p>
           </div>
           <div class="card">
-            <h3>Overlays Local State</h3>
-            <p><code>scoreboard.json, top8.json...</code><br><span class="muted">El "caché" local entre App y Visuals.</span></p>
+            <h3>Estado Unificado</h3>
+            <p><code>Documentos/js/state.json</code><br><span class="muted">Archivo central que agrupa todas las secciones de estado. Cada sección se actualiza de forma independiente.</span></p>
           </div>
+          <div class="card">
+            <h3>Overlays (side-write)</h3>
+            <p><code>scoreboard.json, casters.json, top8.json...</code><br><span class="muted">Archivos individuales generados automáticamente como copia para los overlays de OBS.</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="state-json">
+        <h2>7.1 Estado unificado: <code>state.json</code></h2>
+        <p>
+          Todos los datos de la aplicación se consolidan en un único archivo
+          <code>Documentos/js/state.json</code> organizado en secciones independientes.
+          Cuando se guarda una sección (por ejemplo, <code>scoreboard</code>), el sistema
+          lee el archivo completo, actualiza <strong>solo esa sección</strong> y lo escribe de vuelta.
+          El resto de secciones queda intacto — actualizar los marcadores nunca borra los comentaristas ni el timer.
+        </p>
+
+        <h3>Estructura del archivo</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyContext(this)">Copy</button>
+<pre><code>{
+  "scoreboard": {
+    "player1": "...", "player2": "...",
+    "score1": 0,      "score2": 0,
+    "tag1": "...",    "tag2": "...",
+    "char1": "...",   "char2": "...",
+    "game": "...",    "round": "...",
+    "country1": "",   "country2": ""
+  },
+  "casters": {
+    "comentaristas": [
+      { "nombre": "...", "twitter": "..." },
+      { "nombre": "...", "twitter": "..." }
+    ]
+  },
+  "timer": {
+    "timerEndTimestamp": null
+  },
+  "top8": { ... },
+  "bracket": { ... }
+}</code></pre>
+        </div>
+
+        <h3>Patrón merge-on-write</h3>
+        <p>Cada llamada a <code>save-json</code> sigue este flujo:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyContext(this)">Copy</button>
+<pre><code>// Ejemplo: guardar scoreboard sin tocar casters ni timer
+saveJsonData(nuevoScoreboard, 'scoreboard')
+  1. Lee state.json  →  { scoreboard: {...}, casters: {...}, timer: {...}, ... }
+  2. Actualiza solo  →  state['scoreboard'] = nuevoScoreboard
+  3. Escribe back    →  state.json completo con casters y timer intactos
+  4. Side-write      →  scoreboard.json individual (compatibilidad overlays OBS)</code></pre>
+        </div>
+
+        <h3>Secciones disponibles</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Sección</th><th>Guarda / Carga con</th><th>Side-write a</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>scoreboard</code></td><td><code>save-json / load-json</code></td><td><code>Documentos/js/scoreboard.json</code></td></tr>
+              <tr><td><code>casters</code></td><td><code>save-json / load-json</code></td><td><code>Documentos/js/casters.json</code></td></tr>
+              <tr><td><code>timer</code></td><td><code>save-json / load-json</code></td><td><code>Documentos/js/timer.json</code></td></tr>
+              <tr><td><code>top8</code></td><td><code>save-json / load-json</code></td><td><code>Documentos/js/top8.json</code></td></tr>
+              <tr><td><code>bracket</code></td><td><code>save-bracket-json</code></td><td><code>example/json/bracket.json</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Migración automática</h3>
+        <p>
+          Si <code>state.json</code> no existe al arrancar la app, la función <code>migrateToState()</code>
+          en <code>main.js</code> lo crea automáticamente leyendo los archivos individuales existentes,
+          sin pérdida de datos.
+        </p>
+
+        <h3>Override de rutas</h3>
+        <p>
+          Es posible personalizar la ubicación de <code>state.json</code> añadiendo la clave
+          <code>state</code> en el objeto <code>rutas</code> de <code>scoreboard-config.json</code>:
+        </p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyContext(this)">Copy</button>
+<pre><code>// Documentos/js/scoreboard-config.json
+{
+  "rutas": {
+    "state": "C:/ruta/personalizada/state.json"
+  }
+}</code></pre>
         </div>
       </section>
 

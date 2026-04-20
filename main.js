@@ -75,6 +75,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      webviewTag: true,
     }
   });
   mainWindow.loadFile('index.html');
@@ -417,30 +418,52 @@ async function changeGameViaAPI(gameCode) {
 }
 
 // Funciones auxiliares para cargar/guardar datos
+// Secciones que se almacenan en el state.json unificado
+const STATE_SECTIONS = ['scoreboard', 'casters', 'timer', 'top8'];
+
+function getStatePath(config) {
+  const rutas = (config && config.rutas) || {};
+  return rutas.state || path.join(userDataDir, 'state.json');
+}
+
+// Migra archivos individuales existentes a state.json (solo la primera vez)
+function migrateToState(config) {
+  const statePath = getStatePath(config);
+  if (fs.existsSync(statePath)) return;
+  const rutas = (config && config.rutas) || {};
+  const state = {};
+  for (const tipo of STATE_SECTIONS) {
+    const legacyPath = rutas[tipo] || path.join(userDataDir, tipo + '.json');
+    if (fs.existsSync(legacyPath)) {
+      try { state[tipo] = JSON.parse(fs.readFileSync(legacyPath, 'utf8')); } catch (e) {}
+    }
+  }
+  const bracketPath = rutas.bracket || path.resolve(__dirname, 'example', 'json', 'bracket.json');
+  if (fs.existsSync(bracketPath)) {
+    try { state.bracket = JSON.parse(fs.readFileSync(bracketPath, 'utf8')); } catch (e) {}
+  }
+  try { fs.writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf8'); } catch (e) {}
+}
+
 // Funciones auxiliares para cargar/guardar datos (Versión Generalizada)
 async function loadJsonData(tipo = 'scoreboard') {
   let config = {};
   if (fs.existsSync(configFile)) {
     try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
-  const rutas = config.rutas || {};
-  let file;
-  if (rutas[tipo]) {
-    file = rutas[tipo];
-  } else {
-    file = path.join(userDataDir, tipo + '.json');
-  }
 
-  if (fs.existsSync(file)) {
+  const statePath = getStatePath(config);
+  if (!fs.existsSync(statePath)) migrateToState(config);
+
+  if (fs.existsSync(statePath)) {
     try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-      return { ok: true, data, file };
+      const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+      return { ok: true, data: state[tipo] || {}, file: statePath };
     } catch (error) {
       return { ok: false, error: error.message };
     }
   }
-  // Si no existe, retornar objeto vacío pero ok para crear
-  return { ok: true, data: {}, file };
+  return { ok: true, data: {}, file: statePath };
 }
 
 async function saveJsonData(data, tipo = 'scoreboard') {
@@ -448,17 +471,22 @@ async function saveJsonData(data, tipo = 'scoreboard') {
   if (fs.existsSync(configFile)) {
     try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
-  const rutas = config.rutas || {};
-  let file;
-  if (rutas[tipo]) {
-    file = rutas[tipo];
-  } else {
-    file = path.join(userDataDir, tipo + '.json');
+
+  const statePath = getStatePath(config);
+  let state = {};
+  if (fs.existsSync(statePath)) {
+    try { state = JSON.parse(fs.readFileSync(statePath, 'utf8')); } catch (e) {}
   }
+  // Merge-on-write: solo actualiza la sección correspondiente
+  state[tipo] = data;
 
   try {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-    return { ok: true, file };
+    fs.writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf8');
+    // Side-write al archivo individual para compatibilidad con overlays
+    const rutas = (config && config.rutas) || {};
+    const legacyPath = rutas[tipo] || path.join(userDataDir, tipo + '.json');
+    fs.writeFileSync(legacyPath, JSON.stringify(data, null, 2), 'utf8');
+    return { ok: true, file: statePath };
   } catch (error) {
     return { ok: false, error: error.message };
   }
@@ -611,19 +639,23 @@ ipcMain.handle('startgg-get-matches', async (event, eventId) => {
 
 // Handler para obtener los eventos de un torneo Start.gg
 ipcMain.handle('save-bracket-json', async (event, bracketData) => {
-  // Ruta absoluta para bracket.json
-  // Leer ruta personalizada de bracket.json desde el archivo de configuración
   let config = {};
   if (fs.existsSync(configFile)) {
-    try {
-      config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-    } catch (e) { }
+    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
   }
   const rutas = config.rutas || {};
-  // Usar la ruta personalizada si existe, si no usar la ruta por defecto
   const bracketPath = rutas.bracket || path.resolve(__dirname, 'example', 'json', 'bracket.json');
   try {
+    // Side-write al archivo individual (compatibilidad overlay)
     fs.writeFileSync(bracketPath, JSON.stringify(bracketData, null, 2), 'utf8');
+    // También actualiza la sección bracket en state.json
+    const statePath = getStatePath(config);
+    let state = {};
+    if (fs.existsSync(statePath)) {
+      try { state = JSON.parse(fs.readFileSync(statePath, 'utf8')); } catch (e) {}
+    }
+    state.bracket = bracketData;
+    fs.writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf8');
     return { ok: true, file: bracketPath };
   } catch (e) {
     return { ok: false, error: e.message };

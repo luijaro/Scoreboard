@@ -97,5 +97,6 @@ function groupBy(arr, prop) {
     }, {});
 }
 
-// Puedes exportar si usas módulos, o simplemente incluir este archivo en tu HTML/JS principal
-// module.exports = { toSlug, capitalize, getCharImg, getTwitter, getFlag, formatFecha, cleanObject, groupBy };
+if (typeof module !== 'undefined') {
+    module.exports = { toSlug, capitalize, getCharImg, getTwitter, getFlag, formatFecha, cleanObject, groupBy };
+}

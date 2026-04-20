@@ -24,7 +24,7 @@
 
 <body>
   <div class="main-flex-app" style="display: flex; flex-direction: row; align-items: stretch; height: 100vh; overflow: hidden;">
-    <div class="app-container" style="margin-right: 0; flex-shrink: 0;">
+    <div class="app-container" style="margin-right: 0;">
       <!--
 NOTA: El error "No handler registered for 'set-obs-scene'" indica que falta implementar el handler 'set-obs-scene' en tu backend (main.js o proceso principal de Electron).
 Debes agregar algo como:
@@ -39,20 +39,30 @@ Haz lo mismo para los otros métodos relacionados si no existen.
          HEADER DE TABS PRINCIPALES
     ========================== -->
       <nav id="tabs">
-        <button class="tab-btn active" id="tabBtnScoreboard" onclick="showTab(0)"><i class="fa fa-trophy"></i>
-          Scoreboard</button>
-        <button class="tab-btn" id="tabBtnComentaristas" onclick="showTab(1)"><i class="fa fa-microphone"></i>
-          Comentaristas</button>
-        <button class="tab-btn" id="tabBtnChallonge" onclick="showTab(2)"><i class="fa fa-sitemap"></i>
-          Challonge</button>
-        <button class="tab-btn" id="tabBtnTwitch" onclick="showTab(3)"><img src="img/twitch.png" alt="Twitch"
-            class="tab-icon" /></button>
-        <button class="tab-btn" id="tabBtnStartgg" onclick="showTab(4)"><img
-            src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" class="tab-icon" /></button>
-        <button class="tab-btn rutas-tab" id="tabBtnConfigure" onclick="showTab(5)"><i class="fa fa-cog"></i> Configurar
-          rutas</button>
-        <button class="tab-btn" style="margin-left:auto; min-width: fit-content;" id="tabBtnTheme" title="Cambiar tema"
-          onclick="cycleTheme()"><i class="fa fa-lightbulb"></i> Tema</button>
+        <button class="tab-btn active" id="tabBtnScoreboard" onclick="showTab(0)" title="Scoreboard">
+          <i class="fa fa-trophy"></i><span class="tab-label">Scoreboard</span>
+        </button>
+        <button class="tab-btn" id="tabBtnComentaristas" onclick="showTab(1)" title="Comentaristas">
+          <i class="fa fa-microphone"></i><span class="tab-label">Comentaristas</span>
+        </button>
+        <button class="tab-btn" id="tabBtnChallonge" onclick="showTab(2)" title="Challonge">
+          <img src="img/cha.png" alt="Challonge" class="tab-icon" style="height:1.1em;" /><span class="tab-label">Challonge</span>
+        </button>
+        <button class="tab-btn" id="tabBtnTwitch" onclick="showTab(3)" title="Twitch">
+          <img src="img/twitch.png" alt="Twitch" class="tab-icon" /><span class="tab-label">Twitch</span>
+        </button>
+        <button class="tab-btn" id="tabBtnStartgg" onclick="showTab(4)" title="Start.gg">
+          <img src="https://developer.start.gg/img/new_logo-white.svg" alt="Start.gg" class="tab-icon" /><span class="tab-label">Start.gg</span>
+        </button>
+        <div class="tab-actions-group">
+          <div class="tab-divider"></div>
+          <button class="tab-btn tab-btn-icon" id="tabBtnTheme" title="Cambiar tema" onclick="cycleTheme()">
+            <i class="fa fa-circle-half-stroke"></i>
+          </button>
+          <button class="tab-btn tab-btn-icon rutas-tab" id="tabBtnConfigure" onclick="showTab(5)" title="Configurar rutas">
+            <i class="fa fa-gear"></i>
+          </button>
+        </div>
       </nav>
       <!-- =========================
        TAB 1: SCOREBOARD
@@ -396,11 +406,47 @@ Haz lo mismo para los otros métodos relacionados si no existen.
       <section class="tab-panel" id="tab-twitch">
         <!-- Sub-tabs para Twitch -->
         <div class="twitch-subtabs">
-          <button class="twitch-subtab-btn active" id="twitchSubTabBtn1" onclick="showTwitchSubTab(0)">Comandos</button>
-          <button class="twitch-subtab-btn" id="twitchSubTabBtn2" onclick="showTwitchSubTab(1)">Nightbot</button>
-          <button class="twitch-subtab-btn" id="twitchSubTabBtn3" onclick="showTwitchSubTab(2)">Conexión</button>
+          <button class="twitch-subtab-btn active" id="twitchSubTabBtn0" onclick="showTwitchSubTab(0)">
+            <i class="fa fa-tv"></i> Stream
+          </button>
+          <button class="twitch-subtab-btn" id="twitchSubTabBtn1" onclick="showTwitchSubTab(1)">
+            <i class="fa fa-terminal"></i> Comandos
+          </button>
+          <button class="twitch-subtab-btn" id="twitchSubTabBtn2" onclick="showTwitchSubTab(2)">
+            <i class="fa fa-robot"></i> Nightbot
+          </button>
+          <button class="twitch-subtab-btn" id="twitchSubTabBtn3" onclick="showTwitchSubTab(3)">
+            <i class="fa fa-plug"></i> Conexión
+          </button>
         </div>
-        <div class="twitch-subtab-panel active" id="twitchSubTabPanel1">
+
+        <!-- Sub-tab 0: Stream viewer -->
+        <div class="twitch-subtab-panel active" id="twitchSubTabPanel0">
+          <div class="stream-viewer-bar">
+            <i class="fa fa-tv" style="color: #9147ff; font-size: 1.1em;"></i>
+            <input id="twitchStreamChannel" class="sb-input stream-channel-input"
+              placeholder="Nombre del canal (ej: summit1g)" />
+            <button class="sb-btn stream-load-btn" onclick="cargarStreamTwitch()">
+              <i class="fa fa-play"></i> Ver Stream
+            </button>
+            <button class="sb-btn stream-chat-toggle-btn" id="streamChatToggleBtn" onclick="toggleTwitchChat()" title="Mostrar/ocultar chat">
+              <i class="fa fa-comments"></i>
+            </button>
+          </div>
+          <div class="stream-embed-container" id="streamEmbedContainer">
+            <div class="stream-placeholder" id="streamPlaceholder">
+              <i class="fa fa-twitch" style="font-size:3em; color:#9147ff; margin-bottom:0.5em;"></i>
+              <p>Ingresa un canal y presiona <strong>Ver Stream</strong></p>
+            </div>
+            <div class="stream-webview-wrap" id="streamWebviewWrap" style="display:none;">
+              <webview id="twitchStreamWebview" class="stream-webview" allowpopups></webview>
+              <webview id="twitchChatWebview" class="stream-chat-webview" allowpopups></webview>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-tab 1: Comandos (antes era 0) -->
+        <div class="twitch-subtab-panel" id="twitchSubTabPanel1">
           <div class="panel-section">
             <h2>Comandos Rápidos de Twitch Bot</h2>
             <div class="form-row">
@@ -415,6 +461,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             </div>
           </div>
         </div>
+        <!-- Sub-tab 2: Nightbot (antes era 1) -->
         <div class="twitch-subtab-panel" id="twitchSubTabPanel2">
           <div class="panel-section">
             <h2>Nightbot: Setear Comando Custom</h2>
@@ -459,6 +506,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             </div>
           </div>
         </div>
+        <!-- Sub-tab 3: Conexión (antes era 2) -->
         <div class="twitch-subtab-panel" id="twitchSubTabPanel3">
           <div class="panel-section">
             <h2><img src="img/twitch.png" alt="Twitch"
@@ -589,6 +637,12 @@ Haz lo mismo para los otros métodos relacionados si no existen.
 
 
     <!-- Widget flotante con tabs para Start.gg y Challonge (único, sin duplicados) -->
+    <!-- Botón de colapso (visible cuando el widget está oculto) -->
+    <button id="widgetCollapseTab" class="widget-collapse-tab" onclick="toggleTournamentWidget()" title="Mostrar panel de torneos" style="display:none;">
+      <i class="fa fa-chevron-left"></i>
+      <span class="widget-collapse-label">Torneos</span>
+    </button>
+
     <div id="tournamentFloatingWidget"
       style="display:block; min-width:260px; max-width:360px; width:100%; margin-left:12px; box-shadow:0 0 16px #0005; position:static; height:100%; background:var(--bg-secondary); overflow-y:auto; z-index:1000; flex-shrink:0;">
       <div class="floating-widget-header" style="padding: 0; flex-direction: column; align-items: stretch;">
@@ -596,6 +650,9 @@ Haz lo mismo para los otros métodos relacionados si no existen.
           <div class="widget-title">
             <i class="fa fa-gamepad"></i> Torneos
           </div>
+          <button class="widget-toggle-btn" onclick="toggleTournamentWidget()" title="Colapsar panel">
+            <i class="fa fa-chevron-right"></i>
+          </button>
         </div>
         <nav style="display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-top: 10px;">
           <button class="tab-btn widget-tab-btn active" id="tabBtnStartggWidget" onclick="showTournamentWidgetTab(0)"
@@ -824,8 +881,27 @@ Haz lo mismo para los otros métodos relacionados si no existen.
         });
       });
       function cerrarTournamentWidget() {
-        document.getElementById('tournamentFloatingWidget').style.display = 'none';
+        toggleTournamentWidget();
       }
+
+      function toggleTournamentWidget() {
+        const widget = document.getElementById('tournamentFloatingWidget');
+        const collapseTab = document.getElementById('widgetCollapseTab');
+        const isVisible = widget.style.display !== 'none';
+        widget.style.display = isVisible ? 'none' : 'block';
+        collapseTab.style.display = isVisible ? 'flex' : 'none';
+        try { localStorage.setItem('widget-collapsed', isVisible ? '1' : '0'); } catch(_) {}
+      }
+
+      // Restaurar estado al cargar
+      window.addEventListener('DOMContentLoaded', function() {
+        try {
+          if (localStorage.getItem('widget-collapsed') === '1') {
+            document.getElementById('tournamentFloatingWidget').style.display = 'none';
+            document.getElementById('widgetCollapseTab').style.display = 'flex';
+          }
+        } catch(_) {}
+      });
       // === CHALLONGE WIDGET ===
       async function buscarChallongeDesdeWidget() {
         const input = document.getElementById('challongeTournamentInput');
@@ -1618,6 +1694,51 @@ Haz lo mismo para los otros métodos relacionados si no existen.
       if (btnAuthUrl) btnAuthUrl.onclick = generarNightbotAuthUrl;
       const btnCurl = document.querySelector('button[onclick="generarNightbotCurl()"]');
       if (btnCurl) btnCurl.onclick = generarNightbotCurl;
+    });
+  </script>
+
+  <script>
+    // ── Twitch Stream Viewer ──────────────────────────────────────────────────
+    let twitchChatVisible = true;
+
+    function cargarStreamTwitch() {
+      const channel = document.getElementById('twitchStreamChannel').value.trim();
+      if (!channel) return;
+
+      const streamWv = document.getElementById('twitchStreamWebview');
+      const chatWv   = document.getElementById('twitchChatWebview');
+      const wrap     = document.getElementById('streamWebviewWrap');
+      const placeholder = document.getElementById('streamPlaceholder');
+
+      streamWv.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&parent=localhost&muted=false`;
+      chatWv.src   = `https://www.twitch.tv/embed/${encodeURIComponent(channel)}/chat?parent=localhost&darkpopout`;
+
+      wrap.style.display = 'flex';
+      placeholder.style.display = 'none';
+
+      // Guardar canal en localStorage
+      try { localStorage.setItem('twitch-stream-channel', channel); } catch(_) {}
+    }
+
+    function toggleTwitchChat() {
+      twitchChatVisible = !twitchChatVisible;
+      const chatWv = document.getElementById('twitchChatWebview');
+      const btn    = document.getElementById('streamChatToggleBtn');
+      chatWv.style.display = twitchChatVisible ? '' : 'none';
+      btn.classList.toggle('active', twitchChatVisible);
+    }
+
+    // Restaurar canal guardado al abrir la tab
+    window.addEventListener('DOMContentLoaded', function() {
+      try {
+        const saved = localStorage.getItem('twitch-stream-channel');
+        if (saved) document.getElementById('twitchStreamChannel').value = saved;
+      } catch(_) {}
+
+      // Enter para cargar stream
+      document.getElementById('twitchStreamChannel').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') cargarStreamTwitch();
+      });
     });
   </script>
 

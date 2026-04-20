@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "test": "jest"
   },
   "dependencies": {
     "obs-websocket-js": "^5.0.6",
@@ -13,7 +14,8 @@
   },
   "devDependencies": {
     "electron": "^29.4.6",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "jest": "^30.3.0"
   },
   "build": {
     "appId": "com.tuproyecto.scoreboard",

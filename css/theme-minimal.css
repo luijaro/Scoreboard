@@ -65,61 +65,95 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* Tabs */
+/* ── Tab bar ─────────────────────────────────────────────────────────────── */
 #tabs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   background: var(--bg-secondary);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  padding: 6px;
+  padding: 6px 8px;
   border-radius: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+}
+
+.tab-actions-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tab-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .tab-btn {
   background: transparent;
   color: var(--text-secondary);
   border: none;
-  border-radius: 14px;
-  padding: 10px 16px;
+  border-radius: 12px;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
+  gap: 7px;
+  min-height: 38px;
+  white-space: nowrap;
 }
 
+/* Hide labels when space is tight — kept visible by default */
+.tab-label { font-size: 13px; }
+
 .tab-btn:hover {
-  background: var(--bg-tertiary);
+  background: rgba(255,255,255,0.07);
   color: var(--text-primary);
 }
 
 .tab-btn.active {
-  background: var(--bg-tertiary);
+  background: rgba(255,255,255,0.12);
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.25);
+}
+
+/* Icon-only buttons (theme + rutas) */
+.tab-btn-icon {
+  padding: 8px 10px;
+  min-width: 38px;
+  justify-content: center;
 }
 
 .tab-btn.rutas-tab {
-  margin-left: auto;
-  color: var(--warning-color);
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
-.tab-btn.rutas-tab:hover, .tab-btn.rutas-tab.active {
-  background: rgba(255, 159, 10, 0.1);
+.tab-btn.rutas-tab:hover {
+  opacity: 1;
   color: var(--warning-color);
+  background: rgba(255, 159, 10, 0.08);
+}
+.tab-btn.rutas-tab.active {
+  color: var(--warning-color);
+  background: rgba(255, 159, 10, 0.12);
+  opacity: 1;
 }
 
 #tabBtnTheme {
-  color: var(--primary-color);
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
+#tabBtnTheme:hover { opacity: 1; color: var(--primary-color); background: rgba(10,132,255,0.08); }
 
 .tab-panel {
   display: none;
@@ -402,14 +436,15 @@ select option {
 .btn-success { background: var(--success-color) !important; color: #000 !important; }
 .btn-secondary { background: var(--primary-color) !important; color: white !important; }
 
-/* Sub Tabs */
+/* ── Sub Tabs (Challonge + Twitch) ───────────────────────────────────────── */
 .sub-tabs, .twitch-subtabs {
   display: flex;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 6px;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 5px;
   border-radius: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 .sub-tab-btn, .twitch-subtab-btn {
@@ -417,21 +452,159 @@ select option {
   background: transparent;
   color: var(--text-secondary);
   border: none;
-  padding: 10px;
+  padding: 8px 12px;
   border-radius: 10px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+}
+
+.sub-tab-btn:hover, .twitch-subtab-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-primary);
 }
 
 .sub-tab-btn.active, .twitch-subtab-btn.active {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.25);
 }
 
 .sub-tab-panel, .twitch-subtab-panel { display: none; }
 .sub-tab-panel.active, .twitch-subtab-panel.active { display: block; animation: fadeScale 0.3s; }
+
+/* ── Widget collapse tab ─────────────────────────────────────────────────── */
+.widget-collapse-tab {
+  display: none; /* shown via JS */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 28px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 12px 0;
+  transition: background 0.2s, color 0.2s;
+  height: 100%;
+}
+
+.widget-collapse-tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.widget-collapse-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+/* app-container se expande cuando el widget está oculto */
+.main-flex-app .app-container {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Twitch Stream Viewer ────────────────────────────────────────────────── */
+.twitch-subtab-panel#twitchSubTabPanel0 {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+.twitch-subtab-panel#twitchSubTabPanel0.active {
+  display: flex;
+}
+
+.stream-viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.stream-channel-input {
+  flex: 1;
+  max-width: 280px;
+}
+
+.stream-load-btn {
+  background: #9147ff;
+  color: #fff;
+  border: none;
+  flex-shrink: 0;
+}
+.stream-load-btn:hover { background: #772ce8; }
+
+.stream-chat-toggle-btn {
+  flex-shrink: 0;
+  width: 38px;
+  padding: 8px;
+  justify-content: center;
+}
+.stream-chat-toggle-btn.active {
+  background: rgba(145,71,255,0.25);
+  color: #9147ff;
+}
+
+.stream-embed-container {
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-color);
+}
+
+.stream-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  color: var(--text-secondary);
+  gap: 8px;
+}
+
+.stream-webview-wrap {
+  display: flex;
+  height: 100%;
+  min-height: 300px;
+  gap: 0;
+}
+
+.stream-webview {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  border-radius: 12px 0 0 12px;
+}
+
+.stream-chat-webview {
+  width: 300px;
+  flex-shrink: 0;
+  height: 100%;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  border-radius: 0 12px 12px 0;
+}
 
 .widget-tab-panel { display: none; }
 .widget-tab-panel.active { display: block; animation: fadeScale 0.3s; }
