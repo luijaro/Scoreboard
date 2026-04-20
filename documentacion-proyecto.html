@@ -498,6 +498,10 @@
         <a href="#tutorial">8. Tutorial completo</a>
         <a href="#tut-instalacion" class="sublink">Instalación</a>
         <a href="#tut-obs" class="sublink">Conectar OBS</a>
+        <a href="#overlays-lectura">8.1 Crear un Overlay HTML</a>
+        <a href="#overlay-individual" class="sublink">Opción A: archivo individual</a>
+        <a href="#overlay-state" class="sublink">Opción B: state.json directo</a>
+        <a href="#overlay-rutas" class="sublink">Rutas correctas</a>
         <a href="#comandos">9. Comandos útiles</a>
         <a href="#problemas">10. Problemas comunes</a>
         <a href="#mejoras">11. Mejoras a futuro</a>
@@ -832,6 +836,155 @@ npm start
 
 # Empaqueta y buildea todo el proyecto en modo release para portable (electron-builder)
 npm run dist</code></pre>
+        </div>
+      </section>
+
+      <section id="overlays-lectura">
+        <h2>8.1 Crear un Overlay HTML que lea datos de la app</h2>
+        <p>
+          Los overlays son archivos HTML que OBS carga como <strong>Browser Source</strong>.
+          Su única responsabilidad es leer un JSON local y renderizar los datos.
+          La app escribe ese JSON cada vez que el usuario guarda cambios.
+        </p>
+        <p class="text-warn">
+          <strong>Regla de oro:</strong> el overlay NUNCA escribe datos. Solo lee en polling (setInterval).
+        </p>
+
+        <h3 id="overlay-individual">Opción A — Leer el archivo individual (side-write)</h3>
+        <p>
+          Para cada sección existe un archivo JSON independiente en
+          <code>Documentos/js/&lt;sección&gt;.json</code>
+          que la app actualiza automáticamente al guardar.
+          Es la opción más sencilla: el overlay apunta a ese archivo y solo trabaja con los datos
+          de su propia sección.
+        </p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyContext(this)">Copy</button>
+<pre><code>// scoreboard-overlay.js — patrón base
+const JSON_PATH = 'C:/Users/TU_USUARIO/Documents/js/scoreboard.json';
+// Para casters: .../Documents/js/casters.json
+// Para top8:    .../Documents/js/top8.json
+// Para timer:   .../Documents/js/timer.json
+
+let lastHash = '';
+
+function updateOverlay() {
+  fetch(JSON_PATH + '?t=' + Date.now())   // ?t= evita caché del navegador
+    .then(r => r.json())
+    .then(data => {
+      const hash = JSON.stringify(data);
+      if (hash === lastHash) return;       // sin cambios, no re-renderiza
+      lastHash = hash;
+      renderScoreboard(data);             // tu función que escribe en el DOM
+    })
+    .catch(() => {});                     // silencia errores de red en OBS
+}
+
+updateOverlay();
+setInterval(updateOverlay, 2000);         // polling cada 2 segundos</code></pre>
+        </div>
+
+        <h3 id="overlay-state">Opción B — Leer state.json y extraer la sección</h3>
+        <p>
+          Si prefieres un solo punto de lectura para todos los overlays, apunta a
+          <code>state.json</code> y accede a <code>data.scoreboard</code>,
+          <code>data.casters</code>, etc.
+        </p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyContext(this)">Copy</button>
+<pre><code>// overlay-genérico.js — lee state.json completo
+const STATE_PATH = 'C:/Users/TU_USUARIO/Documents/js/state.json';
+const SECCION    = 'scoreboard';  // cambia a 'casters', 'top8', 'timer', 'bracket'
+
+let lastHash = '';
+
+function updateOverlay() {
+  fetch(STATE_PATH + '?t=' + Date.now())
+    .then(r => r.json())
+    .then(state => {
+      const data = state[SECCION] || {};
+      const hash = JSON.stringify(data);
+      if (hash === lastHash) return;
+      lastHash = hash;
+      render(data);
+    })
+    .catch(() => {});
+}
+
+updateOverlay();
+setInterval(updateOverlay, 2000);</code></pre>
+        </div>
+
+        <h3 id="overlay-rutas">Rutas correctas según el overlay</h3>
+        <p>
+          La ubicación física de los archivos depende del OS. La app siempre escribe en
+          <code>app.getPath('documents') + '/js/'</code> a menos que se haya sobreescrito
+          la ruta en <code>scoreboard-config.json</code>.
+        </p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sección</th>
+                <th>Ruta por defecto (Windows)</th>
+                <th>Variable en overlay</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>scoreboard</code></td>
+                <td><code>C:/Users/&lt;user&gt;/Documents/js/scoreboard.json</code></td>
+                <td><code>data.player1, data.score1 …</code></td>
+              </tr>
+              <tr>
+                <td><code>casters</code></td>
+                <td><code>C:/Users/&lt;user&gt;/Documents/js/casters.json</code></td>
+                <td><code>data.comentaristas[0].nombre …</code></td>
+              </tr>
+              <tr>
+                <td><code>top8</code></td>
+                <td><code>C:/Users/&lt;user&gt;/Documents/js/top8.json</code></td>
+                <td><code>data.players[n] …</code></td>
+              </tr>
+              <tr>
+                <td><code>timer</code></td>
+                <td><code>C:/Users/&lt;user&gt;/Documents/js/timer.json</code></td>
+                <td><code>data.timerEndTimestamp …</code></td>
+              </tr>
+              <tr>
+                <td><code>bracket</code></td>
+                <td><code>&lt;raíz app&gt;/example/json/bracket.json</code></td>
+                <td><code>data.players, data.matches …</code></td>
+              </tr>
+              <tr>
+                <td><em>todo</em></td>
+                <td><code>C:/Users/&lt;user&gt;/Documents/js/state.json</code></td>
+                <td><code>state.scoreboard, state.casters …</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--warn); margin-top: 1.5rem;">
+          <h3 style="margin-top:0">⚠️ OBS y rutas locales</h3>
+          <p>
+            OBS bloquea <code>fetch()</code> a rutas <code>file:///</code> por seguridad.
+            Tienes dos alternativas para que el overlay lea los archivos correctamente:
+          </p>
+          <ol>
+            <li>
+              <strong>Activar "Acceso a archivos locales"</strong> en la configuración de la
+              Browser Source de OBS (casilla <em>"Allow access to local files"</em>).
+              Con esto <code>fetch('C:/...')</code> funciona sin cambios.
+            </li>
+            <li>
+              <strong>Servir los archivos con el servidor HTTP de la app.</strong>
+              La app expone <code>http://localhost:3001</code>; si se añade un endpoint
+              <code>GET /state</code> o <code>GET /state/:seccion</code>, el overlay puede
+              hacer <code>fetch('http://localhost:3001/state/scoreboard')</code> sin
+              necesitar permisos especiales en OBS.
+            </li>
+          </ol>
         </div>
       </section>
 
