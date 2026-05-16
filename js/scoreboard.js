@@ -812,8 +812,8 @@ function getScoreboardData() {
     event: event,
     round: round,
     fase_original: window.currentFaseOriginal || '',
-    country1: '',
-    country2: '',
+    country1: document.getElementById('p1FlagSelect') ? document.getElementById('p1FlagSelect').value : '',
+    country2: document.getElementById('p2FlagSelect') ? document.getElementById('p2FlagSelect').value : '',
     // temporizador: temporizador, // Eliminado
     // comentaristas: comentaristas // Eliminado
   };
