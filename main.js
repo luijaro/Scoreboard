@@ -1635,12 +1635,20 @@ ipcMain.handle('leer-personajes-txt', async (event) => {
 });
 
 ipcMain.handle('leer-usuarios-txt', async (event) => {
-  let config = {};
-  if (fs.existsSync(configFile)) {
-    try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+  // Primero intenta leer desde la carpeta raíz del proyecto
+  const projectPath = path.join(process.cwd(), 'usuarios.txt');
+  let rutaTxt = projectPath;
+  
+  // Si no existe en la carpeta raíz, intenta desde la ruta configurada
+  if (!fs.existsSync(projectPath)) {
+    let config = {};
+    if (fs.existsSync(configFile)) {
+      try { config = JSON.parse(fs.readFileSync(configFile, 'utf8')); } catch (e) { }
+    }
+    const rutas = config.rutas || {};
+    rutaTxt = rutas.usuarios;
   }
-  const rutas = config.rutas || {};
-  const rutaTxt = rutas.usuarios;
+  
   if (!rutaTxt || !fs.existsSync(rutaTxt)) return { ok: false, error: 'No se encontró el archivo de usuarios.' };
   try {
     const contenido = fs.readFileSync(rutaTxt, 'utf8');
