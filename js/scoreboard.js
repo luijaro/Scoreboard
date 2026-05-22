@@ -442,6 +442,7 @@ async function guardarComentaristas() {
 let obsEscenas = [];
 window.ipcRenderer = require('electron').ipcRenderer;
 let ultimoTorneoMatches = null; // <-- Declaración global
+window.scoreboardGameApplied = false;
 
 (async function cargarScoreboardAlAbrir() {
   const res = await ipcRenderer.invoke('load-json', 'scoreboard'); // Carga explícita scoreboard
@@ -454,12 +455,23 @@ let ultimoTorneoMatches = null; // <-- Declaración global
     if (typeof d.score2 === "number") document.getElementById('p2Score').textContent = d.score2;
     if (d.tag1) document.getElementById('p1TagInput').value = d.tag1;
     if (d.tag2) document.getElementById('p2TagInput').value = d.tag2;
-    if (d.char1) document.getElementById('p1Char').value = d.char1;
-    if (d.char2) document.getElementById('p2Char').value = d.char2;
-    if (d.game) document.getElementById('gameSel').value = d.game;
+    if (d.char1 && document.getElementById('p1CharSelect')) document.getElementById('p1CharSelect').value = d.char1;
+    if (d.char2 && document.getElementById('p2CharSelect')) document.getElementById('p2CharSelect').value = d.char2;
+    const savedGame = localStorage.getItem('scoreboard-last-game') || '';
+    const gameToRestore = d.game || savedGame;
+    if (gameToRestore) document.getElementById('gameSel').value = gameToRestore;
     if (d.event) document.getElementById('sbEvent').textContent = d.event;
     if (d.round) document.getElementById('sbRound').value = d.round;
     if (typeof updateVisual === "function") updateVisual();
+
+    if (gameToRestore && typeof cambiarJuego === 'function') {
+      window.scoreboardGameApplied = true;
+      await cambiarJuego();
+    }
+
+    if (d.game) {
+      localStorage.setItem('scoreboard-last-game', d.game);
+    }
 
     // Cargar comentaristas SEPARADO para mostrarlos en el scoreboard
     const resCasters = await ipcRenderer.invoke('load-json', 'casters');
@@ -495,7 +507,20 @@ document.addEventListener('DOMContentLoaded', function () {
   // showChallongeSubTab(0); // No necesario hasta que se acceda a la pestaña
 });
 
-window.addEventListener('DOMContentLoaded', cambiarJuego);
+window.addEventListener('DOMContentLoaded', () => {
+  const gameSelect = document.getElementById('gameSel');
+  if (window.scoreboardGameApplied) return;
+
+  const savedGame = localStorage.getItem('scoreboard-last-game') || '';
+  if (gameSelect && !gameSelect.value && savedGame) {
+    gameSelect.value = savedGame;
+  }
+
+  if (gameSelect && gameSelect.value) {
+    window.scoreboardGameApplied = true;
+    cambiarJuego();
+  }
+});
 
 // ================================
 //           TABS
@@ -696,16 +721,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function updateVisual() {
   // Actualizar tag debajo del score
-  document.getElementById('p1TagDisplay').textContent = document.getElementById('p1TagInput').value;
-  document.getElementById('p2TagDisplay').textContent = document.getElementById('p2TagInput').value;
+  const p1TagValue = document.getElementById('p1TagInput').value;
+  const p2TagValue = document.getElementById('p2TagInput').value;
+  document.getElementById('p1TagDisplay').textContent = p1TagValue;
+  document.getElementById('p2TagDisplay').textContent = p2TagValue;
 
   // Actualizar fila de tags y nombres debajo del score
   const tag1 = document.getElementById('p1TagInput').value;
   const tag2 = document.getElementById('p2TagInput').value;
   const name1 = document.getElementById('p1NameInput').value;
   const name2 = document.getElementById('p2NameInput').value;
-  if (document.getElementById('sbTagName1')) document.getElementById('sbTagName1').textContent = tag1 || 'TAG1';
-  if (document.getElementById('sbTagName2')) document.getElementById('sbTagName2').textContent = tag2 || 'TAG2';
+  if (document.getElementById('sbTagName1')) document.getElementById('sbTagName1').textContent = tag1 || '';
+  if (document.getElementById('sbTagName2')) document.getElementById('sbTagName2').textContent = tag2 || '';
   if (document.getElementById('sbPlayerName1')) document.getElementById('sbPlayerName1').textContent = name1 || 'Player1';
   if (document.getElementById('sbPlayerName2')) document.getElementById('sbPlayerName2').textContent = name2 || 'Player2';
   // Banderas removidas del UI; no actualizar
@@ -865,6 +892,17 @@ let imgPersonajes = {};
 
 async function cambiarJuego() {
   const juegoFolder = document.getElementById('gameSel').value;
+  const selectedChars = {
+    p1Char: document.getElementById('p1CharSelect') ? document.getElementById('p1CharSelect').value : '',
+    p2Char: document.getElementById('p2CharSelect') ? document.getElementById('p2CharSelect').value : '',
+  };
+  const selectedTop8Chars = [];
+  for (let i = 0; i < 8; ++i) {
+    const el = document.getElementById('top8char' + i);
+    selectedTop8Chars[i] = el ? el.value : '';
+  }
+
+  localStorage.setItem('scoreboard-last-game', juegoFolder);
 
   // Mostrar/ocultar selectores de Moon para MBAACC
   if (typeof toggleMoonSelectors === 'function') {
@@ -880,6 +918,12 @@ async function cambiarJuego() {
     llenarSelectPersonajes('p1Char');
     llenarSelectPersonajes('p2Char');
     for (let i = 0; i < 8; ++i) llenarSelectPersonajes('top8char' + i);
+    if (document.getElementById('p1Char')) document.getElementById('p1Char').value = selectedChars.p1Char;
+    if (document.getElementById('p2Char')) document.getElementById('p2Char').value = selectedChars.p2Char;
+    for (let i = 0; i < 8; ++i) {
+      const select = document.getElementById('top8char' + i);
+      if (select) select.value = selectedTop8Chars[i];
+    }
     updateVisual();
   } else {
     listaPersonajes = [];
@@ -887,6 +931,12 @@ async function cambiarJuego() {
     llenarSelectPersonajes('p1Char');
     llenarSelectPersonajes('p2Char');
     for (let i = 0; i < 8; ++i) llenarSelectPersonajes('top8char' + i);
+    if (document.getElementById('p1Char')) document.getElementById('p1Char').value = selectedChars.p1Char;
+    if (document.getElementById('p2Char')) document.getElementById('p2Char').value = selectedChars.p2Char;
+    for (let i = 0; i < 8; ++i) {
+      const select = document.getElementById('top8char' + i);
+      if (select) select.value = selectedTop8Chars[i];
+    }
     updateVisual();
   }
 }

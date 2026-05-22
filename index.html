@@ -78,7 +78,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
               <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
 
                 <input class="sb-input sb-player-name sb-overlay-input-strong" id="p1NameInput" value="Jugador 1" />
-                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p1TagInput" value="Team" />
+                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p1TagInput" value="" placeholder="Team" />
                 <select class="sb-dropdown sb-flag-select" id="p1FlagSelect">
                   <option value="cl" selected>Chile</option>
                   <option value="ar">Argentina</option>
@@ -126,8 +126,8 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             </div>
             <div style="display: flex; justify-content: center; margin-bottom: 8px;">
               <select id="gameSel" class="game-select" onchange="cambiarJuego()" required>
-                <option value="" disabled hidden>Selecciona un juego</option>
-                <option value="UNI2" selected>Under Night In-Birth II [Sys:Celes]</option>
+                <option value="" disabled hidden selected>Selecciona un juego</option>
+                <option value="UNI2">Under Night In-Birth II [Sys:Celes]</option>
                 <option value="VSAV">Vampire Savior (Darkstalkers 3)</option>
                 <option value="BBCF">BlazBlue: Central Fiction</option>
                 <option value="COTW">Fatal Fury: City of the Wolves</option>
@@ -229,7 +229,7 @@ Haz lo mismo para los otros métodos relacionados si no existen.
             <div class="sb-side-content">
               <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
                 <input class="sb-input sb-player-name sb-overlay-input-strong" id="p2NameInput" value="Jugador 2" />
-                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p2TagInput" value="Team" />
+                <input class="sb-input sb-player-tag sb-overlay-input-light" id="p2TagInput" value="" placeholder="Team" />
                 <select class="sb-dropdown sb-flag-select" id="p2FlagSelect">
                   <option value="cl" selected>Chile</option>
                   <option value="ar">Argentina</option>

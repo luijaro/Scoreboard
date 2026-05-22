@@ -85,6 +85,27 @@ function createWindow() {
     //mainWindow.webContents.openDevTools();
   });
 
+  let savingBeforeClose = false;
+
+  mainWindow.on('close', async (event) => {
+    if (savingBeforeClose || mainWindow.isDestroyed()) return;
+
+    event.preventDefault();
+    savingBeforeClose = true;
+
+    try {
+      await mainWindow.webContents.executeJavaScript(
+        'typeof guardarScoreboard === "function" ? guardarScoreboard() : Promise.resolve()'
+      );
+    } catch (error) {
+      console.error('[Main] Error al guardar antes de cerrar:', error);
+    }
+
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.close();
+    }
+  });
+
   // Limpiar la referencia cuando se cierre la ventana
   mainWindow.on('closed', () => {
     mainWindow = null;
