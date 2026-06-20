@@ -462,6 +462,7 @@ window.scoreboardGameApplied = false;
     if (gameToRestore) document.getElementById('gameSel').value = gameToRestore;
     if (d.event) document.getElementById('sbEvent').textContent = d.event;
     if (d.round) document.getElementById('sbRound').value = d.round;
+    window.currentEventText = d.event || '';
     if (typeof updateVisual === "function") updateVisual();
 
     if (gameToRestore && typeof cambiarJuego === 'function') {
@@ -822,7 +823,12 @@ function getScoreboardData() {
   const gameName = gameNames[game] || game;
 
   // Generar event como "nombre del juego - ronda"
-  const event = round ? `${gameName} - ${round}` : gameName;
+  const eventText = document.getElementById('sbEvent') ? document.getElementById('sbEvent').textContent.trim() : '';
+  const event = eventText || (round ? `${gameName} - ${round}` : gameName);
+
+  if (document.getElementById('sbEvent')) {
+    document.getElementById('sbEvent').textContent = event;
+  }
 
   return {
     player1: document.getElementById('p1NameInput').value,
@@ -836,6 +842,7 @@ function getScoreboardData() {
     moon1: game === 'MBAACC' ? (document.getElementById('p1MoonSelect')?.value || '') : '',
     moon2: game === 'MBAACC' ? (document.getElementById('p2MoonSelect')?.value || '') : '',
     game: game,
+    gameName: gameName,
     event: event,
     round: round,
     fase_original: window.currentFaseOriginal || '',
